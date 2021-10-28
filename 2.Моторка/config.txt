@@ -1,0 +1,5 @@
+inverse 0
+fullscreen 0
+round 3
+width 1024
+height 1024
