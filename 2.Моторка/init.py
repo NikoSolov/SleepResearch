@@ -4,20 +4,29 @@ if not(os.path.exists("log_img")):
     os.mkdir("log_img")
 if not(os.path.exists("log_txt")):
     os.mkdir("log_txt")
+configstd={"fullscreen": 0, "inverse": 0, "round": 20, "width": 1024, "height": 768, "possible": 200, "freq": 0.25}
 
 if not(os.path.exists("config.txt")):
-    config={"fullscreen": 1, "inverse": 1, "round": 20, "width": 1024, "ratio": "4/3"}
+    config=configstd
     f=open("config.txt", "w")
     for i in config:
         f.write(str(i)+" "+str(config[i])+"\n")
     f.close()
 else:
     f=open("config.txt", "r")
-    config={i.split(" ")[0]:int(i.split(" ")[1]) for i in f}
-    print(config)
+    config={i.split(" ")[0]:float(i.split(" ")[1]) for i in f}
+    flag=True
+    for i in list(configstd.keys()):
+        if not(i in list(config.keys())):
+            a={i:configstd.get(i)}
+            config.update(a)
 
-width=config["width"]
-height=config["height"]
+
+    #print(config)
+
+width=int(config["width"])
+height=int(config["height"])
+posible=int(config["possible"])
 class ball():
     x=0
     r=40
@@ -39,3 +48,4 @@ not_g=0
 s=0
 s2=0
 ri=0
+tim=0
