@@ -1,0 +1,9 @@
+Раунд	Пример	Оценка_примера	Ответил
+1	26+8=30	False		Missed
+2	21+3=35	False		Missed
+3	39+2=41	True		False
+4	21+9=10	False		True
+5	48+3=51	True		False
+Задачи			Ответил
+True	False		T->T	F->F	T->F	F->T	Missed
+2	3		0	0	2	1	2

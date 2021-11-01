@@ -10,6 +10,8 @@ root=pg.display.set_mode((width,height))
 c=20
 r=w=p_r=p_w=s_r=s_w=0
 
+f=open("gen.txt", "r")
+
 new=True
 while game:
     for event in pg.event.get():
