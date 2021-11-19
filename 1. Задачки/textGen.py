@@ -15,4 +15,4 @@ def Gen():
         c=randint(0,59)
     text=str(a)+"+"+str(b)+"="+str(c)
     textSur = myfont.render(text, True, (255, 255, 255))
-    return textSur, res
+    return textSur, res, text

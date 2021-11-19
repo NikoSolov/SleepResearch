@@ -1,13 +1,17 @@
 import pygame as pg
 from textGen import Gen
 import time
-
+#----------------------------
+import imageio
+images = []
+vid=0
+#---------------------------
 pg.init()
 game=True
 clock=pg.time.Clock()
 width,height=1024,768
 root=pg.display.set_mode((width,height))
-c=20
+c=5
 r=w=p_r=p_w=s_r=s_w=0
 
 f=open("gen.txt", "r")
@@ -29,8 +33,8 @@ while game:
         if c<0: break
         a=time.time()
         new=False
-        
-        textSur, res=Gen()
+        d=Gen()
+        textSur, res=d[0], bool(d[1])
         if res==True: r+=1
         else: w+=1
 
@@ -40,11 +44,16 @@ while game:
         new=True
 
     root.blit(textSur,((width-textSur.get_width())/2,(height-textSur.get_height())/2))
-    clock.tick(60)
+#    ---------------------------
+    pg.image.save(root, "vid/"+str(vid)+".png")
+    images.append(imageio.imread("vid/"+str(vid)+".png"))
+    vid+=1
+#    ----------------------
+#    clock.tick(60)
     pg.display.update()
 pg.quit()
-
-f=open("log.txt", "w")
+imageio.mimsave('vid/movie.gif', images)
+f=open("log3.txt", "w")
 f.write("Задачи\t\t\tНажатые\t\t\tПропущенные\nВерные\tНеверные\tВерные\tНеверные\tВерные\tНеверные\n")
 f.write(str(r)+"\t"+str(w)+"\t\t"+str(p_r)+"\t"+str(p_w)+"\t\t"+str(s_r)+"\t"+str(s_w))
 f.close()

@@ -1,30 +1,42 @@
 import pygame as pg
 import os
 
-configstd={"fullscreen": 0, "inverse": 0, "round": 20, "width": 1024, "height": 768, "sensivity": 40, "time":5}
+configstd={"fullscreen": 0, "inverse": 0, "round": 20, "width": 1024, "height": 768, "sensivity": 20, "time":5, "file": "None"}
+config={}
+if not(os.path.exists("blocks")):
+    os.mkdir("blocks")
 
 if not(os.path.exists("config.txt")):
     config=configstd
     f=open("config.txt", "w")
-    for i in config:
-        f.write(str(i)+" "+str(config[i])+"\n")
+    a=list(configstd.keys())
+    f.write(str(a[0])+" "+str(config[a[0]]))
+    for i in range(1,len(a)):
+        f.write("\n"+str(a[i])+" "+str(config[a[i]]))
     f.close()
 else:
     f=open("config.txt", "r")
-    config={i.split(" ")[0]:int(i.split(" ")[1]) for i in f}
+    for i in f:
+        try:
+            config.update({i.split(" ")[0]:i.split(" ")[1]})
+        except:
+            pass
+    print(config)
     flag=True
     for i in list(configstd.keys()):
         if not(i in list(config.keys())):
             a={i:configstd.get(i)}
             config.update(a)
+    f.close()
+    print(config)
             
-rounds=config["round"]
+rounds=int(config["round"])
 roundi=0
 r=w=TT=FF=TF=FT=missed=0
 sqr=200
 red=0
 green=0
-width,height=config["width"], config["height"]
+width,height=int(config["width"]), int(config["height"])
 log=[]
 answer=True
 class sqr():

@@ -3,30 +3,48 @@ import time
 from init import *
 from textGen import Gen
 
+#----------------------------
+#import imageio
+#images = []
+#vid=0
+#---------------------------
+
 pg.init()
 pg.font.init()
 myfont = pg.font.SysFont('Comic Sans MS', 150)
-
 game=True
 clock=pg.time.Clock()
 root=pg.display.set_mode((width,height))
 fill=0
 fillstep=1
 new=True
-
-fin=open("gen3.txt", "r")
-
-
-
+file_not=False
+if config["file"]!="None":
+    try:
+        fin=open("blocks/"+config["file"]+".txt", "r")
+        #print(fin)
+    except Exception as e:
+        #print(e)
+        file_not=True
+        
 while game:
     if new==True:
         roundi+=1
         if roundi>rounds: break
         a=time.time()
         new=False
-        d=fin.readline().split()
-        text = d[0] 
-        res = bool(int(d[1]))
+        if config["file"]!="None" and file_not==False:
+            d=fin.readline()
+            #print(d)
+            if d=="": break
+            d=d.split()
+            text = d[0] 
+            res = bool(int(d[1]))
+        else:
+            #print("Gen")
+            d=Gen()
+            text = d[2] 
+            res = bool(int(d[1]))
         if res==True: r+=1
         else: w+=1
 
@@ -34,10 +52,10 @@ while game:
         if event.type==pg.QUIT or (event.type==pg.KEYDOWN and event.key==pg.K_ESCAPE): game=False
         if event.type==pg.MOUSEWHEEL:
             if event.y>0:
-                good.fill-=event.y*config["sensivity"]
+                good.fill-=event.y*int(config["sensivity"])
                 bad.fill=0
             else:
-                bad.fill-=event.y*config["sensivity"]
+                bad.fill-=event.y*int(config["sensivity"])
                 good.fill=0
 
 
@@ -64,7 +82,7 @@ while game:
         new=True
 
 
-    if time.time()-a>config["time"]:
+    if time.time()-a>float(config["time"]):
         log.append([str(roundi),text,str(res),"Missed"])
         bad.fill=good.fill=0
         missed+=1
@@ -77,11 +95,18 @@ while game:
     good.draw(root)
     bad.draw(root)
     pg.display.update()
-#-----------------------------^
-
     clock.tick(60)
+#    ---------------------------
+#    pg.image.save(root, "vid/"+str(vid)+".png")
+#    images.append(imageio.imread("vid/"+str(vid)+".png"))
+#    vid+=1
+#    ----------------------
+#-----------------------------^
 pg.quit()
-fout=open("log2.txt", "w")
+
+
+#imageio.mimsave('vid/movie.gif', images)
+fout=open("log.txt", "w")
 fout.write("Раунд\tПример\tОценка_примера\tОтветил\n")
 for i in log:
     fout.write(i[0]+"\t"+i[1]+"\t"+i[2]+"\t\t"+i[3]+"\n")

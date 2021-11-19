@@ -2,6 +2,10 @@ import pygame as pg
 from random import randint, choice
 from init import *
 from time import time
+#----------------------------
+import imageio
+images = []
+#---------------------------
 
 pg.init()
 if config["fullscreen"]: root=pg.display.set_mode((width,height), pg.FULLSCREEN)
@@ -10,7 +14,7 @@ else: root=pg.display.set_mode((width,height))
 clock=pg.time.Clock()
 game=True
 photo=pg.Surface((width, height))
-
+vid=0
 while game:
     
     if new==True:
@@ -24,7 +28,7 @@ while game:
         new=False
         photo.fill((128,128,128))
         pg.draw.circle(photo, (0,0,0), (hole.x, hole.y), hole.r)
-        pg.draw.rect(photo, (255,0,0), (0,width-posible,posible, posible), width=2)
+        pg.draw.rect(photo, (255,0,0), (0,height-posible,posible, posible), width=2)
         s=0
         s2=0
 #-norm------------------------------------------------v
@@ -68,7 +72,12 @@ while game:
 #-------------------------------------------------------------------------------------------------------------------^
 
     pg.display.update()
-    clock.tick(60)
+#    ---------------------------
+    pg.image.save(root, "vid/"+str(vid)+".png")
+    images.append(imageio.imread("vid/"+str(vid)+".png"))
+    vid+=1
+#    ----------------------
+#    clock.tick(60)
 
 
     s+=(((ball.x+ball.r/2)-det_x)**2 + ((ball.y-ball.r/2)-det_y)**2)**(1/2)
@@ -88,8 +97,8 @@ while game:
         new=True
 
 
-
 pg.quit()
+imageio.mimsave('vid/movie.gif', images)
 f=open("main_log.txt", "w")
 f.write("Мыши:\tДобравшиеся\tПропавшие\n")
 f.write("\t"+str(g)+"\t\t"+str(not_g)+"\n")
