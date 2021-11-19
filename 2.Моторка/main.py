@@ -3,8 +3,8 @@ from random import randint, choice
 from init import *
 from time import time
 #----------------------------
-import imageio
-images = []
+#import imageio
+#images = []
 #---------------------------
 
 pg.init()
@@ -14,7 +14,7 @@ else: root=pg.display.set_mode((width,height))
 clock=pg.time.Clock()
 game=True
 photo=pg.Surface((width, height))
-vid=0
+#vid=0
 while game:
     
     if new==True:
@@ -73,11 +73,11 @@ while game:
 
     pg.display.update()
 #    ---------------------------
-    pg.image.save(root, "vid/"+str(vid)+".png")
-    images.append(imageio.imread("vid/"+str(vid)+".png"))
-    vid+=1
+#    pg.image.save(root, "vid/"+str(vid)+".png")
+#    images.append(imageio.imread("vid/"+str(vid)+".png"))
+#    vid+=1
 #    ----------------------
-#    clock.tick(60)
+    clock.tick(60)
 
 
     s+=(((ball.x+ball.r/2)-det_x)**2 + ((ball.y-ball.r/2)-det_y)**2)**(1/2)
@@ -98,7 +98,7 @@ while game:
 
 
 pg.quit()
-imageio.mimsave('vid/movie.gif', images)
+#imageio.mimsave('vid/movie.gif', images)
 f=open("main_log.txt", "w")
 f.write("Мыши:\tДобравшиеся\tПропавшие\n")
 f.write("\t"+str(g)+"\t\t"+str(not_g)+"\n")
