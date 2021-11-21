@@ -29,6 +29,14 @@ if config["file"]!="None":
         
 while game:
     if new==True:
+        root.fill((128,128,128))
+        pg.draw.circle(root, (255,255,255), (width//2, height//2), (10))
+        pg.display.update()
+
+        a=time.time()
+        while time.time()-a<float(config["dot_time"]):
+            pass
+
         roundi+=1
         if roundi>rounds: break
         a=time.time()

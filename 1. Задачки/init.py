@@ -1,34 +1,44 @@
 import pygame as pg
 import os
 
-configstd={"fullscreen": 0, "inverse": 0, "round": 20, "width": 1024, "height": 768, "sensivity": 20, "time":5, "file": "None"}
-config={}
 if not(os.path.exists("blocks")):
     os.mkdir("blocks")
 
+#=========> config init <==============#
+configstd={"fullscreen": 0, 
+            "inverse": 0, 
+            "round": 20, 
+            "width": 1024, 
+            "height": 768, 
+            "sensivity": 20, 
+            "time":5, 
+            "dot_time":0.5,
+            "file": "None"
+            }
+config={}
 if not(os.path.exists("config.txt")):
     config=configstd
     f=open("config.txt", "w")
-    a=list(configstd.keys())
-    f.write(str(a[0])+" "+str(config[a[0]]))
-    for i in range(1,len(a)):
-        f.write("\n"+str(a[i])+" "+str(config[a[i]]))
+    for i in config:
+        f.write(str(i)+" "+str(config[i])+"\n")
     f.close()
 else:
     f=open("config.txt", "r")
     for i in f:
         try:
-            config.update({i.split(" ")[0]:i.split(" ")[1]})
-        except:
+            if '\n' in i:
+                config.update({i.split(" ")[0]:i.split(" ")[1][:-1]}) 
+            else:
+                config.update({i.split(" ")[0]:i.split(" ")[1]}) 
+        except Exception as e:
             pass
-    print(config)
-    flag=True
-    for i in list(configstd.keys()):
-        if not(i in list(config.keys())):
-            a={i:configstd.get(i)}
-            config.update(a)
-    f.close()
-    print(config)
+    
+    for i in configstd.keys():
+        if not(i in config.keys()):
+            config.update({i:configstd.get(i)}) 
+#    print(config)    
+#====================================================#
+
             
 rounds=int(config["round"])
 roundi=0
