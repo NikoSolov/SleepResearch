@@ -4,8 +4,18 @@ if not(os.path.exists("log_img")):
     os.mkdir("log_img")
 if not(os.path.exists("log_txt")):
     os.mkdir("log_txt")
-configstd={"fullscreen": 0, "inverse": 0, "round": 20, "width": 1024, "height": 768, "possible": 200, "freq": 0.25}
 
+#========>config init<==========#
+configstd={"fullscreen": 0, 
+            "inverse": 0, 
+            "round": 20, 
+            "width": 1024, 
+            "height": 768, 
+            "possible": 200, 
+            "freq": 0.25, 
+            "radius_multiplier": 1.5}
+
+config={}
 if not(os.path.exists("config.txt")):
     config=configstd
     f=open("config.txt", "w")
@@ -14,19 +24,29 @@ if not(os.path.exists("config.txt")):
     f.close()
 else:
     f=open("config.txt", "r")
-    config={i.split(" ")[0]:float(i.split(" ")[1]) for i in f}
-    flag=True
-    for i in list(configstd.keys()):
-        if not(i in list(config.keys())):
-            a={i:configstd.get(i)}
-            config.update(a)
-
-
-    #print(config)
+    for i in f:
+        try:
+            if '\n' in i:
+                config.update({i.split(" ")[0]:i.split(" ")[1][:-1]}) 
+            else:
+                config.update({i.split(" ")[0]:i.split(" ")[1]}) 
+        except Exception as e:
+            pass
+    
+    for i in configstd.keys():
+        if not(i in config.keys()):
+            config.update({i:configstd.get(i)}) 
+#    print(config)    
+#====================================================#
 
 width=int(config["width"])
 height=int(config["height"])
 posible=int(config["possible"])
+coef=float(config["radius_multiplier"])
+
+
+
+
 class ball():
     x=0
     r=40

@@ -8,7 +8,7 @@ from time import time
 #---------------------------
 
 pg.init()
-if config["fullscreen"]: root=pg.display.set_mode((width,height), pg.FULLSCREEN)
+if int(config["fullscreen"]): root=pg.display.set_mode((width,height), pg.FULLSCREEN)
 else: root=pg.display.set_mode((width,height))
 
 clock=pg.time.Clock()
@@ -19,7 +19,7 @@ while game:
     
     if new==True:
         ri+=1
-        if ri>config["round"]: break
+        if ri>int(config["round"]): break
         f=open("log_txt/"+str(ri)+".txt", "w")
         f.write("Траектории | Разрешение: "+str(width)+"x"+str(height)+" | Частота в секундах: "+str(config["freq"])+"\n")
         f.write("Зеленая\t\tСиняя\n")
@@ -47,12 +47,12 @@ while game:
     for event in pg.event.get():
         if event.type==pg.QUIT or (event.type==pg.KEYDOWN and event.key==pg.K_ESCAPE): game=False
         if event.type==pg.MOUSEWHEEL and (ball.x>posible or ball.y<height-posible):
-            if config["inverse"]: ball.y+=event.y*20
+            if int(config["inverse"]): ball.y+=event.y*20
             else: ball.y-=event.y*20
 #-----------------------------------------------------------------------------------------------------------------v
 #    print((time()-tim))
     
-    if (time()-tim)>config["freq"]:
+    if (time()-tim)>float(config["freq"]):
         tim=time()
 #        print("check")
         f.write(str(int(ball.x+ball.r/2))+"\t"+str(int(ball.y-ball.r/2))+"\t"+str(int(path.x))+"\t"+str(int(path.y))+"\n")
@@ -85,7 +85,7 @@ while game:
 
 
     l=((ball.x-hole.x)**2+(ball.y-hole.y)**2)**(1/2)
-    flag=(l<=1.5*ball.r)
+    flag=(l<=coef*ball.r)
     if (ball.x+ball.r>width or ball.y+ball.r>height or ball.y-ball.r<0) or flag : 
         #pg.draw.circle(photo, (255,0,0), (ball.x, ball.y), ball.r)
         f.write(str(int(ball.x))+"\t"+str(int(ball.y))+"\t"+str(int(path.x))+"\t"+str(int(path.y))+"\n")
