@@ -1,8 +1,0 @@
-fullscreen 0
-inverse 0
-round 20
-width 1024
-height 768
-sensivity 20
-time 5
-file 1
