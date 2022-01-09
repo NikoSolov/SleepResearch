@@ -1,5 +1,9 @@
 import pygame as pg
 import os
+import numpy
+
+
+pg.mixer.init(44100,-16,2,512)
 
 if not(os.path.exists("blocks")):
     os.mkdir("blocks")
@@ -13,8 +17,15 @@ configstd={"fullscreen": 0,
             "sensivity": 20, 
             "time":5, 
             "dot_time":0.5,
-            "file": "None"
+            "file": "None",
+            "tone_play": 1,
+            "tone_rate": 440,
+            "tone_volume": 4096,
+            "tone_delay": 1.5,
+            "COM-Port": "COM21",
+            "COM-Rate": 115200
             }
+
 config={}
 if not(os.path.exists("config.txt")):
     config=configstd
@@ -69,7 +80,14 @@ class sqr():
 size=100
 good=sqr((width-size)/2, height/4-size/2, size, (0,255,0))
 bad=sqr((width-size)/2, height*(3/4)-size/2, size, (255,0,0))
-    
+
+arr = numpy.array([int(config["tone_volume"]) * numpy.sin(2.0 * numpy.pi * int(config["tone_rate"]) * x /44100) for x in range(0, 44100)]).astype(numpy.int16)
+arr2 = numpy.c_[arr,arr]
+sound = pg.sndarray.make_sound(arr2)
+
+time_code=serial.Serial(port=config["COM-Port"], baudrate=int(config["COM-Rate"]), timeout=.1)
+
+
 '''
     def draw(self, root):
         pg.draw.rect(root, self.color, (self.x, self.y, self.size, self.size), width=2)

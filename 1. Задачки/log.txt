@@ -1,24 +1,5 @@
 Раунд	Пример	Оценка_примера	Ответил
-1	48+5=53	True		True
-2	24+7=31	True		False
-3	28+0=38	False		False
-4	31+5=36	True		True
-5	49+5=22	False		False
-6	40+3=43	True		True
-7	17+0=19	False		False
-8	7+7=31	False		False
-9	24+4=38	False		False
-10	24+9=33	True		True
-11	11+3=36	False		False
-12	14+8=26	False		False
-13	36+0=29	False		Missed
-14	31+3=34	True		True
-15	13+1=14	True		True
-16	13+6=14	False		False
-17	34+2=36	True		True
-18	18+3=56	False		False
-19	47+8=21	False		False
-20	36+6=42	True		True
+1	13+7=20	True		True
 Задачи			Ответил
 True	False		T->T	F->F	T->F	F->T	Missed
-9	11		8	10	1	0	1
+2	0		1	0	0	0	0

@@ -2,6 +2,7 @@ import pygame as pg
 import time
 from init import *
 from textGen import Gen
+import serial
 
 #----------------------------
 #import imageio
@@ -19,6 +20,10 @@ fill=0
 fillstep=1
 new=True
 file_not=False
+dot_flag=True
+
+
+
 if config["file"]!="None":
     try:
         fin=open("blocks/"+config["file"]+".txt", "r")
@@ -28,19 +33,28 @@ if config["file"]!="None":
         file_not=True
         
 while game:
+
     if new==True:
         root.fill((128,128,128))
         pg.draw.circle(root, (255,255,255), (width//2, height//2), (10))
         pg.display.update()
 
+        if roundi==0 and int(config["tone_play"]): 
+            sound.play(0)
+            pg.time.delay(int(float(config["tone_delay"])*1000))
+            sound.stop()
         a=time.time()
+
+        dot_flag=True
         while time.time()-a<float(config["dot_time"]):
             pass
-
+#        dot_flag=False
         roundi+=1
         if roundi>rounds: break
         a=time.time()
         new=False
+        time_code.write(bytes("new"+str(roundi),'utf-8'))
+
         if config["file"]!="None" and file_not==False:
             d=fin.readline()
             #print(d)
@@ -65,6 +79,7 @@ while game:
             else:
                 bad.fill-=event.y*int(config["sensivity"])
                 good.fill=0
+        if dot_flag==True: bad.fill=0; good.fill=0; dot_flag=False
 
 
     if abs(good.fill)>size or abs(bad.fill)>size:
