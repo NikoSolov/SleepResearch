@@ -1,5 +1,5 @@
 import os
-
+import numpy
 if not(os.path.exists("log_img")):
     os.mkdir("log_img")
 if not(os.path.exists("log_txt")):
@@ -13,7 +13,15 @@ configstd={"fullscreen": 0,
             "height": 768, 
             "possible": 200, 
             "freq": 0.25, 
-            "radius_multiplier": 1.5}
+            "radius_multiplier": 1.5,
+            "tone_play": 1,
+            "tone_rate": 440,
+            "tone_volume": 4096,
+            "tone_delay": 1.5,
+            "tone_volume": 3000,
+            "COM-Port": "COM21",
+            "COM-Rate": 115200
+            }
 
 config={}
 if not(os.path.exists("config.txt")):
@@ -45,6 +53,11 @@ posible=int(config["possible"])
 coef=float(config["radius_multiplier"])
 
 
+arr = numpy.array([int(config["tone_volume"]) * numpy.sin(2.0 * numpy.pi * int(config["tone_rate"]) * x /44100) for x in range(0, 44100)]).astype(numpy.int16)
+arr2 = numpy.c_[arr,arr]
+sound = pg.sndarray.make_sound(arr2)
+
+time_code=serial.Serial(port=config["COM-Port"], baudrate=int(config["COM-Rate"]), timeout=.1)
 
 
 class ball():
