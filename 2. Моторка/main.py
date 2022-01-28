@@ -1,36 +1,24 @@
-import pygame as pg
-from random import randint, choice
 from init import *
-from time import time
-#----------------------------
-#import imageio
-#images = []
-#---------------------------
 
-pg.init()
-if int(config["fullscreen"]): root=pg.display.set_mode((width,height), pg.FULLSCREEN)
-else: root=pg.display.set_mode((width,height))
-
-clock=pg.time.Clock()
-game=True
-photo=pg.Surface((width, height))
-#vid=0
-while game:
+while main:
     
     if new==True:
         ri+=1
         if ri>int(config["round"]): break
-        f=open("log_txt/"+str(ri)+".txt", "w")
+        f=open("res/"+dir_name+"/log_txt/"+str(ri)+".txt", "w")
         f.write("Траектории | Разрешение: "+str(width)+"x"+str(height)+" | Частота в секундах: "+str(config["freq"])+"\n")
         f.write("Зеленая\t\tСиняя\n")
         f.write("x\ty\tx\ty\n")
-        tim=time()
+        tim=time.time()
         new=False
+        movement=False
+        if port_work: time_code.write(bytearray([2])) 
         photo.fill((128,128,128))
         pg.draw.circle(photo, (0,0,0), (hole.x, hole.y), hole.r)
         pg.draw.rect(photo, (255,0,0), (0,height-posible,posible, posible), width=2)
         s=0
         s2=0
+        
 #-norm------------------------------------------------v
         ball.x, ball.y=ball.r, height-ball.r
         path.x, path.y=ball.x+ball.r/2, ball.y-ball.r/2
@@ -45,15 +33,18 @@ while game:
 #-----------------------------------------------------^
 
     for event in pg.event.get():
-        if event.type==pg.QUIT or (event.type==pg.KEYDOWN and event.key==pg.K_ESCAPE): game=False
+        if event.type==pg.QUIT or (event.type==pg.KEYDOWN and event.key==pg.K_ESCAPE): 
+#            if port_work: time_code.write(bytearray([0])) 
+            main=False
         if event.type==pg.MOUSEWHEEL and (ball.x>posible or ball.y<height-posible):
+            movement=True
             if int(config["inverse"]): ball.y+=event.y*20
             else: ball.y-=event.y*20
 #-----------------------------------------------------------------------------------------------------------------v
 #    print((time()-tim))
     
-    if (time()-tim)>float(config["freq"]):
-        tim=time()
+    if (time.time()-tim)>float(config["freq"]):
+        tim=time.time()
 #        print("check")
         f.write(str(int(ball.x+ball.r/2))+"\t"+str(int(ball.y-ball.r/2))+"\t"+str(int(path.x))+"\t"+str(int(path.y))+"\n")
 
@@ -90,19 +81,23 @@ while game:
         #pg.draw.circle(photo, (255,0,0), (ball.x, ball.y), ball.r)
         f.write(str(int(ball.x))+"\t"+str(int(ball.y))+"\t"+str(int(path.x))+"\t"+str(int(path.y))+"\n")
         f.close()
-        pg.image.save(photo, "log_img/"+str(ri)+".png")      
-        if flag: g+=1
+        pg.image.save(photo, "res/"+dir_name+"/log_img/"+str(ri)+".png")
+        if flag:
+            if movement==False: a_g+=1; flag="Missed"
+            else: g+=1
         else: not_g+=1
-        a.append([flag, round(s), round(s2)])
+
+        a.append([flag, round(s), round(s2), int(ball.x), int(ball.y)])
         new=True
 
 
 pg.quit()
 #imageio.mimsave('vid/movie.gif', images)
-f=open("main_log.txt", "w")
-f.write("Мыши:\tДобравшиеся\tПропавшие\n")
-f.write("\t"+str(g)+"\t\t"+str(not_g)+"\n")
-f.write("Раунд\tПопал\tДлина:\tСиний\tЗеленый\tРазница\n")
+f=open("res/"+dir_name+"/main_log.txt", "w")
+f.write("Мыши:\tДобравшиеся\tПропавшие\tДобравшиеся сами\tРазрешение окна: "+str(width)+"x"+str(height)+"\n")
+f.write("\t"+str(g)+"\t\t"+str(not_g)+"\t\t"+str(a_g)+"\n")
+f.write("Раунд\tПопал\tДлина:\tСиний\tЗеленый\tРазница\tФин. координаты:\tx\ty\n")
+print(a)
 for i in range(len(a)):
-    f.write(str(i+1)+"\t"+str(a[i][0])+"\t\t"+str(a[i][1])+"\t"+str(a[i][2])+"\t"+str(a[i][1]-a[i][2])+"\n")
+    f.write(str(i+1)+"\t"+str(a[i][0])+"\t\t"+str(a[i][1])+"\t"+str(a[i][2])+"\t"+str(a[i][1]-a[i][2])+"\t\t\t\t"+str(a[i][3])+"\t"+str(a[i][4])+"\n")
 f.close()

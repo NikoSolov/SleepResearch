@@ -1,60 +1,28 @@
-import pygame as pg
-import time
 from init import *
-from textGen import Gen
-import serial
-
 #----------------------------
 #import imageio
 #images = []
 #vid=0
-#---------------------------
-
-pg.init()
-pg.font.init()
-myfont = pg.font.SysFont('Comic Sans MS', 150)
-game=True
-clock=pg.time.Clock()
-root=pg.display.set_mode((width,height))
-fill=0
-fillstep=1
-new=True
-file_not=False
-dot_flag=True
-
-
-
-if config["file"]!="None":
-    try:
-        fin=open("blocks/"+config["file"]+".txt", "r")
-        #print(fin)
-    except Exception as e:
-        #print(e)
-        file_not=True
-        
-while game:
+#---------------------------        
+while main:
 
     if new==True:
         root.fill((128,128,128))
         pg.draw.circle(root, (255,255,255), (width//2, height//2), (10))
         pg.display.update()
 
-        if roundi==0 and int(config["tone_play"]): 
-            sound.play(0)
-            pg.time.delay(int(float(config["tone_delay"])*1000))
-            sound.stop()
         a=time.time()
-
-        dot_flag=True
-        while time.time()-a<float(config["dot_time"]):
-            pass
-#        dot_flag=False
+#        dot_flag=True
+        pg.time.wait(int(float(config["dot_time"])*1000))
         roundi+=1
-        if roundi>rounds: break
+        if roundi>int(config["round"]): break
         a=time.time()
         new=False
-        time_code.write(bytes("new"+str(roundi),'utf-8'))
 
+        pg.event.clear()
+
+        if port_work: time_code.write(bytearray([3]))
+        
         if config["file"]!="None" and file_not==False:
             d=fin.readline()
             #print(d)
@@ -70,8 +38,13 @@ while game:
         if res==True: r+=1
         else: w+=1
 
+
+
+
     for event in pg.event.get():
-        if event.type==pg.QUIT or (event.type==pg.KEYDOWN and event.key==pg.K_ESCAPE): game=False
+        if event.type==pg.QUIT or (event.type==pg.KEYDOWN and event.key==pg.K_ESCAPE): 
+            #if port: time_code.write(bytearray([0]))
+            main=False
         if event.type==pg.MOUSEWHEEL:
             if event.y>0:
                 good.fill-=event.y*int(config["sensivity"])
@@ -79,7 +52,6 @@ while game:
             else:
                 bad.fill-=event.y*int(config["sensivity"])
                 good.fill=0
-        if dot_flag==True: bad.fill=0; good.fill=0; dot_flag=False
 
 
     if abs(good.fill)>size or abs(bad.fill)>size:
@@ -106,6 +78,7 @@ while game:
 
 
     if time.time()-a>float(config["time"]):
+#        time_code.write(bytearray([3,0]))
         log.append([str(roundi),text,str(res),"Missed"])
         bad.fill=good.fill=0
         missed+=1
@@ -129,7 +102,7 @@ pg.quit()
 
 
 #imageio.mimsave('vid/movie.gif', images)
-fout=open("log.txt", "w")
+fout=open("res/"+file_name+".txt", "w")
 fout.write("Раунд\tПример\tОценка_примера\tОтветил\n")
 for i in log:
     fout.write(i[0]+"\t"+i[1]+"\t"+i[2]+"\t\t"+i[3]+"\n")
