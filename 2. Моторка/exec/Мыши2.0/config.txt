@@ -1,8 +1,0 @@
-fullscreen 0
-inverse 0
-round 20
-width 1024
-height 768
-possible 200
-freq 0.25
-radius_multiplier 1.5
