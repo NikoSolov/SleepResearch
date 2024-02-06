@@ -2,60 +2,11 @@ import os
 from shutil import move
 from tkinter import *
 from tkinter import filedialog
+import config as cfg
 
-# get settings from configuration file
-configstd = {
-    "screen": "Оконный",
-    "program": "Задачки",
-    "control": "Обычное",
-    "file": "None",
-    "tone_play": 1,
+cfg.loadConfig()
+config = cfg.getConfig()
 
-    # "inverse": 0,
-
-    "width": 1024,
-    "height": 768,
-    "round": 20,
-
-    "tone_rate": 440,
-    "tone_volume": 4096,
-    "tone_delay": 1.5,
-
-    "radius_multiplier": 1.5,
-    "possible": 200,
-    "freq": 0.25,
-
-    "sensivity": 20,
-    "dot_time": 0.5,
-    "time": 5,
-
-}
-
-config = {}
-if not (os.path.exists("config.txt")):
-    config = configstd
-    # -----------------------------------
-    f = open("config.txt", "w")
-    for i in config:
-        f.write(str(i) + " " + str(config[i]) + "\n")
-    f.close()
-# -----------------------------------
-else:
-    f = open("config.txt", "r")
-    for i in f:
-        try:
-            if '\n' in i:
-                config.update({i.split(" ")[0]: i.split(" ")[1][:-1]})
-            else:
-                config.update({i.split(" ")[0]: i.split(" ")[1]})
-        except Exception as e:
-            pass
-
-    for i in configstd.keys():
-        if not (i in config.keys()):
-            config.update({i: configstd.get(i)})
-
-        # ====================================================#
 print(config)
 start_prog = False
 root = Tk()
@@ -170,10 +121,8 @@ def start():
     config["tone_play"] = enable.get()
     config["file"] = file
     # -----------------------------------
-    f = open("config.txt", "w")
-    for i in config:
-        f.write(str(i) + " " + str(config[i]) + "\n")
-    f.close()
+    cfg.updateConfig(config)
+
     # -----------------------------------
     start_prog = True
     root.destroy()
