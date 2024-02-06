@@ -6,7 +6,7 @@
     "tone_play": 1,
     "width": "1024",
     "height": "768",
-    "round": "20",
+    "round": "5",
     "tone_rate": "440",
     "tone_volume": "4096",
     "tone_delay": "1.5",

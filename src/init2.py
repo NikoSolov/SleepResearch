@@ -1,7 +1,9 @@
 import os
-from shutil import move
 from tkinter import *
 from tkinter import filedialog
+
+import xlsxwriter
+
 import config as cfg
 
 cfg.loadConfig()
@@ -135,7 +137,6 @@ root.mainloop()
 print(config)
 import pygame as pg
 import numpy
-import serial
 import serial.tools.list_ports
 import time
 from random import uniform
@@ -143,15 +144,15 @@ from random import uniform
 pg.mixer.init(44100, -16, 2, 512)
 pg.init()
 
-if not (os.path.exists("res")):
-    os.mkdir("res")
+if not (os.path.exists("result")):
+    os.mkdir("result")
 
 # initialize window
-width, height = int(config["width"]), int(config["height"])
+WIN_WIDTH, WIN_HEIGHT = int(config["width"]), int(config["height"])
 if int(config["screen"] == "Экранный"):
-    root = pg.display.set_mode((width, height), pg.FULLSCREEN)
+    root = pg.display.set_mode((WIN_WIDTH, WIN_HEIGHT), pg.FULLSCREEN)
 elif int(config["screen"] == "Оконный"):
-    root = pg.display.set_mode((width, height))
+    root = pg.display.set_mode((WIN_WIDTH, WIN_HEIGHT))
 clock = pg.time.Clock()
 
 # initialize COM-Port
@@ -192,7 +193,7 @@ main = True
 # -----------------------------------------------------------------
 if start_prog == True:
     if config["program"] == "Задачки":
-        file_name = "Tasks " + time.strftime("%d.%m.%y %H.%M.%S")
+        DIR_NAME = "Tasks " + time.strftime("%d.%m.%y %H.%M.%S")
         from textGen import Gen
 
         roundi = 0
@@ -244,14 +245,14 @@ if start_prog == True:
                 file_not = True
 
         size = 100
-        good = sqr((width - size) / 2, height / 4 - size / 2, size, (0, 255, 0))
-        bad = sqr((width - size) / 2, height * (3 / 4) - size / 2, size, (255, 0, 0))
+        good = sqr((WIN_WIDTH - size) / 2, WIN_HEIGHT / 4 - size / 2, size, (0, 255, 0))
+        bad = sqr((WIN_WIDTH - size) / 2, WIN_HEIGHT * (3 / 4) - size / 2, size, (255, 0, 0))
 
         while main:
 
             if new == True:
                 root.fill((128, 128, 128))
-                pg.draw.circle(root, (255, 255, 255), (width // 2, height // 2), (10))
+                pg.draw.circle(root, (255, 255, 255), (WIN_WIDTH // 2, WIN_HEIGHT // 2), (10))
                 pg.display.update()
                 pg.time.wait(int(float(config["dot_time"]) * 1000))
                 roundi += 1
@@ -335,7 +336,7 @@ if start_prog == True:
             # -----------------------------v
             textSur = myfont.render(text, True, (255, 255, 255))
             root.fill((128, 128, 128))
-            root.blit(textSur, ((width - textSur.get_width()) / 2, (height - textSur.get_height()) / 2))
+            root.blit(textSur, ((WIN_WIDTH - textSur.get_width()) / 2, (WIN_HEIGHT - textSur.get_height()) / 2))
             good.draw(root)
             bad.draw(root)
             pg.display.update()
@@ -347,43 +348,84 @@ if start_prog == True:
         #    ----------------------
         # -----------------------------^
         # imageio.mimsave('vid/movie.gif', images)
-        fout = open("res/" + file_name + ".txt", "w")
-        fout.write("Раунд\tПример\tОценка_примера\tОтветил\tВывод\tВремя реакции\n")
-        for i in log:
-            fout.write(i[0] + "\t" + i[1] + "\t" + i[2] + "\t\t" + i[3] + "\t" + i[4] + "\t" + i[5] + "\n")
-        fout.write("Задачи\t\t\tОтветил\nTrue\tFalse\t\tT->T\tF->F\tT->F\tF->T\tMissed\n")
-        fout.write(
-            str(r) + "\t" + str(w) + "\t\t" + str(TT) + "\t" + str(FF) + "\t" + str(TF) + "\t" + str(FT) + "\t" + str(
-                missed) + "\n")
-        fout.close()
+
+        # ==== Create Log SpreadSheet ==================
+        TABLE = xlsxwriter.Workbook(f"result/{DIR_NAME}.xlsx")
+        MainLog = TABLE.add_worksheet("MainLog")
+        MainLog.merge_range("A1:B1", "Задачи")
+        MainLog.merge_range("C1:G1", "Ответил")
+        MainLog.write("A2", "True"); MainLog.write("B2", "False"); MainLog.write("C2", "T->T"); MainLog.write("D2", "F->F"); MainLog.write("E2", "T->F"); MainLog.write("F2", "F->T"); MainLog.write("G2", "Missed")
+        MainLog.write("A3", f"{r}"); MainLog.write("B3", f"{w}");MainLog.write("C3", f"{TT}");MainLog.write("D3", f"{FF}");MainLog.write("E3", f"{TF}");MainLog.write("F3", f"{FT}");MainLog.write("G3", f"{missed}")
+        MainLog.write("A4", "Раунд"); MainLog.write("B4", "Пример"); MainLog.write("C4", "Оценка_примера"); MainLog.write("D4", "Ответил"); MainLog.write("E4", "Вывод"); MainLog.write("F4", "Время реакции")
+        for i in range(len(log)):
+            MainLog.write(f"A{5+i}", f"{log[i][0]}")
+            MainLog.write(f"B{5+i}", f"{log[i][1]}")
+            MainLog.write(f"C{5+i}", f"{log[i][2]}")
+            MainLog.write(f"D{5+i}", f"{log[i][3]}")
+            MainLog.write(f"E{5+i}", f"{log[i][4]}")
+            MainLog.write(f"F{5+i}", f"{log[i][5]}")
+        TABLE.close()
+        # fout.write(i[0] + "\t" + i[1] + "\t" + i[2] + "\t\t" + i[3] + "\t" + i[4] + "\t" + i[5] + "\n")
+
+        # fout.write("Задачи\t\t\tОтветил\nTrue\tFalse\t\tT->T\tF->F\tT->F\tF->T\tMissed\n")
+        # fout.write(
+        #     str(r) + "\t" + str(w) + "\t\t" + str(TT) + "\t" + str(FF) + "\t" + str(TF) + "\t" + str(FT) + "\t" + str(
+        #         missed) + "\n")
+        # fout.close()
+
+
     elif config["program"] == "Мыши":
         # -----------------------------------------------
-        from random import randint, choice
+        from random import randint
 
-        dir_name = "Mouse " + time.strftime("%d.%m.%y %H.%M.%S")
+        DIR_NAME = f"Mouse_{time.strftime("%d.%m.%y %H.%M.%S")}"
         posible = int(config["possible"])
         coef = float(config["radius_multiplier"])
 
-        photo = pg.Surface((width, height))
-        if not (os.path.exists("res")):
-            os.mkdir("res")
-        if not (os.path.exists("res/" + dir_name)):
-            os.mkdir("res/" + dir_name)
-        if not (os.path.exists("res/" + dir_name + "/log_img")):
-            os.mkdir("res/" + dir_name + "/log_img")
-        if not (os.path.exists("res/" + dir_name + "/log_txt")):
-            os.mkdir("res/" + dir_name + "/log_txt")
+        photo = pg.Surface((WIN_WIDTH, WIN_HEIGHT))
+        # -------- Setting Log Files -------------
+        if not (os.path.exists("result")):
+            os.mkdir("result")
+        if not (os.path.exists(f"result/{DIR_NAME}")):
+            os.mkdir(f"result/{DIR_NAME}")
+        if not (os.path.exists(f"result/{DIR_NAME}/log_img")):
+            os.mkdir(f"result/{DIR_NAME}/log_img")
+        # --- Setup Excel SpreadSheet -------------
+        TABLE = xlsxwriter.Workbook(f"result/{DIR_NAME}/{DIR_NAME}.xlsx")
+        # ---- Fill Up Defaults ----------------------
+        MainLog = TABLE.add_worksheet("MainLog")
+        MainLog.write("A1", "Arrived")
+        MainLog.write("B1", "Missed")
+        MainLog.merge_range("C1:D1", "Screen Resolution")
+        MainLog.write("C2", f"{WIN_WIDTH}")
+        MainLog.write("D2", f"{WIN_HEIGHT}")
+        MainLog.merge_range("A3:A4", "Round №")
+        MainLog.merge_range("B3:B4", "Arrived?")
+        MainLog.merge_range("C3:D3", "Length")
+        MainLog.merge_range("E3:E4", "Length Difference")
+        MainLog.merge_range("F3:F4", "Reaction Time")
+        MainLog.merge_range("G3:H3", "Last coord")
+        MainLog.write("C4", "Blue")
+        MainLog.write("D4", "Green")
+        MainLog.write("G4", "x")
+        MainLog.write("H4", "y")
+
+
+        # --------------------------------------------
+
+        #if not (os.path.exists("result/" + DIR_NAME + "/log_txt")):
+        #    os.mkdir("result/" + DIR_NAME + "/log_txt")
 
 
         class ball():
             x = 0
             r = 40
-            y = height - r * 2
+            y = WIN_HEIGHT - r * 2
 
 
         class hole():
             r = 40
-            x = width - r
+            x = WIN_WIDTH - r
             y = r
 
 
@@ -393,44 +435,64 @@ if start_prog == True:
 
 
         new = True
-        a = []
-        g = 0
-        not_g = 0
-        a_g = 0
+        roundData = []
+        arrived = 0
+        missed = 0
         s = 0
         s2 = 0
-        ri = 0
+        currentRound = 0
         tim = 0
 
         # ---------------------------------------------
-
+        steps = 0
         while main:
             if new == True:
-                ri += 1
-                if ri > int(config["round"]): break
-                f = open("res/" + dir_name + "/log_txt/" + str(ri) + ".txt", "w")
-                f.write("Траектории | Разрешение: " + str(width) + "x" + str(height) + " | Частота в секундах: " + str(
-                    config["freq"]) + "\n")
-                f.write("Зеленая\t\tСиняя\n")
-                f.write("x\ty\tx\ty\n")
+                steps = 0
+                currentRound += 1
+                if currentRound > int(config["round"]): break
+                # ======= Create Position Table ===============================
+                ROUND_LOG = TABLE.add_worksheet(f"Trajectories_{currentRound}")
+                # ------- Default Headers-------------
+                ROUND_LOG.merge_range("A1:C1", "Trajectory")
+                ROUND_LOG.write("B2", "Green")
+                ROUND_LOG.write("C2", "Blue")
+                ROUND_LOG.write("A3", "x")
+                ROUND_LOG.write("C3", "y")
+                ROUND_LOG.write("B3", "y")
+                ROUND_LOG.merge_range("F1:G1", "Screen Resolution")
+                ROUND_LOG.write("E1", "Frequency")
+                # -------------------------------------
+                ROUND_LOG.write("E2", f"{config["freq"]}")
+                ROUND_LOG.write("F2", f"{WIN_WIDTH}")
+                ROUND_LOG.write("G2", f"{WIN_HEIGHT}")
+                #==========================================
+                # f = open("result/" + DIR_NAME + "/log_txt/" + str(ri) + ".txt", "w")
+                # f.write("Траектории | Разрешение: " + str(WIN_WIDTH) + "x" + str(WIN_HEIGHT) + " | Частота в секундах: " + str(
+                #     config["freq"]) + "\n")
+                # f.write("Зеленая\t\tСиняя\n")
+                # f.write("x\ty\tx\ty\n")
+                # =========================================
                 rtime = 0
                 new = False
                 movement = False
+                # ---- write timeStamps -----------------
                 if port_work: time_code.write(bytearray([2]))
+                # ---- Create PATH_SURFACE --------------
                 photo.fill((128, 128, 128))
                 pg.draw.circle(photo, (0, 0, 0), (hole.x, hole.y), hole.r)
-                pg.draw.rect(photo, (255, 0, 0), (0, height - posible, posible, posible), width=2)
+                pg.draw.rect(photo, (255, 0, 0), (0, WIN_HEIGHT - posible, posible, posible), width=2)
+                #------------------------------
                 s = 0
                 s2 = 0
 
                 # -norm------------------------------------------------v
-                ball.x, ball.y = ball.r, height - ball.r
+                ball.x, ball.y = ball.r, WIN_HEIGHT - ball.r
                 path.x, path.y = ball.x + ball.r / 2, ball.y - ball.r / 2
                 # -------------------------------------------------^
 
                 m = randint(1, 4)
-                x1, y1 = width - (2 * hole.r + ball.r), ball.r
-                x2, y2 = width - ball.r, ball.r + 2 * hole.r
+                x1, y1 = WIN_WIDTH - (2 * hole.r + ball.r), ball.r
+                x2, y2 = WIN_WIDTH - ball.r, ball.r + 2 * hole.r
                 # -----------------------------------------------
                 if m == 1:
                     c = (y1 - ball.y) / ((x1 - ball.x) ** 2)
@@ -458,7 +520,7 @@ if start_prog == True:
                 if event.type == pg.QUIT or (event.type == pg.KEYDOWN and event.key == pg.K_ESCAPE):
                     #            if port_work: time_code.write(bytearray([0]))
                     main = False
-                if event.type == pg.MOUSEWHEEL and (ball.x > posible or ball.y < height - posible):
+                if event.type == pg.MOUSEWHEEL and (ball.x > posible or ball.y < WIN_HEIGHT - posible):
                     if rtime == 0:
                         rtime = time.time() - atime;
                         print(rtime)
@@ -474,8 +536,14 @@ if start_prog == True:
             if (time.time() - tim) > float(config["freq"]):
                 tim = time.time()
                 #        print("check")
-                f.write(str(int(ball.x + ball.r / 2)) + "\t" + str(int(ball.y - ball.r / 2)) + "\t" + str(
-                    int(path.x)) + "\t" + str(int(path.y)) + "\n")
+                # f.write(str(int(ball.x + ball.r / 2)) + "\t" + str(int(ball.y - ball.r / 2)) + "\t" + str(
+                #     int(path.x)) + "\t" + str(int(path.y)) + "\n")
+                ROUND_LOG.write(f"A{steps + 4}", int(ball.x + ball.r / 2))
+                ROUND_LOG.write(f"B{steps + 4}", int(ball.y - ball.r / 2))
+                # ROUND_LOG.write(f"C{steps + 4}", int(Path["x"]))
+                ROUND_LOG.write(f"C{steps + 4}", int(path.y))
+
+                steps += 1
 
             ball.y += delta_y() * 5
             ball.x += 5
@@ -503,36 +571,53 @@ if start_prog == True:
 
             l = ((ball.x - hole.x) ** 2 + (ball.y - hole.y) ** 2) ** (1 / 2)
             flag = (l <= coef * ball.r)
-            if (ball.x + ball.r > width or ball.y + ball.r > height or ball.y - ball.r < 0) or flag:
+            if (ball.x + ball.r > WIN_WIDTH or ball.y + ball.r > WIN_HEIGHT or ball.y - ball.r < 0) or flag:
                 if movement == False: rtime = time.time() - atime
                 # pg.draw.circle(photo, (255,0,0), (ball.x, ball.y), ball.r)
-                f.write(str(int(ball.x)) + "\t" + str(int(ball.y)) + "\t" + str(int(path.x)) + "\t" + str(
-                    int(path.y)) + "\n")
-                f.close()
-                pg.image.save(photo, "res/" + dir_name + "/log_img/" + str(ri) + ".png")
+                # f.write(str(int(ball.x)) + "\t" + str(int(ball.y)) + "\t" + str(int(path.x)) + "\t" + str(
+                #     int(path.y)) + "\n")
+                # f.close()
+                pg.image.save(photo, "result/" + DIR_NAME + "/log_img/" + str(currentRound) + ".png")
                 if movement == False:
-                    a_g += 1; flag = "Missed"
+                    flag = "Missed"
                 else:
                     if flag:
-                        g += 1
+                        arrived += 1
                     else:
-                        not_g += 1
+                        missed += 1
 
-                a.append([flag, round(s), round(s2), int(ball.x), int(ball.y), round(rtime, 4)])
+                roundData.append([flag, round(s), round(s2), int(ball.x), int(ball.y), round(rtime, 4)])
                 new = True
 
-        # imageio.mimsave('vid/movie.gif', images)
-        f = open("res/" + dir_name + "/main_log.txt", "w")
-        f.write("Мыши:\tДобравшиеся\tПропавшие\tДобравшиеся сами\tРазрешение окна: " + str(width) + "x" + str(
-            height) + "\n")
-        f.write("\t" + str(g) + "\t\t" + str(not_g) + "\t\t" + str(a_g) + "\n")
-        f.write("\t\tДлины:\t\t\t\t\tФин. координаты:\n")
-        f.write("Раунд\tПопал\tСиний\tЗеленый\tРазница\tВремя реакции\tx\ty\n")
-        # print(a)
-        for i in range(len(a)):
-            f.write(str(i + 1) + "\t" + str(a[i][0]) + "\t" + str(a[i][1]) + "\t" + str(a[i][2]) + "\t" + str(
-                a[i][1] - a[i][2]) + "\t" + str(a[i][5]) + "\t\t" + str(a[i][3]) + "\t" + str(a[i][4]) + "\n")
-        f.close()
+        # # imageio.mimsave('vid/movie.gif', images)
+        # f = open("result/" + DIR_NAME + "/main_log.txt", "w")
+        # f.write("Мыши:\tДобравшиеся\tПропавшие\tДобравшиеся сами\tРазрешение окна: " + str(WIN_WIDTH) + "x" + str(
+        #     WIN_HEIGHT) + "\n")
+        # f.write("\t" + str(g) + "\t\t" + str(not_g) + "\t\t" + str(a_g) + "\n")
+        # f.write("\t\tДлины:\t\t\t\t\tФин. координаты:\n")
+        # f.write("Раунд\tПопал\tСиний\tЗеленый\tРазница\tВремя реакции\tx\ty\n")
+        # # print(a)
+        # for i in range(len(a)):
+        #     f.write(str(i + 1) + "\t" + str(a[i][0]) + "\t" + str(a[i][1]) + "\t" + str(a[i][2]) + "\t" + str(
+        #         a[i][1] - a[i][2]) + "\t" + str(a[i][5]) + "\t\t" + str(a[i][3]) + "\t" + str(a[i][4]) + "\n")
+        # f.close()
+        # ------- Filling the Main Log --------------
+        MainLog.write("A2", f"{arrived}")
+        MainLog.write("B2", f"{missed}")
+
+        for i in range(len(roundData)):
+            MainLog.write(i + 4, 0, f"{i + 1}")
+            MainLog.write(i + 4, 1, f"{roundData[i][0]}")
+            MainLog.write(i + 4, 2, f"{roundData[i][1]}")
+            MainLog.write(i + 4, 3, f"{roundData[i][2]}")
+            MainLog.write(i + 4, 4, f"{roundData[i][1] - roundData[i][2]}")
+            MainLog.write(i + 4, 5, f"{roundData[i][5]}")
+            MainLog.write(i + 4, 6, f"{roundData[i][3]}")
+            MainLog.write(i + 4, 7, f"{roundData[i][4]}")
+
+        # --- close excel table
+        TABLE.close()
+
 
 if port_work: time_code.write(bytearray([5]))
 pg.quit()
