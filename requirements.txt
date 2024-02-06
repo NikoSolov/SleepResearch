@@ -1,0 +1,4 @@
+pygame~=2.5.2
+XlsxWriter~=3.1.9
+pyserial~=3.5
+numpy
