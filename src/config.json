@@ -1,6 +1,6 @@
 {
     "screen": "Оконный",
-    "program": "Задачки",
+    "program": "Мыши",
     "control": "Обычное",
     "file": "None",
     "tone_play": 1,
@@ -15,5 +15,6 @@
     "freq": "0.25",
     "sensivity": "20",
     "dot_time": "0.5",
-    "time": "5"
+    "time": "5",
+    "lightSize": 40
 }

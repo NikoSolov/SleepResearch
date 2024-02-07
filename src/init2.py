@@ -253,8 +253,10 @@ if start_prog == True:
             if new == True:
                 root.fill((128, 128, 128))
                 pg.draw.circle(root, (255, 255, 255), (WIN_WIDTH // 2, WIN_HEIGHT // 2), (10))
+                pg.draw.rect(root, (255, 255, 255), (0,0,config["lightSize"], config["lightSize"]))
                 pg.display.update()
                 pg.time.wait(int(float(config["dot_time"]) * 1000))
+
                 roundi += 1
                 if roundi > int(config["round"]): break
                 rtime = 0
@@ -336,6 +338,7 @@ if start_prog == True:
             # -----------------------------v
             textSur = myfont.render(text, True, (255, 255, 255))
             root.fill((128, 128, 128))
+            pg.draw.rect(root, (0, 0, 0), (0, 0, config["lightSize"], config["lightSize"]))
             root.blit(textSur, ((WIN_WIDTH - textSur.get_width()) / 2, (WIN_HEIGHT - textSur.get_height()) / 2))
             good.draw(root)
             bad.draw(root)
@@ -516,6 +519,7 @@ if start_prog == True:
             det2_x, det2_y = path.x, path.y
             # -----------------------------------------------------^
 
+
             for event in pg.event.get():
                 if event.type == pg.QUIT or (event.type == pg.KEYDOWN and event.key == pg.K_ESCAPE):
                     #            if port_work: time_code.write(bytearray([0]))
@@ -530,6 +534,7 @@ if start_prog == True:
                         ball.y -= event.y * 20
                     elif int(config["control"] == "Инверсия"):
                         ball.y += event.y * 20
+
             # -----------------------------------------------------------------------------------------------------------------v
             #    print((time()-tim))
 
@@ -551,6 +556,10 @@ if start_prog == True:
             path.x += 5
 
             root.fill((128, 128, 128))
+            if not (ball.x > posible or ball.y < WIN_HEIGHT - posible):
+                pg.draw.rect(root, (255, 255, 255), (0,0,config["lightSize"], config["lightSize"]))
+            if (ball.x > posible or ball.y < WIN_HEIGHT - posible):
+                pg.draw.rect(root, (0, 0, 0), (0,0,config["lightSize"], config["lightSize"]))
             pg.draw.circle(root, (0, 0, 0), (hole.x, hole.y), hole.r)
             pg.draw.circle(root, (128, 0, 0), (ball.x, ball.y), ball.r)
             # ------------------------------------------------------------------------------------------------------------------v

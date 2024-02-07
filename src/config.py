@@ -27,6 +27,7 @@ CONFIG_STD = {
     "dot_time": 0.5,
     "time": 5,
 
+    "lightSize": 20
 }
 
 CONFIG = {}
