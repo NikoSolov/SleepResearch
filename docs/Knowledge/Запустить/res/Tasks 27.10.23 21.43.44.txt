@@ -1,0 +1,17 @@
+Раунд	Пример	Оценка_примера	Ответил	Вывод	Время реакции
+1	9+1=10	True		True	True	0.8208
+2	46+7=24	False		True	False	0.001
+3	38+6=44	True		True	True	0.001
+4	34+1=13	False		True	False	1.0203
+5	45+6=31	False		True	False	0.0
+6	24+2=26	True		False	False	1.0067
+7	36+5=52	False		False	True	0.034
+8	23+1=24	True		False	False	0.001
+9	27+1=49	False		False	True	0.035
+10	47+7=12	False		False	True	1.6967
+11	0+9=18	False		True	False	0.8923
+12	23+2=7	False		False	True	0.754
+13	37+1=17	False		False	True	0.035
+Задачи			Ответил
+True	False		T->T	F->F	T->F	F->T	Missed
+4	10		2	5	2	4	0

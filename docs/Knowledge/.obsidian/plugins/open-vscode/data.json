@@ -1,0 +1,8 @@
+{
+  "ribbonIcon": true,
+  "ribbonCommandUsesCode": true,
+  "executeTemplate": "D:\\Programs\\VSCode-win32-x64-1.84.2\\code.exe \"{{vaultpath}}\" \"{{vaultpath}}/{{filepath}}\"",
+  "openFile": true,
+  "workspacePath": "{{vaultpath}}",
+  "useUrlInsiders": false
+}

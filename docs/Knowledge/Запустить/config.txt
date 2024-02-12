@@ -1,0 +1,17 @@
+screen Оконный
+program Задачки
+control Обычное
+file None
+tone_play 1
+width 1024
+height 768
+round 20
+tone_rate 440
+tone_volume 4096
+tone_delay 1.5
+radius_multiplier 3
+possible 200
+freq 0.25
+sensivity 20
+dot_time 0.5
+time 5
