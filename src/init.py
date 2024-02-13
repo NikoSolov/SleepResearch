@@ -1,145 +1,27 @@
 import os
-from tkinter import *
-from tkinter import filedialog
 
 import xlsxwriter
 
-from utils import config as cfg
+import config as cfg
 
-cfg.loadConfig()
-config = cfg.getConfig()
+import menu
 
-print(config)
-start_prog = False
-root = Tk()
-root.resizable(False, False)
-root.title('Окно конфигураций')
-
-lbl = [[], (13, 18, 17, 20), ("Главные настройки", "Тон пробуждения", "Мыши", "Задачки"),
-       ("Режим окна:", "Ширина (пикс.): ", "Высота (пикс.): ", "Управление: ", "Программа: ", "Кол-во опытов: "),
-       ("Включение тона", "Частота тона (Гц)", "Громкость тона %", "Длительность тона (с.)"),
-       ("Множ. сумм радиусов (пикс.)", "Зона ожидания (пикс.)", "Частота записи (с.)"),
-       ("Чувствительность мыши (пикс.)", "Время ожидания (c.)", "Время ответа (c.)")]
-
-for i in range(len(lbl[2])):
-    lbl[0].append(LabelFrame(root, text=lbl[2][i]))
-    lbl[0][i].grid(column=i % 2, row=i // 2, sticky="NEWS", padx=5, pady=5)
-
-for i in range(len(lbl[0])):
-    for j in range(len(lbl[3 + i])):
-        Label(lbl[0][i], text=lbl[3 + i][j]).grid(column=0, row=j, sticky="NEWS")
-
-
-# ------------------------------------------------------------------------------------------------
-
-def select_file():
-    global file
-    filetypes = (('.txt файлы', '*.txt'), ('Все файлы', '*.*'))
-    file = filedialog.askopenfilename(title='Выберите файл', initialdir='/', filetypes=filetypes)
-    show_file["text"] = file
-
-
-def ableTone():
-    global enable, wids
-    for i in wids[1][1:]:
-        if enable.get() == 0:
-            i["state"] = "disable"
-        else:
-            i["state"] = "normal"
-
-
-file = "None"
-
-mode = StringVar()
-ctrl = StringVar()
-prog = StringVar()
-enable = IntVar()
-
-lst = [["Оконный", "Экранный"], ["Задачки", "Мыши"], ["Обычное", "Инверсия"]]
-
-wids = [[OptionMenu(lbl[0][0], mode, *lst[0]),
-         Spinbox(lbl[0][0], from_=0, to=2560),
-         Spinbox(lbl[0][0], from_=0, to=1440),
-         OptionMenu(lbl[0][0], ctrl, *lst[2]),
-         OptionMenu(lbl[0][0], prog, *lst[1]),
-         Spinbox(lbl[0][0], from_=0, to=1440)],
-
-        [Checkbutton(lbl[0][1], variable=enable, onvalue=1, offvalue=0, command=ableTone),
-         Spinbox(lbl[0][1], from_=0, to=20000),
-         Spinbox(lbl[0][1], from_=0, to=50000),
-         Spinbox(lbl[0][1], from_=0, to=1000)],
-        [Spinbox(lbl[0][2], from_=0, to=2560),
-         Spinbox(lbl[0][2], from_=0, to=5000),
-         Spinbox(lbl[0][2], from_=0, to=5000)],
-        [Spinbox(lbl[0][3], from_=0, to=2560),
-         Spinbox(lbl[0][3], from_=0, to=1440),
-         Spinbox(lbl[0][3], from_=0, to=2560),
-         Button(lbl[0][3], text="Выбор файла", relief="raised", command=select_file)]]
-
-s = list(config.keys())
-n = 5
-for i in wids:
-    for j in i:
-        if type(j) is Spinbox:
-            j.delete(0, "end")
-            j.insert(1, config[s[n]])
-            #          print(s[n])
-            n += 1
-
-mode.set(config["screen"])
-ctrl.set(config["control"])
-prog.set(config["program"])
-enable.set(config["tone_play"])
-
-ableTone()
-
-for i in wids:
-    for j in range(len(i)):
-        if type(i[j]) is Button:
-            i[j].grid(column=0, columnspan=2, row=j, sticky="NEWS")
-        else:
-            i[j].grid(column=1, row=j, sticky="news")
-
-        i[j].config(width=10, relief="groove")
-show_file = Label(lbl[0][3], wraplength=340, text=config["file"])
-show_file.grid(column=0, columnspan=2, rowspan=2, row=4, sticky="NEWS")
-
-
-# ---------------------------------------------------------------------------------------
-def start():
-    global start_prog
-    s = list(config.keys())
-    n = 5
-    print("-----------------")
-    for i in wids:
-        for j in range(len(i)):
-            if type(i[j]) is Spinbox:
-                config[s[n]] = i[j].get()
-
-                n += 1
-    config["control"] = ctrl.get()
-    config["screen"] = mode.get()
-    config["program"] = prog.get()
-    config["tone_play"] = enable.get()
-    config["file"] = file
-    # -----------------------------------
-    cfg.updateConfig(config)
-
-    # -----------------------------------
-    start_prog = True
-    root.destroy()
-
-
-done = Button(root, text="Начать Эксперимент", relief="groove", command=start)
-done.grid(column=0, row=2, columnspan=2, sticky="NEWS")
-root.mainloop()
 # ==============================================================================================
+config = cfg.getConfig()
 print(config)
 import pygame as pg
 import numpy
 import serial.tools.list_ports
 import time
 from random import uniform
+
+# =========== GET ALL CONFIG CONSTANTS ==========
+WIN_WIDTH = config["general"]["window"]["width"]
+WIN_HEIGHT = config["general"]["window"]["height"]
+FULLSCREEN = config["general"]["window"]["fullScreen"]
+ROUND = config["general"]["experiment"]["round"]
+PROGRAM = config["general"]["experiment"]["program"]
+LIGHT_SIZE = config["general"]["timeStamps"]["lightSize"]
 
 pg.mixer.init(44100, -16, 2, 512)
 pg.init()
@@ -148,11 +30,12 @@ if not (os.path.exists("result")):
     os.mkdir("result")
 
 # initialize window
-WIN_WIDTH, WIN_HEIGHT = int(config["width"]), int(config["height"])
-if int(config["screen"] == "Экранный"):
+
+if int(FULLSCREEN):
     root = pg.display.set_mode((WIN_WIDTH, WIN_HEIGHT), pg.FULLSCREEN)
-elif int(config["screen"] == "Оконный"):
+else:
     root = pg.display.set_mode((WIN_WIDTH, WIN_HEIGHT))
+
 clock = pg.time.Clock()
 
 # initialize COM-Port
@@ -173,18 +56,19 @@ except Exception as e:
 #    print(e)
 
 # create the siren's sample
+TONE = config["general"]["tone"]
 arr = numpy.array(
-    [int(config["tone_volume"]) * numpy.sin(2.0 * numpy.pi * int(config["tone_rate"]) * x / 44100) for x in
+    [int(TONE["volume"]) * numpy.sin(2.0 * numpy.pi * int(TONE["freq"]) * x / 44100) for x in
      range(0, 44100)]).astype(numpy.int16)
 arr2 = numpy.c_[arr, arr]
 sound = pg.sndarray.make_sound(arr2)
-
+start_prog = True
 # play tone
-if int(config["tone_play"]) == 1 and start_prog == True:  # and port_work==True:
+if int(TONE["enable"]) and start_prog == True:  # and port_work==True:
     print("play")
     if port_work: time_code.write(bytearray([1]))
     sound.play(-1)
-    pg.time.wait(int(float(config["tone_delay"]) * 1000))
+    pg.time.wait(int(float(TONE["delay"]) * 1000))
     sound.stop()
 
 # set to start program
@@ -192,10 +76,18 @@ main = True
 # -----------------------------------------------------------------
 # -----------------------------------------------------------------
 if start_prog == True:
-    if config["program"] == "Задачки":
-        DIR_NAME = "Tasks " + time.strftime("%d.%m.%y %H.%M.%S")
+
+    if PROGRAM == "Equation":
         from textGen import Gen
 
+        # ============ GET ALL CONSTANTS =========
+        DIR_NAME = "Tasks " + time.strftime("%d.%m.%y %H.%M.%S")
+        FILEPATH = config["Equation"]["file"]["path"]
+        PLUS_TIME = config["Equation"]["delay"]["plus"]
+        ANSWER_TIME = config["Equation"]["delay"]["answer"]
+        CONTROL = config["Equation"]["control"]
+        print(f"CONTROL: {CONTROL}")
+        # =========================================
         roundi = 0
 
         pg.font.init()
@@ -236,9 +128,9 @@ if start_prog == True:
                     pg.draw.rect(root, self.color, (self.x, self.y, self.size, self.fill))
 
 
-        if config["file"] != "None":
+        if FILEPATH != "None":
             try:
-                fin = open(config["file"], "r")
+                fin = open(FILEPATH, "r")
                 # print(fin)
             except Exception as e:
                 print(e)
@@ -253,17 +145,17 @@ if start_prog == True:
             if new == True:
                 root.fill((128, 128, 128))
                 pg.draw.circle(root, (255, 255, 255), (WIN_WIDTH // 2, WIN_HEIGHT // 2), (10))
-                pg.draw.rect(root, (255, 255, 255), (0,0,config["lightSize"], config["lightSize"]))
+                pg.draw.rect(root, (255, 255, 255), (0, 0, LIGHT_SIZE, LIGHT_SIZE))
                 pg.display.update()
-                pg.time.wait(int(float(config["dot_time"]) * 1000))
+                pg.time.wait(int(PLUS_TIME * 1000))
 
                 roundi += 1
-                if roundi > int(config["round"]): break
+                if roundi > ROUND: break
                 rtime = 0
                 new = False
                 pg.event.clear()
                 if port_work: time_code.write(bytearray([3]))
-                if (config["file"] != "None" or config["file"] != "None") and file_not == False:
+                if (FILEPATH != "None") and file_not == False:
                     d = fin.readline()
                     # print(d)
                     if d == "": break
@@ -291,19 +183,19 @@ if start_prog == True:
                         rtime = time.time() - a;
                         print(rtime)
                         if port_work: time_code.write(bytearray([4]))
-                    if int(config["control"] == "Обычное"):
-                        if event.y > 0:
-                            good.fill -= event.y * int(config["sensivity"])
-                            bad.fill = 0
-                        else:
-                            bad.fill -= event.y * int(config["sensivity"])
-                            good.fill = 0
-                    elif int(config["control"] == "Инверсия"):
+                    if CONTROL["inverse"]:
                         if event.y < 0:
-                            good.fill -= event.y * int(config["sensivity"])
+                            good.fill += event.y * CONTROL["sensitivity"]
                             bad.fill = 0
                         else:
-                            bad.fill -= event.y * int(config["sensivity"])
+                            bad.fill += event.y * CONTROL["sensitivity"]
+                            good.fill = 0
+                    else:
+                        if event.y > 0:
+                            good.fill -= event.y * CONTROL["sensitivity"]
+                            bad.fill = 0
+                        else:
+                            bad.fill -= event.y * CONTROL["sensitivity"]
                             good.fill = 0
 
             if abs(good.fill) > size or abs(bad.fill) > size:
@@ -327,7 +219,7 @@ if start_prog == True:
                 bad.fill = 0
                 new = True
 
-            if time.time() - a > float(config["time"]):
+            if time.time() - a > ANSWER_TIME:
                 #        time_code.write(bytearray([3,0]))
                 rtime = time.time() - a
                 log.append([str(roundi), text, str(res), "Missed", "Missed", str(round(rtime, 4))])
@@ -338,7 +230,7 @@ if start_prog == True:
             # -----------------------------v
             textSur = myfont.render(text, True, (255, 255, 255))
             root.fill((128, 128, 128))
-            pg.draw.rect(root, (0, 0, 0), (0, 0, config["lightSize"], config["lightSize"]))
+            pg.draw.rect(root, (0, 0, 0), (0, 0, LIGHT_SIZE, LIGHT_SIZE))
             root.blit(textSur, ((WIN_WIDTH - textSur.get_width()) / 2, (WIN_HEIGHT - textSur.get_height()) / 2))
             good.draw(root)
             bad.draw(root)
@@ -357,16 +249,33 @@ if start_prog == True:
         MainLog = TABLE.add_worksheet("MainLog")
         MainLog.merge_range("A1:B1", "Задачи")
         MainLog.merge_range("C1:G1", "Ответил")
-        MainLog.write("A2", "True"); MainLog.write("B2", "False"); MainLog.write("C2", "T->T"); MainLog.write("D2", "F->F"); MainLog.write("E2", "T->F"); MainLog.write("F2", "F->T"); MainLog.write("G2", "Missed")
-        MainLog.write("A3", f"{r}"); MainLog.write("B3", f"{w}");MainLog.write("C3", f"{TT}");MainLog.write("D3", f"{FF}");MainLog.write("E3", f"{TF}");MainLog.write("F3", f"{FT}");MainLog.write("G3", f"{missed}")
-        MainLog.write("A4", "Раунд"); MainLog.write("B4", "Пример"); MainLog.write("C4", "Оценка_примера"); MainLog.write("D4", "Ответил"); MainLog.write("E4", "Вывод"); MainLog.write("F4", "Время реакции")
+        MainLog.write("A2", "True");
+        MainLog.write("B2", "False");
+        MainLog.write("C2", "T->T");
+        MainLog.write("D2", "F->F");
+        MainLog.write("E2", "T->F");
+        MainLog.write("F2", "F->T");
+        MainLog.write("G2", "Missed")
+        MainLog.write("A3", f"{r}");
+        MainLog.write("B3", f"{w}");
+        MainLog.write("C3", f"{TT}");
+        MainLog.write("D3", f"{FF}");
+        MainLog.write("E3", f"{TF}");
+        MainLog.write("F3", f"{FT}");
+        MainLog.write("G3", f"{missed}")
+        MainLog.write("A4", "Раунд");
+        MainLog.write("B4", "Пример");
+        MainLog.write("C4", "Оценка_примера");
+        MainLog.write("D4", "Ответил");
+        MainLog.write("E4", "Вывод");
+        MainLog.write("F4", "Время реакции")
         for i in range(len(log)):
-            MainLog.write(f"A{5+i}", f"{log[i][0]}")
-            MainLog.write(f"B{5+i}", f"{log[i][1]}")
-            MainLog.write(f"C{5+i}", f"{log[i][2]}")
-            MainLog.write(f"D{5+i}", f"{log[i][3]}")
-            MainLog.write(f"E{5+i}", f"{log[i][4]}")
-            MainLog.write(f"F{5+i}", f"{log[i][5]}")
+            MainLog.write(f"A{5 + i}", f"{log[i][0]}")
+            MainLog.write(f"B{5 + i}", f"{log[i][1]}")
+            MainLog.write(f"C{5 + i}", f"{log[i][2]}")
+            MainLog.write(f"D{5 + i}", f"{log[i][3]}")
+            MainLog.write(f"E{5 + i}", f"{log[i][4]}")
+            MainLog.write(f"F{5 + i}", f"{log[i][5]}")
         TABLE.close()
         # fout.write(i[0] + "\t" + i[1] + "\t" + i[2] + "\t\t" + i[3] + "\t" + i[4] + "\t" + i[5] + "\n")
 
@@ -377,14 +286,17 @@ if start_prog == True:
         # fout.close()
 
 
-    elif config["program"] == "Мыши":
+    elif PROGRAM == "Mouse":
         # -----------------------------------------------
         from random import randint
 
+        # ========= GET ALL CONSTANTS ==========
         DIR_NAME = f"Mouse_{time.strftime("%d.%m.%y %H.%M.%S")}"
-        posible = int(config["possible"])
-        coef = float(config["radius_multiplier"])
-
+        WAIT_ZONE = config["Mouse"]["zoneSize"]["waitZone"]
+        DISTANCE_MULTIPLIER = config["Mouse"]["zoneSize"]["distMul"]
+        LOG_FREQ = config["Mouse"]["logger"]["freq"]
+        CONTROL = config["Mouse"]["control"]
+        # =======================================
         photo = pg.Surface((WIN_WIDTH, WIN_HEIGHT))
         # -------- Setting Log Files -------------
         if not (os.path.exists("result")):
@@ -416,9 +328,8 @@ if start_prog == True:
 
         # --------------------------------------------
 
-        #if not (os.path.exists("result/" + DIR_NAME + "/log_txt")):
+        # if not (os.path.exists("result/" + DIR_NAME + "/log_txt")):
         #    os.mkdir("result/" + DIR_NAME + "/log_txt")
-
 
         class ball():
             x = 0
@@ -452,7 +363,7 @@ if start_prog == True:
             if new == True:
                 steps = 0
                 currentRound += 1
-                if currentRound > int(config["round"]): break
+                if currentRound > int(ROUND): break
                 # ======= Create Position Table ===============================
                 ROUND_LOG = TABLE.add_worksheet(f"Trajectories_{currentRound}")
                 # ------- Default Headers-------------
@@ -465,10 +376,10 @@ if start_prog == True:
                 ROUND_LOG.merge_range("F1:G1", "Screen Resolution")
                 ROUND_LOG.write("E1", "Frequency")
                 # -------------------------------------
-                ROUND_LOG.write("E2", f"{config["freq"]}")
+                ROUND_LOG.write("E2", f"{LOG_FREQ}")
                 ROUND_LOG.write("F2", f"{WIN_WIDTH}")
                 ROUND_LOG.write("G2", f"{WIN_HEIGHT}")
-                #==========================================
+                # ==========================================
                 # f = open("result/" + DIR_NAME + "/log_txt/" + str(ri) + ".txt", "w")
                 # f.write("Траектории | Разрешение: " + str(WIN_WIDTH) + "x" + str(WIN_HEIGHT) + " | Частота в секундах: " + str(
                 #     config["freq"]) + "\n")
@@ -483,8 +394,8 @@ if start_prog == True:
                 # ---- Create PATH_SURFACE --------------
                 photo.fill((128, 128, 128))
                 pg.draw.circle(photo, (0, 0, 0), (hole.x, hole.y), hole.r)
-                pg.draw.rect(photo, (255, 0, 0), (0, WIN_HEIGHT - posible, posible, posible), width=2)
-                #------------------------------
+                pg.draw.rect(photo, (255, 0, 0), (0, WIN_HEIGHT - WAIT_ZONE, WAIT_ZONE, WAIT_ZONE), width=2)
+                # ------------------------------
                 s = 0
                 s2 = 0
 
@@ -519,26 +430,25 @@ if start_prog == True:
             det2_x, det2_y = path.x, path.y
             # -----------------------------------------------------^
 
-
             for event in pg.event.get():
                 if event.type == pg.QUIT or (event.type == pg.KEYDOWN and event.key == pg.K_ESCAPE):
                     #            if port_work: time_code.write(bytearray([0]))
                     main = False
-                if event.type == pg.MOUSEWHEEL and (ball.x > posible or ball.y < WIN_HEIGHT - posible):
+                if event.type == pg.MOUSEWHEEL and (ball.x > WAIT_ZONE or ball.y < WIN_HEIGHT - WAIT_ZONE):
                     if rtime == 0:
                         rtime = time.time() - atime;
                         print(rtime)
                         if port_work: time_code.write(bytearray([4]))
                     movement = True
-                    if int(config["control"] == "Обычное"):
-                        ball.y -= event.y * 20
-                    elif int(config["control"] == "Инверсия"):
+                    if CONTROL["inverse"]:
                         ball.y += event.y * 20
+                    else:
+                        ball.y -= event.y * 20
 
             # -----------------------------------------------------------------------------------------------------------------v
             #    print((time()-tim))
 
-            if (time.time() - tim) > float(config["freq"]):
+            if (time.time() - tim) > float(LOG_FREQ):
                 tim = time.time()
                 #        print("check")
                 # f.write(str(int(ball.x + ball.r / 2)) + "\t" + str(int(ball.y - ball.r / 2)) + "\t" + str(
@@ -556,10 +466,10 @@ if start_prog == True:
             path.x += 5
 
             root.fill((128, 128, 128))
-            if not (ball.x > posible or ball.y < WIN_HEIGHT - posible):
-                pg.draw.rect(root, (255, 255, 255), (0,0,config["lightSize"], config["lightSize"]))
-            if (ball.x > posible or ball.y < WIN_HEIGHT - posible):
-                pg.draw.rect(root, (0, 0, 0), (0,0,config["lightSize"], config["lightSize"]))
+            if not (ball.x > WAIT_ZONE or ball.y < WIN_HEIGHT - WAIT_ZONE):
+                pg.draw.rect(root, (255, 255, 255), (0, 0, LIGHT_SIZE, LIGHT_SIZE))
+            if (ball.x > WAIT_ZONE or ball.y < WIN_HEIGHT - WAIT_ZONE):
+                pg.draw.rect(root, (0, 0, 0), (0, 0, LIGHT_SIZE, LIGHT_SIZE))
             pg.draw.circle(root, (0, 0, 0), (hole.x, hole.y), hole.r)
             pg.draw.circle(root, (128, 0, 0), (ball.x, ball.y), ball.r)
             # ------------------------------------------------------------------------------------------------------------------v
@@ -579,13 +489,9 @@ if start_prog == True:
             s2 += ((path.x - det2_x) ** 2 + (path.y - det2_y) ** 2) ** (1 / 2)
 
             l = ((ball.x - hole.x) ** 2 + (ball.y - hole.y) ** 2) ** (1 / 2)
-            flag = (l <= coef * ball.r)
+            flag = (l <= DISTANCE_MULTIPLIER * ball.r)
             if (ball.x + ball.r > WIN_WIDTH or ball.y + ball.r > WIN_HEIGHT or ball.y - ball.r < 0) or flag:
                 if movement == False: rtime = time.time() - atime
-                # pg.draw.circle(photo, (255,0,0), (ball.x, ball.y), ball.r)
-                # f.write(str(int(ball.x)) + "\t" + str(int(ball.y)) + "\t" + str(int(path.x)) + "\t" + str(
-                #     int(path.y)) + "\n")
-                # f.close()
                 pg.image.save(photo, "result/" + DIR_NAME + "/log_img/" + str(currentRound) + ".png")
                 if movement == False:
                     flag = "Missed"
@@ -626,7 +532,6 @@ if start_prog == True:
 
         # --- close excel table
         TABLE.close()
-
 
 if port_work: time_code.write(bytearray([5]))
 pg.quit()

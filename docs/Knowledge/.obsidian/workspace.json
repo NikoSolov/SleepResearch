@@ -18,8 +18,21 @@
                 "source": false
               }
             }
+          },
+          {
+            "id": "520e9d55ebdb054b",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "Programs.md",
+                "mode": "source",
+                "source": false
+              }
+            }
           }
-        ]
+        ],
+        "currentTab": 1
       }
     ],
     "direction": "vertical"
@@ -69,8 +82,7 @@
       }
     ],
     "direction": "horizontal",
-    "width": 300,
-    "collapsed": true
+    "width": 300
   },
   "right": {
     "id": "c8be7f0cea41e058",
@@ -150,10 +162,11 @@
       "open-vscode:VSCode": false
     }
   },
-  "active": "e47428149f8f46cf",
+  "active": "520e9d55ebdb054b",
   "lastOpenFiles": [
-    "Без названия.md",
+    "Excalidraw/Drawing 2024-02-12 22.14.08.excalidraw.md",
     "Programs.md",
+    "Без названия.md",
     "Объяснение формул.md",
     "Excalidraw/Drawing 2023-10-25 11.06.24.excalidraw.md",
     "Excalidraw/Drawing 2023-10-21 07.58.37.excalidraw.md",

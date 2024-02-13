@@ -1,20 +1,66 @@
 {
-    "screen": "Оконный",
-    "program": "Мыши",
-    "control": "Обычное",
-    "file": "None",
-    "tone_play": 1,
-    "width": "1024",
-    "height": "768",
-    "round": "5",
-    "tone_rate": "440",
-    "tone_volume": "4096",
-    "tone_delay": "1.5",
-    "radius_multiplier": "1.5",
-    "possible": "200",
-    "freq": "0.25",
-    "sensivity": "20",
-    "dot_time": "0.5",
-    "time": "5",
-    "lightSize": 40
+    "general": {
+        "window": {
+            "fullScreen": false,
+            "width": 1024,
+            "height": 768,
+            "startTimer": 1
+        },
+        "experiment": {
+            "program": "Equation",
+            "round": 1,
+            "name": "Иванов",
+            "code": "1234"
+        },
+        "tone": {
+            "enable": true,
+            "freq": 440,
+            "volume": 4096,
+            "delay": 2.0
+        },
+        "timeStamps": {
+            "trigger": false,
+            "light": true,
+            "lightSize": 20
+        }
+    },
+    "Mouse": {
+        "zoneSize": {
+            "distMul": 1.0,
+            "waitZone": 200,
+            "radius": 40
+        },
+        "logger": {
+            "freq": 0.6
+        },
+        "control": {
+            "sensitivity": 20,
+            "inverse": false
+        },
+        "timeStamps": {}
+    },
+    "Equation": {
+        "delay": {
+            "plus": 0.2,
+            "answer": 5.0
+        },
+        "file": {
+            "path": "None"
+        },
+        "control": {
+            "sensitivity": 20,
+            "inverse": true
+        },
+        "timeStamps": {}
+    },
+    "PVT": {
+        "delay": {
+            "plus": 0.0,
+            "emptyMin": 2.0,
+            "emptyMax": 4.0,
+            "answer": 5.0,
+            "msi": 0.0
+        },
+        "timeStamps": {}
+    }
 }
