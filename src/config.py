@@ -5,7 +5,7 @@ import json
 CONFIG_STD = {
     "general": {
         "window": {
-            "fullScreen": True,
+            "fullScreen": False,
             "width": 1024,
             "height": 768,
             "startTimer": 1
@@ -36,6 +36,11 @@ CONFIG_STD = {
             "waitZone": 200,
             "radius": 40
         },
+        "colors": {
+            "bg": "#c0c0c0",
+            "mouse": "#ff0000",
+            "hole": "#000000"
+        },
         "logger": {
             "freq": 0.25
         },
@@ -50,6 +55,12 @@ CONFIG_STD = {
         "delay": {
             "plus": 0.5,
             "answer": 5
+        },
+        "colors": {
+            "bg": "#c0c0c0",
+            "right": "#00ff00",
+            "wrong": "#0000ff",
+            "text": "#ffffff"
         },
         "file": {
             "path": "None"
@@ -69,6 +80,18 @@ CONFIG_STD = {
             "answer": 5,
             "msi": 0.5
         },
+        "color": {
+            "bg": "#404040",
+            "plus": "#808080",
+            "circle": "#808080"
+        },
+        "size": {
+            "circleRadius": 25,
+            "plus": {
+                "radius": 15,
+                "width": 2
+            }
+        },
         "timeStamps": {
         }
     }
@@ -87,7 +110,7 @@ def loadConfig():
         with open('config.json', 'r') as configFile:
             updateConfig(json.load(configFile))
     else:
-        CONFIG = CONFIG_STD
+        updateConfig(CONFIG_STD)
     # ---------------------------------------------------------------------------------------
 
 

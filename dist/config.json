@@ -1,0 +1,89 @@
+{
+    "general": {
+        "window": {
+            "fullScreen": false,
+            "width": 1024,
+            "height": 768,
+            "startTimer": 1
+        },
+        "experiment": {
+            "program": "Equation",
+            "round": 20,
+            "name": "Иванов",
+            "code": "1234"
+        },
+        "tone": {
+            "enable": true,
+            "freq": 440,
+            "volume": 4096,
+            "delay": 1.5
+        },
+        "timeStamps": {
+            "trigger": false,
+            "light": true,
+            "lightSize": 20
+        }
+    },
+    "Mouse": {
+        "zoneSize": {
+            "distMul": 1.5,
+            "waitZone": 200,
+            "radius": 40
+        },
+        "colors": {
+            "bg": "#c0c0c0",
+            "mouse": "#ff0000",
+            "hole": "#000000"
+        },
+        "logger": {
+            "freq": 0.25
+        },
+        "control": {
+            "sensitivity": 20,
+            "inverse": false
+        },
+        "timeStamps": {}
+    },
+    "Equation": {
+        "delay": {
+            "plus": 0.5,
+            "answer": 5
+        },
+        "colors": {
+            "bg": "#c0c0c0",
+            "right": "#00ff00",
+            "wrong": "#0000ff",
+            "text": "#ffffff"
+        },
+        "file": {
+            "path": "None"
+        },
+        "control": {
+            "sensitivity": 20,
+            "inverse": false
+        },
+        "timeStamps": {}
+    },
+    "PVT": {
+        "delay": {
+            "plus": 0.5,
+            "emptyMin": 2,
+            "emptyMax": 4,
+            "answer": 5,
+            "msi": 0.5
+        },
+        "color": {
+            "bg": "#404040",
+            "plus": "#808080",
+            "circle": "#808080"
+        },
+        "size": {
+            "circleRadius": 25,
+            "plus": {
+                "radius": 15,
+                "width": 2
+            }
+        },
+        "timeStamps": {}
+    }
+}
