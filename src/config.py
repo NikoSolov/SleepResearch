@@ -8,7 +8,7 @@ CONFIG_STD = {
             "fullScreen": False,
             "width": 1024,
             "height": 768,
-            "startTimer": 1
+            "startTimer": 5
         },
         "experiment": {
             "program": "Equation",
@@ -26,7 +26,7 @@ CONFIG_STD = {
         "timeStamps": {
             "trigger": True,
             "light": True,
-            "lightSize": 20
+            "lightSize": 60
         }
 
     },
@@ -36,24 +36,24 @@ CONFIG_STD = {
                 "distMul": 1.5,
                 "waitZone": 200,
                 "radius": 40,
-                "speed": 10,
+                "speed": 8,
                 "maxDispersion": 0.5
             },
             "colors": {
-                "bg": "#c0c0c0",
+                "bg": "#404040",
                 "mouse": "#ff0000",
-                "hole": "#000000",
+                "hole": "#c0c0c0",
                 "gtrail": "#0000ff",
                 "strail": "#00ff00"
             }
         },
         "control": {
             "sensitivity": 20,
-            "inverse": False
+            "inverse": True
         },
 
         "logger": {
-            "freq": 0.25
+            "freq": 0.01
         },
         "timeStamps": {
         }
@@ -61,29 +61,27 @@ CONFIG_STD = {
     "Equation": {
         "duration": {
             "plus": 0.5,
-            "fastAnswer": 2.5,
+            "fastAnswer": 2,
             "answer": 5
         },
         "graphics": {
             "colors": {
-                "plus": "#808080",
-                "bg": "#c0c0c0",
+                "plus": "#c0c0c0",
+                "bg": "#404040",
                 "right": "#00ff00",
-                "wrong": "#0000ff",
-                "font": "#ffffff"
+                "wrong": "#ff0000",
+                "font": "#c0c0c0"
             },
             "sizes": {
                 "plus": {
-                    "radius": 15,
-                    "width": 2
+                    "radius": 30,
+                    "width": 10
                 },
-                "squares":
-                    {
-                        "length": 100,
-                        "width": 0
-                    },
-                "font": 15
-
+                "squares": {
+                    "length": 150,
+                    "width": 3
+                },
+                "font": 150
             },
             "font": "Comic Sans"
         },
@@ -91,34 +89,32 @@ CONFIG_STD = {
             "path": "None"
         },
         "control": {
-            "sensitivity": 0.5,
-            "inverse": False
+            "sensitivity": 0.3,
+            "inverse": True
         },
-        "timeStamps": {
-        }
+        "timeStamps": {}
     },
     "PVT": {
         "delay": {
             "plus": 0.5,
-            "emptyMin": 2,
-            "emptyMax": 4,
-            "answer": 5,
+            "emptyMin": 1.5,
+            "emptyMax": 3,
+            "answer": 3,
             "msi": 0.5
         },
         "color": {
             "bg": "#404040",
-            "plus": "#808080",
-            "circle": "#808080"
+            "plus": "#c0c0c0",
+            "circle": "#ff0000"
         },
         "size": {
-            "circleRadius": 25,
+            "circleRadius": 40,
             "plus": {
-                "radius": 15,
-                "width": 2
+                "radius": 30,
+                "width": 10
             }
         },
-        "timeStamps": {
-        }
+        "timeStamps": {}
     }
 }
 

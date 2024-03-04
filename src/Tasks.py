@@ -20,6 +20,8 @@ WINDOW_CONFIG = config["general"]["window"]
 WIN_FS = WINDOW_CONFIG["fullScreen"]
 WIN_SIZE = (WINDOW_CONFIG["width"], WINDOW_CONFIG["height"])
 ROUND = config["general"]["experiment"]["round"]
+SUBJECT_NAME = config["general"]["experiment"]["name"]
+SUBJECT_code = config["general"]["experiment"]["code"]
 # </editor-fold>
 # ----------------------------
 # <editor-fold desc="Colors">
@@ -53,11 +55,13 @@ INV: int = -1 if CONTROL["inverse"] else 1
 # </editor-fold>
 # ----------------------------
 # <editor-fold desc="Other">
-DIR_NAME = "Tasks " + time.strftime("%d.%m.%y %H.%M.%S")
+DIR_NAME = f"{SUBJECT_NAME}{SUBJECT_code}_{time.strftime("%d.%m.%y")}_Tasks_{time.strftime("%H.%M.%S")}"
 FILEPATH = config["Equation"]["file"]["path"]
+file = open(FILEPATH, "r") if FILEPATH != "None" else None
 # </editor-fold>
 # </editor-fold>
 # =========================================
+trigger.update()
 
 pg.font.init()
 equationFont = pg.font.SysFont(FONT, SIZES["font"])
@@ -133,6 +137,8 @@ mainStats = {
 
 equationSurf: pg.Surface
 
+trigger.send(1)
+
 while run:
     for event in pg.event.get():
         if event.type == pg.QUIT or (
@@ -141,6 +147,7 @@ while run:
         if event.type == pg.MOUSEWHEEL and status == Event.Answer:
             if roundStats["ReactionTime"] == None:
                 roundStats["ReactionTime"] = time.time() - setTime
+                trigger.send(6)
             print(rightLevel, wrongLevel)
             if event.y * INV > 0:
                 rightLevel += SENSE * event.y * INV
@@ -160,6 +167,7 @@ while run:
         if siren.isDone():
             setTime = time.time()
             status = Event.Plus
+            trigger.send(3)
             # -------- stopSiren ---------------
             # siren.stop()
             lightSensor.pulse()
@@ -172,19 +180,29 @@ while run:
             setTime = time.time()
             status = Event.Answer
             # ------------- generate equation --------------
-            equationScore = choice([True, False])
-            mainStats["Equation"][str(equationScore)] += 1
-            # print(mainStats)
-            # print(equationScore)
-            a = randint(0, 50)
-            b = randint(0, 9)
-            if equationScore:
-                c = a + b
+            if file is not None:
+                lineFile = file.readline()
+                # print(d)
+                if lineFile == "":
+                    run = False
+                lineFile = lineFile.split()
+                equationText = lineFile[0]
+                equationScore = bool(int(lineFile[1]))
             else:
-                c = randint(0, 59)
-                while c == a + b:
+                equationScore = choice([True, False])
+                # print(mainStats)
+                # print(equationScore)
+                a = randint(0, 50)
+                b = randint(0, 9)
+                if equationScore:
+                    c = a + b
+                else:
                     c = randint(0, 59)
-            equationText = str(a) + "+" + str(b) + "=" + str(c)
+                    while c == a + b:
+                        c = randint(0, 59)
+                equationText = f"{a}+{b}={c}"
+
+            mainStats["Equation"][str(equationScore)] += 1
             # ----------- getSurfaceOfEquation -------------
             equationSurf = equationFont.render(equationText, True,
                                                pg.Color(COLORS["font"]))
@@ -286,11 +304,12 @@ while run:
             status = Event.Plus
             lightSensor.pulse()
             roundCounter += 1
+            trigger.send(3)
 
     if roundCounter >= ROUND:
         run = False
     pg.display.flip()
     clk.tick(60)
-
+trigger.send(8)
 TABLE.close()
 trigger.close()

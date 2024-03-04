@@ -7,9 +7,10 @@ import pygame as pg
 import xlsxwriter
 
 import config as cfg
+import lightSensor
 import siren
 import trigger
-import lightSensor
+
 # ======== Load Configs ====================
 cfg.loadConfig()
 config = cfg.getConfig()
@@ -22,6 +23,8 @@ TIMESTAMPS_CONFIG = config["general"]["timeStamps"]
 SIREN_TIME = config["general"]["siren"]["duration"]
 ROUND = config["general"]["experiment"]["round"]
 LIGHT_SIZE = config["general"]["timeStamps"]["lightSize"]
+SUBJECT_NAME = config["general"]["experiment"]["name"]
+SUBJECT_code = config["general"]["experiment"]["code"]
 # </editor-fold>
 # ------------------------------
 # <editor-fold desc="Colors">
@@ -35,6 +38,7 @@ C_CIRCLE = pg.Color(COLORS["circle"])
 SIZES = config["PVT"]["size"]
 PLUS_SIZE = SIZES["plus"]["radius"]
 PLUS_WIDTH = SIZES["plus"]["width"]
+RADIUS = SIZES["circleRadius"]
 # </editor-fold>
 # ------------------------------
 # <editor-fold desc="Durations">
@@ -50,7 +54,7 @@ def emptyTime(): return rd(DELAYS["emptyMin"], DELAYS["emptyMax"])
 # </editor-fold>
 # ------------------------------
 # <editor-fold desc="Logger">
-DIR_NAME = "PVT" + time.strftime("%d.%m.%y %H.%M.%S")
+DIR_NAME = f"{SUBJECT_NAME}{SUBJECT_code}_{time.strftime("%d.%m.%y")}_PVT_{time.strftime("%H.%M.%S")}"
 # </editor-fold>
 # </editor-fold>
 # ======== Initialization ====================
@@ -73,12 +77,11 @@ if not (os.path.exists("result")):
 TABLE = xlsxwriter.Workbook(f"result/{DIR_NAME}.xlsx")
 MainLog = TABLE.add_worksheet("MainLog")
 MainLog.merge_range("A1:A2", "Round")
-MainLog.merge_range("B1:F1", "First Reaction")
-MainLog.write("B2", "Plus")
-MainLog.write("C2", "EmptyTime")
-MainLog.write("D2", "Empty")
-MainLog.write("E2", "Circle")
-MainLog.write("F2", "MSI")
+MainLog.merge_range("B1:E1", "First Reaction")
+MainLog.write("B2", "EmptyTime")
+MainLog.write("C2", "FalseAnswer")
+MainLog.write("D2", "RightAnswer")
+MainLog.write("E2", "at MSI?")
 
 
 # </editor-fold>
@@ -96,11 +99,17 @@ run = True
 status = Event.Siren
 currentEmptyTime = emptyTime()
 roundCounter = 0
-reactions = {"Plus": None, "Empty": None, "Circle": None, "MSI": None}
+reactions = {
+    "wrongAnswer": None,
+    "rightAnswer": None,
+    "MSI": False
+}
 # --------------
 setTime = time.time()
-trigger.send(1)
+
 # </editor-fold>
+
+trigger.send(1)
 
 while run:
     for event in pg.event.get():
@@ -109,23 +118,23 @@ while run:
             run = False
         if event.type == pg.MOUSEBUTTONDOWN:
             print("Clicked")
-            if status == Event.Plus and reactions["Plus"] is None:
-                reactions["Empty"] = time.time() - setTime
+            trigger.send(6)
+            if ((status == Event.Plus or status == Event.Empty)
+                    and reactions["wrongAnswer"] is None):
+                reactions["wrongAnswer"] = time.time() - setTime
                 setTime = time.time()
                 status = Event.MSI
-            if status == Event.Empty and reactions["Empty"] is None:
-                reactions["Empty"] = time.time() - setTime
+
+            elif ((status == Event.Circle or status == Event.MSI)
+                  and reactions["rightAnswer"] is None):
+                reactions["rightAnswer"] = time.time() - setTime
+
                 setTime = time.time()
+                if status == Event.MSI:
+                    reactions["MSI"] = True
+                    reactions["rightAnswer"] += ANSWER_TIME
                 status = Event.MSI
-            if status == Event.Circle and reactions["Circle"] is None:
-                reactions["Circle"] = time.time() - setTime
-                trigger.send(6)
-                trigger.send(roundCounter + 1)
-                setTime = time.time()
-                status = Event.MSI
-            if status == Event.MSI and reactions["MSI"] is None:
-                reactions["MSI"] = time.time() - setTime
-            print(*reactions.values(), sep="\n")
+            print(reactions)
 
     root.fill(C_BG)
 
@@ -136,18 +145,16 @@ while run:
         # ------ playSiren ------------------
         siren.play()
         root.fill((0, 0, 0))
-        if time.time() - setTime > SIREN_TIME:
+        if siren.isDone():
             setTime = time.time()
             status = Event.Plus
-            siren.stop()
-            trigger.send(8)
-            trigger.send(roundCounter + 1)
+            trigger.send(4)
 
     if status == Event.Plus:
         lightSensor.pulse()
         # print("plus")
         MainLog.write(f"A{3 + roundCounter}", f"{roundCounter + 1}")
-        MainLog.write(f"C{3 + roundCounter}", f"{currentEmptyTime}")
+        MainLog.write(f"B{3 + roundCounter}", f"{currentEmptyTime}")
         pg.draw.rect(root, (255, 255, 255), (0, 0, LIGHT_SIZE, LIGHT_SIZE))
         pg.draw.line(root, C_PLUS,
                      (WIN_SIZE[0] // 2, WIN_SIZE[1] // 2 - PLUS_SIZE),
@@ -159,7 +166,6 @@ while run:
                      PLUS_WIDTH)
         # print(time.time() - setTime)
         if time.time() - setTime > PLUS_TIME:
-
             status = Event.Empty
             currentEmptyTime = emptyTime()
     if status == Event.Empty:
@@ -167,41 +173,43 @@ while run:
         if time.time() - setTime > currentEmptyTime:
             setTime = time.time()
             status = Event.Circle
-            trigger.send(8)
-            trigger.send(roundCounter + 1)
+            trigger.send(5)
+            # trigger.send(roundCounter + 1)
     if status == Event.Circle:
         pg.draw.circle(
             root,
             C_CIRCLE,
             (WIN_SIZE[0] // 2, WIN_SIZE[1] // 2),
-            20
+            RADIUS
         )
         if time.time() - setTime > ANSWER_TIME:
             setTime = time.time()
             status = Event.MSI
     if status == Event.MSI:
-        # --------------- Fill SpreadSheet ------------
-        MainLog.write(f"B{3 + roundCounter}", f"{reactions["Plus"]}")
-        MainLog.write(f"D{3 + roundCounter}", f"{reactions["Empty"]}")
-        MainLog.write(f"E{3 + roundCounter}", f"{reactions["Circle"]}")
-        MainLog.write(f"F{3 + roundCounter}", f"{reactions["MSI"]}")
-
         if time.time() - setTime > MSI_TIME:
+            # --------------- Fill SpreadSheet ------------
+            MainLog.write(f"C{3 + roundCounter}",
+                          f"{reactions["wrongAnswer"]}")
+            MainLog.write(f"D{3 + roundCounter}",
+                          f"{reactions["rightAnswer"]}")
+            MainLog.write(f"E{3 + roundCounter}", f"{reactions["MSI"]}")
+
             setTime = time.time()
             status = Event.Plus
-            reactions = {"Plus": None,
-                         "Empty": None,
-                         "Circle": None,
-                         "MSI": None}
+            reactions = {
+                "wrongAnswer": None,
+                "rightAnswer": None,
+                "MSI": False
+            }
             roundCounter += 1
             trigger.send(4)
-            trigger.send(roundCounter + 1)
+
     if roundCounter >= ROUND:
-        trigger.send(8)
-        trigger.send(roundCounter + 1)
         run = False
-        clk.tick(60)
+
+    clk.tick(60)
     pg.display.flip()
+trigger.send(8)
 
 TABLE.close()
 trigger.close()

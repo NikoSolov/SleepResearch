@@ -33,7 +33,7 @@ Common config:
 		1. Alarm
 		2n. Start Round (n - number of round)
 		6n. First Reaction (n - number of round)
-		7. End
+		8. End
 	- Logger:
 		- Images:
 			- Trails (Зеленый - испытуемый, Синий - исходный)
@@ -65,7 +65,7 @@ Common config:
 		1. Alarm
 		3n. Start Round (n - number of round) 
 		6n. First Reaction (n - number of round)
-		7. End 
+		8. End 
 	- Logger:
 		- For each (FileName: )
 			- Round Number
@@ -96,9 +96,9 @@ Common config:
 	- TimeStamps
 		1. Alarm
 		4n. Start Round With Cross (n - number of round)
+		5n. Circle Appears (n - Round Number)
 		6n. First Reaction After Circle Appeares (n - number of round)
-		8n. Circle Appears (n - Round Number)
-		7. End
+		8. End
 	- Logger:
 		- For each (FileName: )
 			- Round Time (From Cross to Cross)
@@ -117,8 +117,9 @@ Common config:
 		- Cross
 	- TimeStamps
 		1. Alarm
-		5. Start (Cross appearance)
-		7. End
+		6. Touch da button	
+		7. Start (Cross appearance)
+		8. End
 ---
 
 Добавить, изменить
@@ -129,4 +130,13 @@ Common config:
 - Парабола - траектория, скорость **постоянна**
 - Equations:
 	- Round Time is constant (Solve + Wait = Round Time)
-	- 
+
+---
+1. Siren
+2. Plus - `plusTime = 2` 
+	1. C_bg
+	2. c_plus
+	3. len_plus
+	4. width_plus
+	
+

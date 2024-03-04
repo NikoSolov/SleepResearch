@@ -3,12 +3,15 @@ from enum import Enum
 from os import mkdir, path
 from random import choice as ch
 from random import uniform as rd
+
 import numpy as np
 import pygame as pg
 import xlsxwriter
+
 import config as cfg
-import trigger
 import lightSensor
+import siren
+import trigger
 
 # ====== Setting up Config =========
 cfg.loadConfig()
@@ -20,6 +23,8 @@ WIN_SIZE = np.array([config["general"]["window"]["width"],
                      config["general"]["window"]["height"]])
 FULLSCREEN = config["general"]["window"]["fullScreen"]
 ROUND = config["general"]["experiment"]["round"]
+SUBJECT_NAME = config["general"]["experiment"]["name"]
+SUBJECT_code = config["general"]["experiment"]["code"]
 # </editor-fold>
 # ---------------------------
 # <editor-fold desc="Sizes">
@@ -47,7 +52,8 @@ INVERSE = -1 if CONTROL["sensitivity"] else 1
 # </editor-fold>
 # ---------------------------
 # <editor-fold desc="Logger">
-DIR_NAME = f"Mouse_{time.strftime("%d.%m.%y %H.%M.%S")}"
+DIR_NAME = (f"{SUBJECT_NAME}{SUBJECT_code}_{time.strftime("%d.%m.%y")}"
+            f"_Mouse_{time.strftime("%H.%M.%S")}")
 LOG_FREQ = config["Mouse"]["logger"]["freq"]
 # </editor-fold>
 # </editor-fold>
@@ -224,8 +230,9 @@ class Ball:
 
 
 class Event(Enum):
-    init = 0
-    answer = 1
+    siren = 0
+    init = 1
+    answer = 2
 
 
 run = True
@@ -234,7 +241,7 @@ roundCounter = 0
 loggerStep = 0
 loggerTime = time.time()
 pathString = ""
-status = Event.init
+status = Event.siren
 imageLogger = None
 mainStats = {
     "arrived": 0,
@@ -251,6 +258,8 @@ roundStats = {
 # ================================
 roundTimer = 0
 
+trigger.send(1)
+
 while run:
     for event in pg.event.get():
         # -------- Hard Quitting ------------
@@ -261,7 +270,7 @@ while run:
         if event.type == pg.MOUSEWHEEL and status == Event.answer:
             if roundStats["reactionTime"] == 0:
                 roundStats["reactionTime"] = time.time() - roundTimer
-                trigger.send(4)
+                trigger.send(6)
             # wait until mouse passes WaitZone
             if np.linalg.norm(
                     Ball.getPos() - np.array([RADIUS, WIN_SIZE[1] - RADIUS])
@@ -289,12 +298,21 @@ while run:
     root.fill(pg.Color(C_BG))
     # -------- draw a hole ----------
     pg.draw.circle(root,
-                   (255, 255, 255),
+                   pg.Color(C_HOLE),
                    (WIN_SIZE[0] - RADIUS, RADIUS),
                    RADIUS
                    )
     # -------- draw light square ----------
     lightSensor.draw(root)
+
+    # ---------- Siren Plays ----------------
+    if status == Event.siren:
+        # ------ playSiren ------------------
+        siren.play()
+        root.fill((0, 0, 0))
+        if siren.isDone():
+            setTime = time.time()
+            status = Event.init
 
     if status == Event.init:
         roundCounter += 1
@@ -338,7 +356,7 @@ while run:
         loggerTime = roundTimer
         # ------ Timestamp ------
         trigger.send(2)
-        trigger.send(roundCounter)
+        # trigger.send(roundCounter)
         # </editor-fold>
 
     if status == Event.answer:
@@ -355,38 +373,41 @@ while run:
             loggerStep += 1
             loggerTime = time.time()
 
-    if Ball.touchWall() or Ball.touchHole():
-        status = Event.init
-        # --------------- Write File And Close ----------
-        pathString += Ball.getPartial()
-        imageLogger.write(imageSample(pathString))
-        imageLogger.close()
-        # -------------
-        if Ball.touchHole():
-            print("got it")
-            roundStats["answer"] = "Arrived"
-            mainStats["arrived"] += 1
-        elif roundStats["notches"] > 0:
-            roundStats["answer"] = "Missed"
-            mainStats["missed"] += 1
-        else:
-            roundStats["answer"] = "Skipped"
-            mainStats["skip"] += 1
+        if Ball.touchWall() or Ball.touchHole():
+            status = Event.init
+            # --------------- Write File And Close ----------
+            pathString += Ball.getPartial()
+            imageLogger.write(imageSample(pathString))
+            imageLogger.close()
+            # -------------
+            if Ball.touchHole():
+                print("got it")
+                roundStats["answer"] = "Arrived"
+                mainStats["arrived"] += 1
+            elif roundStats["notches"] > 0:
+                roundStats["answer"] = "Missed"
+                mainStats["missed"] += 1
+            else:
+                roundStats["answer"] = "Skipped"
+                mainStats["skip"] += 1
 
-        # ======== Fill Round Log =========
-        print(roundStats)
-        MainLog.write(f"A{roundCounter + 4}", roundCounter)
-        MainLog.write(f"B{roundCounter + 4}", roundStats["answer"])
-        MainLog.write(f"C{roundCounter + 4}", roundStats["notches"])
-        MainLog.write(f"D{roundCounter + 4}", roundStats["reactionTime"])
-        MainLog.write(f"E{roundCounter + 4}", Ball.getPos()[0])
-        MainLog.write(f"F{roundCounter + 4}", Ball.getPos()[1])
+            # ======== Fill Round Log =========
+            print(roundStats)
+            MainLog.write(f"A{roundCounter + 4}", roundCounter)
+            MainLog.write(f"B{roundCounter + 4}", roundStats["answer"])
+            MainLog.write(f"C{roundCounter + 4}", roundStats["notches"])
+            MainLog.write(f"D{roundCounter + 4}", roundStats["reactionTime"])
+            MainLog.write(f"E{roundCounter + 4}", Ball.getPos()[0])
+            MainLog.write(f"F{roundCounter + 4}", Ball.getPos()[1])
+
+    if roundCounter >= ROUND:
+        run = False
 
     pg.display.flip()
     clk.tick(60)
 
 # ------- Filling the Main Log --------------
-trigger.send(5)
+trigger.send(8)
 trigger.close()
 MainLog.write("A2", f'{mainStats["arrived"]}')
 MainLog.write("B2", f'{mainStats["missed"]}')
