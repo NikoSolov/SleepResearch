@@ -464,7 +464,7 @@
             "containerId": null,
             "originalText": "ComboBox",
             "lineHeight": 1.2500000000000018,
-            "baseline": 17
+            "baseline": 18
           },
           {
             "type": "rectangle",
@@ -1758,7 +1758,7 @@
             "containerId": null,
             "originalText": "+",
             "lineHeight": 1.25,
-            "baseline": 24
+            "baseline": 25
           }
         ],
         "id": "vwx7DUZAnWtcQbcvS5EUG",
@@ -3908,7 +3908,7 @@
             "containerId": null,
             "originalText": "U",
             "lineHeight": 1.25,
-            "baseline": 21
+            "baseline": 22
           },
           {
             "type": "line",

@@ -1,9 +1,8 @@
 import json
-import os
+from types import SimpleNamespace
 
-# Standard configurations
 CONFIG_STD = {
-    "general": {
+    "General": {
         "window": {
             "fullScreen": False,
             "width": 1024,
@@ -13,18 +12,18 @@ CONFIG_STD = {
         "experiment": {
             "program": "Equation",
             "round": 20,
-            "name": "Иванов",
+            "name": "Ivanov",
             "code": "1234",
         },
 
-        "siren": {
+        "tone": {
             "enable": True,
             "freq": 440,
             "volume": 4096,
-            "duration": 1.5
+            "delay": 1.5
         },
         "timeStamps": {
-            "trigger": True,
+            "trigger": False,
             "light": True,
             "lightSize": 20
         }
@@ -35,16 +34,12 @@ CONFIG_STD = {
             "sizes": {
                 "distMul": 1.5,
                 "waitZone": 200,
-                "radius": 40,
-                "speed": 10,
-                "maxDispersion": 0.5
+                "radius": 40
             },
             "colors": {
                 "bg": "#c0c0c0",
                 "mouse": "#ff0000",
-                "hole": "#000000",
-                "gtrail": "#0000ff",
-                "strail": "#00ff00"
+                "hole": "#000000"
             }
         },
         "control": {
@@ -59,9 +54,8 @@ CONFIG_STD = {
         }
     },
     "Equation": {
-        "duration": {
+        "delay": {
             "plus": 0.5,
-            "fastAnswer": 2.5,
             "answer": 5
         },
         "graphics": {
@@ -77,11 +71,7 @@ CONFIG_STD = {
                     "radius": 15,
                     "width": 2
                 },
-                "squares":
-                    {
-                        "length": 100,
-                        "width": 0
-                    },
+                "squares": 100,
                 "font": 15
 
             },
@@ -91,7 +81,7 @@ CONFIG_STD = {
             "path": "None"
         },
         "control": {
-            "sensitivity": 0.5,
+            "sensitivity": 20,
             "inverse": False
         },
         "timeStamps": {
@@ -121,37 +111,8 @@ CONFIG_STD = {
         }
     }
 }
+print(str(CONFIG_STD))
 
-CONFIG = {}
+config = json.loads(str(CONFIG_STD), object_hook=lambda d: SimpleNamespace(**d))
 
-
-# ------------------------------------------
-
-def loadConfig():
-    global CONFIG_STD, CONFIG
-    # if "config" file doesn't exist, need to create them from standard set
-    if os.path.exists("config.json"):
-        print("config exists")
-        with open('config.json', 'r') as configFile:
-            updateConfig(json.load(configFile))
-    else:
-        updateConfig(CONFIG_STD)
-    # ---------------------------------------------------------------------------------------
-
-
-def updateConfig(config: dict):
-    global CONFIG
-    print(f"Change to: {config}")
-    CONFIG.update(config)
-    with open('config.json', 'w') as configFile:
-        json.dump(CONFIG, configFile, indent=4, ensure_ascii=False)
-
-
-def getConfig():
-    global CONFIG
-    return CONFIG
-
-
-def printOut():
-    global CONFIG
-    print(CONFIG)
+print(config.General.window)

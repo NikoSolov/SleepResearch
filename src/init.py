@@ -40,16 +40,16 @@ clock = pg.time.Clock()
 
 # initialize COM-Port
 port_work = True
-portname = ""
+portName = ""
 ports = serial.tools.list_ports.comports()
 
 for port, desc, hwid in sorted(ports):
     if "USB-SERIAL CH340" in desc:
-        portname = port
-if portname == "":  port_work = False
+        portName = port
+if portName == "":  port_work = False
 
 try:
-    time_code = serial.Serial(port=portname, baudrate=9600, timeout=.1)
+    time_code = serial.Serial(port=portName, baudrate=9600, timeout=.1)
     time.sleep(2)
 except Exception as e:
     port_work = False
@@ -78,23 +78,38 @@ main = True
 if start_prog == True:
 
     if PROGRAM == "Equation":
-        from textGen import Gen
-
+        from random import randint, choice
         # ============ GET ALL CONSTANTS =========
         DIR_NAME = "Tasks " + time.strftime("%d.%m.%y %H.%M.%S")
         FILEPATH = config["Equation"]["file"]["path"]
         PLUS_TIME = config["Equation"]["delay"]["plus"]
         ANSWER_TIME = config["Equation"]["delay"]["answer"]
         CONTROL = config["Equation"]["control"]
+        PARAMS = config["Equation"]["params"]
+        COLORS = PARAMS["colors"]
+        SIZES = PARAMS["sizes"]
+
         print(f"CONTROL: {CONTROL}")
         # =========================================
         roundi = 0
 
         pg.font.init()
-        myfont = pg.font.SysFont('Comic Sans MS', 150)
+        myfont = pg.font.SysFont(PARAMS["font"], SIZES["font"])
+
+        def Gen():
+            global myfont
+            res = choice([True, False])
+            a = randint(0, 50)
+            b = randint(0, 9)
+            if res == True:
+                c = a + b
+            if res == False:
+                c = randint(0, 59)
+            text = str(a) + "+" + str(b) + "=" + str(c)
+            textSur = myfont.render(text, True, (255, 255, 255))
+            return textSur, res, text
 
         r = w = TT = FF = TF = FT = missed = 0
-        sqr = 200
         red = 0
         green = 0
 
@@ -122,7 +137,6 @@ if start_prog == True:
             def draw(self, root):
                 pg.draw.rect(root, self.color, (self.x, self.y, self.size, self.size), width=2)
                 if self.fill < 0:
-                    #    print(self.x, self.size-self.fill, self.size, self.fill)
                     pg.draw.rect(root, self.color, (self.x, self.y + self.size + self.fill, self.size, abs(self.fill)))
                 elif self.fill > 0:
                     pg.draw.rect(root, self.color, (self.x, self.y, self.size, self.fill))
@@ -136,15 +150,15 @@ if start_prog == True:
                 print(e)
                 file_not = True
 
-        size = 100
-        good = sqr((WIN_WIDTH - size) / 2, WIN_HEIGHT / 4 - size / 2, size, (0, 255, 0))
-        bad = sqr((WIN_WIDTH - size) / 2, WIN_HEIGHT * (3 / 4) - size / 2, size, (255, 0, 0))
+        size = SIZES["squares"]
+        good = sqr((WIN_WIDTH - size) / 2, WIN_HEIGHT / 4 - size / 2, size, COLORS["right"])
+        bad = sqr((WIN_WIDTH - size) / 2, WIN_HEIGHT * (3 / 4) - size / 2, size, COLORS["wrong"])
 
         while main:
 
             if new == True:
-                root.fill((128, 128, 128))
-                pg.draw.circle(root, (255, 255, 255), (WIN_WIDTH // 2, WIN_HEIGHT // 2), (10))
+                root.fill(pg.Color(COLORS["bg"]))
+                pg.draw.circle(root, pg.Color(COLORS["plus"]), (WIN_WIDTH // 2, WIN_HEIGHT // 2), SIZES["plus"])
                 pg.draw.rect(root, (255, 255, 255), (0, 0, LIGHT_SIZE, LIGHT_SIZE))
                 pg.display.update()
                 pg.time.wait(int(PLUS_TIME * 1000))
@@ -228,8 +242,8 @@ if start_prog == True:
                 new = True
 
             # -----------------------------v
-            textSur = myfont.render(text, True, (255, 255, 255))
-            root.fill((128, 128, 128))
+            textSur = myfont.render(text, True, pg.Color(COLORS["font"]))
+            root.fill(pg.Color(COLORS["bg"]))
             pg.draw.rect(root, (0, 0, 0), (0, 0, LIGHT_SIZE, LIGHT_SIZE))
             root.blit(textSur, ((WIN_WIDTH - textSur.get_width()) / 2, (WIN_HEIGHT - textSur.get_height()) / 2))
             good.draw(root)
@@ -292,12 +306,11 @@ if start_prog == True:
 
         # ========= GET ALL CONSTANTS ==========
         DIR_NAME = f"Mouse_{time.strftime("%d.%m.%y %H.%M.%S")}"
-        WAIT_ZONE = config["Mouse"]["zoneSize"]["waitZone"]
-        DISTANCE_MULTIPLIER = config["Mouse"]["zoneSize"]["distMul"]
+        WAIT_ZONE = config["Mouse"]["graphics"]["sizes"]["waitZone"]
+        DISTANCE_MULTIPLIER = config["Mouse"]["graphics"]["sizes"]["distMul"]
         LOG_FREQ = config["Mouse"]["logger"]["freq"]
         CONTROL = config["Mouse"]["control"]
         # =======================================
-        photo = pg.Surface((WIN_WIDTH, WIN_HEIGHT))
         # -------- Setting Log Files -------------
         if not (os.path.exists("result")):
             os.mkdir("result")
@@ -438,7 +451,7 @@ if start_prog == True:
                     if rtime == 0:
                         rtime = time.time() - atime;
                         print(rtime)
-                        if port_work: time_code.write(bytearray([4]))
+                ,        if port_work: time_code.write(bytearray([4]))
                     movement = True
                     if CONTROL["inverse"]:
                         ball.y += event.y * 20

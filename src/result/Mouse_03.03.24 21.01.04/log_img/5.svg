@@ -1,0 +1,56 @@
+
+<svg
+   style="background:#c0c0c0"
+   width="1024" height="768"
+   xmlns="http://www.w3.org/2000/svg">
+  <rect
+     id="BackGround" style="fill:#c0c0c0"
+     width="1024" height="768" x="0" y="0" />
+  <circle
+     id="Hole" fill="#000000"
+     cx="984" cy="40" r="40"/>
+  <circle
+     id="Hole" fill="none"
+     cx="40" cy="728" r="200"
+     stroke="red" stroke-width="3"/>
+  <path
+     id="generatedTrail"
+     stroke = "#0000ff"
+     style="        
+        stroke-width:5;
+        stroke-dasharray:none;
+        stroke-linejoin:round;
+        stroke-linecap:round"
+
+     fill="none"
+     d="M 40 728 
+        Q 40.0 378.0 
+          904.0 29.82150478309942"
+      />
+  <circle
+     id="Mouse" fill="#ff0000"
+     cx="887.0985962776497" cy="36.666320995668634" r="40"/>
+  <path
+     id="subjectTrail" fill="none"
+     stroke="#00ff00"  stroke-width="5"
+     d="M 40.0 728.0 
+        Q 40.0 509.62907235805864 
+          376.3313045050655 291.96720615114276 
+        M 376.3313045050655 291.96720615114276 
+            l 0 40M 376.3313045050655 331.96720615114276 
+        Q 482.24883883390913 263.4210795276427 
+          621.5219482401621 194.94527389898815 
+        M 621.5219482401621 194.94527389898815 
+            l 0 -20M 621.5219482401621 174.94527389898815 
+        Q 630.468235419696 170.54669168440608 
+          639.5521546431123 166.14839962888215 
+        M 639.5521546431123 166.14839962888215 
+            l 0 -20M 639.5521546431123 146.14839962888215 
+        Q 752.656851923435 91.38486868420691 
+          887.0985962776497 36.666320995668634 
+        "
+     style="stroke-width:3;
+            stroke-dasharray:none;
+            stroke-linejoin:round;
+            stroke-linecap:round"/>
+</svg>

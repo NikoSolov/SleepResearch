@@ -197,16 +197,16 @@ clock=pg.time.Clock()
 
 #initialize COM-Port 
 port_work=True
-portname=""
+portName= ""
 ports = serial.tools.list_ports.comports()
 
 for port, desc, hwid in sorted(ports):
     if "USB-SERIAL CH340" in desc:
-        portname=port
-if portname=="":  port_work=False
+        portName=port
+if portName== "":  port_work=False
 
 try:
-    time_code=serial.Serial(port=portname, baudrate=9600, timeout=.1)
+    time_code=serial.Serial(port=portName, baudrate=9600, timeout=.1)
     time.sleep(2)
 except Exception as e:
     port_work=False

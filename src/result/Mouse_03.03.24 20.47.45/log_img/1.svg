@@ -1,0 +1,44 @@
+
+<svg
+   style="background:#c0c0c0"
+   width="1024" height="768"
+   xmlns="http://www.w3.org/2000/svg">
+  <rect
+     id="BackGround" style="fill:#c0c0c0"
+     width="1024" height="768" x="0" y="0" />
+  <circle
+     id="Hole" fill="#000000"
+     cx="984" cy="40" r="40"/>
+  <circle
+     id="Hole" fill="none"
+     cx="40" cy="728" r="200"
+     stroke="red" stroke-width="3"/>
+  <path
+     id="generatedTrail"
+     stroke = "#0000ff"
+     style="        
+        stroke-width:5;
+        stroke-dasharray:none;
+        stroke-linejoin:round;
+        stroke-linecap:round"
+
+     fill="none"
+     d="M 40 728 
+        Q 472.0 20.93725710292462 
+          904.0 20.93725710292462"
+      />
+  <circle
+     id="Mouse" fill="#ff0000"
+     cx="621.0521811985996" cy="96.76762612734184" r="40"/>
+  <path
+     id="subjectTrail" fill="none"
+     stroke="#00ff00"  stroke-width="5"
+     d="M 40.0 728.0 
+        Q 330.5260905992998 252.4903368002196 
+          621.0521811985996 96.76762612734184 
+        "
+     style="stroke-width:3;
+            stroke-dasharray:none;
+            stroke-linejoin:round;
+            stroke-linecap:round"/>
+</svg>

@@ -4,62 +4,84 @@
             "fullScreen": false,
             "width": 1024,
             "height": 768,
-            "startTimer": 1
+            "startTimer": 10
         },
         "experiment": {
             "program": "Equation",
-            "round": 2,
+            "round": 20,
             "name": "Иванов",
             "code": "1234"
         },
-        "tone": {
+        "siren": {
             "enable": true,
             "freq": 440,
             "volume": 4096,
-            "delay": 1.5
+            "duration": 1.5
         },
         "timeStamps": {
-            "trigger": false,
+            "trigger": true,
             "light": true,
             "lightSize": 20
         }
     },
     "Mouse": {
-        "zoneSize": {
-            "distMul": 1.5,
-            "waitZone": 200,
-            "radius": 40
-        },
-        "colors": {
-            "bg": "#c0c0c0",
-            "mouse": "#ff0000",
-            "hole": "#000000"
-        },
-        "logger": {
-            "freq": 0.25
+        "graphics": {
+            "sizes": {
+                "distMul": 1.5,
+                "waitZone": 200,
+                "radius": 40,
+                "speed": 10,
+                "maxDispersion": 0.5
+            },
+            "colors": {
+                "bg": "#c0c0c0",
+                "mouse": "#ff0000",
+                "hole": "#000000",
+                "gtrail": "#0000ff",
+                "strail": "#00ff00"
+            }
         },
         "control": {
             "sensitivity": 20,
             "inverse": false
         },
+        "logger": {
+            "freq": 0.2
+        },
         "timeStamps": {}
     },
     "Equation": {
-        "delay": {
+        "duration": {
             "plus": 0.5,
+            "fastAnswer": 3,
             "answer": 5
         },
-        "colors": {
-            "bg": "#c0c0c0",
-            "right": "#00ff00",
-            "wrong": "#0000ff",
-            "text": "#ffffff"
+        "graphics": {
+            "colors": {
+                "plus": "#808080",
+                "bg": "#404040",
+                "right": "#00ff00",
+                "wrong": "#0000ff",
+                "font": "#ffffff"
+            },
+            "sizes": {
+                "plus": {
+                    "radius": 15,
+                    "width": 2
+                },
+                "squares": {
+                    "length": 100,
+                    "width": 5
+                },
+                "font": 150
+            },
+            "font": "Comic Sans"
         },
         "file": {
             "path": "None"
         },
         "control": {
-            "sensitivity": 20,
+            "sensitivity": 0.1,
             "inverse": false
         },
         "timeStamps": {}
@@ -67,9 +89,9 @@
     "PVT": {
         "delay": {
             "plus": 0.5,
-            "emptyMin": 2,
-            "emptyMax": 4,
-            "answer": 5,
+            "emptyMin": 2.0,
+            "emptyMax": 4.0,
+            "answer": 5.0,
             "msi": 0.5
         },
         "color": {
@@ -78,10 +100,10 @@
             "circle": "#808080"
         },
         "size": {
-            "circleRadius": 25,
+            "circleRadius": 50,
             "plus": {
-                "radius": 15,
-                "width": 2
+                "radius": 30,
+                "width": 8
             }
         },
         "timeStamps": {}
