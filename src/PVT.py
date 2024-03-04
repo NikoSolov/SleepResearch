@@ -22,7 +22,6 @@ WIN_SIZE = (WINDOW_CONFIG["width"], WINDOW_CONFIG["height"])
 TIMESTAMPS_CONFIG = config["general"]["timeStamps"]
 SIREN_TIME = config["general"]["siren"]["duration"]
 ROUND = config["general"]["experiment"]["round"]
-LIGHT_SIZE = config["general"]["timeStamps"]["lightSize"]
 SUBJECT_NAME = config["general"]["experiment"]["name"]
 SUBJECT_code = config["general"]["experiment"]["code"]
 # </editor-fold>
@@ -137,7 +136,6 @@ while run:
             print(reactions)
 
     root.fill(C_BG)
-
     lightSensor.draw(root)
 
     # ---------- Siren Plays ----------------
@@ -149,13 +147,13 @@ while run:
             setTime = time.time()
             status = Event.Plus
             trigger.send(4)
+            lightSensor.pulse()
 
     if status == Event.Plus:
-        lightSensor.pulse()
+
         # print("plus")
         MainLog.write(f"A{3 + roundCounter}", f"{roundCounter + 1}")
         MainLog.write(f"B{3 + roundCounter}", f"{currentEmptyTime}")
-        pg.draw.rect(root, (255, 255, 255), (0, 0, LIGHT_SIZE, LIGHT_SIZE))
         pg.draw.line(root, C_PLUS,
                      (WIN_SIZE[0] // 2, WIN_SIZE[1] // 2 - PLUS_SIZE),
                      (WIN_SIZE[0] // 2, WIN_SIZE[1] // 2 + PLUS_SIZE),
@@ -203,11 +201,12 @@ while run:
             }
             roundCounter += 1
             trigger.send(4)
+            lightSensor.pulse()
 
     if roundCounter >= ROUND:
         run = False
 
-    clk.tick(60)
+    # clk.tick(60)
     pg.display.flip()
 trigger.send(8)
 

@@ -115,6 +115,22 @@ CONFIG_STD = {
             }
         },
         "timeStamps": {}
+    },
+    "Control": {
+        "delay": {
+            "plus": 120,
+        },
+        "color": {
+            "bg": "#404040",
+            "plus": "#c0c0c0",
+        },
+        "size": {
+            "plus": {
+                "radius": 30,
+                "width": 10
+            }
+        },
+        "timeStamps": {}
     }
 }
 
