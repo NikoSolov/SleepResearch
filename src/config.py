@@ -11,7 +11,7 @@ CONFIG_STD = {
             "startTimer": 5
         },
         "experiment": {
-            "program": "Equation",
+            "program": "Mouses",
             "round": 20,
             "name": "Иванов",
             "code": "1234",
