@@ -7,7 +7,7 @@ cfg.loadConfig()
 config = cfg.getConfig()
 
 pg.mixer.init()
-TONE = config["general"]["siren"]
+TONE = config["general"]["alarm"]
 WAVE_DATA = numpy.array([int(TONE["volume"]) * numpy.sin(
     2.0 * numpy.pi * int(TONE["freq"]) * x / 44100) for x in
                          range(0, 44100)]).astype(numpy.int16)
@@ -26,15 +26,11 @@ def play():
         sirenTime = time.time()
 
 
+
 def isDone():
-    if playFlag and time.time() - sirenTime > SIREN_TIME:
-        stop()
-        return True
-    return False
-
-
-def stop():
     global playFlag
-    if playFlag:
+    if not int(TONE["enable"]) or (playFlag and time.time() - sirenTime > SIREN_TIME):
         sound.stop()
         playFlag = False
+        return True
+    return False
