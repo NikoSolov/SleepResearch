@@ -8,7 +8,7 @@ import xlsxwriter
 
 import config as cfg
 import lightSensor
-import siren
+import alarm
 import trigger
 
 # ======== Load Configs ====================
@@ -17,24 +17,24 @@ config = cfg.getConfig()
 # <editor-fold desc="CONFIG">
 # <editor-fold desc="General">
 WINDOW_CONFIG = config["general"]["window"]
+print(WINDOW_CONFIG)
 WIN_FS = WINDOW_CONFIG["fullScreen"]
 WIN_SIZE = (WINDOW_CONFIG["width"], WINDOW_CONFIG["height"])
 TIMESTAMPS_CONFIG = config["general"]["timeStamps"]
-SIREN_TIME = config["general"]["siren"]["duration"]
 ROUND = config["general"]["experiment"]["round"]
 SUBJECT_NAME = config["general"]["experiment"]["name"]
 SUBJECT_code = config["general"]["experiment"]["code"]
 # </editor-fold>
 # ------------------------------
 # <editor-fold desc="Colors">
-COLORS = config["PVT"]["color"]
+COLORS = config["PVT"]["graphics"]["color"]
 C_PLUS = pg.Color(COLORS["plus"])
 C_BG = pg.Color(COLORS["bg"])
 C_CIRCLE = pg.Color(COLORS["circle"])
 # </editor-fold>
 # ------------------------------
 # <editor-fold desc="Sizes">
-SIZES = config["PVT"]["size"]
+SIZES = config["PVT"]["graphics"]["size"]
 PLUS_SIZE = SIZES["plus"]["radius"]
 PLUS_WIDTH = SIZES["plus"]["width"]
 RADIUS = SIZES["circleRadius"]
@@ -141,9 +141,9 @@ while run:
     # ---------- Siren Plays ----------------
     if status == Event.Siren:
         # ------ playSiren ------------------
-        siren.play()
+        alarm.play()
         root.fill((0, 0, 0))
-        if siren.isDone():
+        if alarm.isDone():
             setTime = time.time()
             status = Event.Plus
             trigger.send(4)

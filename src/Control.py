@@ -2,7 +2,7 @@ import time
 from enum import Enum
 import pygame as pg
 import config as cfg
-import siren
+import alarm
 import trigger
 import lightSensor
 # ======== Load Configs ====================
@@ -14,17 +14,16 @@ WINDOW_CONFIG = config["general"]["window"]
 WIN_FS = WINDOW_CONFIG["fullScreen"]
 WIN_SIZE = (WINDOW_CONFIG["width"], WINDOW_CONFIG["height"])
 TIMESTAMPS_CONFIG = config["general"]["timeStamps"]
-SIREN_TIME = config["general"]["siren"]["duration"]
 # </editor-fold>
 # ------------------------------
 # <editor-fold desc="Colors">
-COLORS = config["Control"]["color"]
+COLORS = config["Control"]["graphics"]["color"]
 C_PLUS = pg.Color(COLORS["plus"])
 C_BG = pg.Color(COLORS["bg"])
 # </editor-fold>
 # ------------------------------
 # <editor-fold desc="Sizes">
-SIZES = config["Control"]["size"]
+SIZES = config["Control"]["graphics"]["size"]
 PLUS_SIZE = SIZES["plus"]["radius"]
 PLUS_WIDTH = SIZES["plus"]["width"]
 # </editor-fold>
@@ -70,9 +69,9 @@ while run:
     # ---------- Siren Plays ----------------
     if status == Event.Siren:
         # ------ playSiren ------------------
-        siren.play()
+        alarm.play()
         root.fill((0, 0, 0))
-        if siren.isDone():
+        if alarm.isDone():
             setTime = time.time()
             status = Event.Plus
             trigger.send(7)

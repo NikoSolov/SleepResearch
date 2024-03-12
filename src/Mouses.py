@@ -10,7 +10,7 @@ import xlsxwriter
 
 import config as cfg
 import lightSensor
-import siren
+import alarm
 import trigger
 
 # ====== Setting up Config =========
@@ -28,7 +28,7 @@ SUBJECT_code = config["general"]["experiment"]["code"]
 # </editor-fold>
 # ---------------------------
 # <editor-fold desc="Sizes">
-SIZES = config["Mouse"]["graphics"]["sizes"]
+SIZES = config["Mouses"]["graphics"]["sizes"]
 RADIUS = SIZES["radius"]
 WAIT_ZONE = SIZES["waitZone"]
 DISTANCE_MULTIPLIER = SIZES["distMul"]
@@ -37,7 +37,7 @@ MAX_DISPERSION = SIZES["maxDispersion"]
 # </editor-fold>
 # ---------------------------
 # <editor-fold desc="Colors">
-COLORS = config["Mouse"]["graphics"]["colors"]
+COLORS = config["Mouses"]["graphics"]["colors"]
 C_BG = COLORS["bg"]
 C_GTRAIL = COLORS["gtrail"]
 C_STRAIL = COLORS["strail"]
@@ -46,15 +46,15 @@ C_HOLE = COLORS["hole"]
 # </editor-fold>
 # ---------------------------
 # <editor-fold desc="Control">
-CONTROL = config["Mouse"]["control"]
+CONTROL = config["Mouses"]["control"]
 SENSITIVITY = CONTROL["sensitivity"]
 INVERSE = -1 if CONTROL["sensitivity"] else 1
 # </editor-fold>
 # ---------------------------
 # <editor-fold desc="Logger">
 DIR_NAME = (f"{SUBJECT_NAME}{SUBJECT_code}_{time.strftime("%d.%m.%y")}"
-            f"_Mouse_{time.strftime("%H.%M.%S")}")
-LOG_FREQ = config["Mouse"]["logger"]["freq"]
+            f"_Mouses_{time.strftime("%H.%M.%S")}")
+LOG_FREQ = config["Mouses"]["logger"]["freq"]
 # </editor-fold>
 # </editor-fold>
 # ====== Initialization ==================
@@ -308,9 +308,9 @@ while run:
     # ---------- Siren Plays ----------------
     if status == Event.siren:
         # ------ playSiren ------------------
-        siren.play()
+        alarm.play()
         root.fill((0, 0, 0))
-        if siren.isDone():
+        if alarm.isDone():
             setTime = time.time()
             status = Event.init
 

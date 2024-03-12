@@ -8,7 +8,7 @@ import xlsxwriter
 
 import config as cfg
 import lightSensor
-import siren
+import alarm
 import trigger
 
 # ============ GET ALL CONSTANTS =========
@@ -51,6 +51,7 @@ FAST_ANSWER_TIME = DURATIONS["fastAnswer"]
 # <editor-fold desc="Control">
 CONTROL = config["Equation"]["control"]
 SENSE: float = CONTROL["sensitivity"]
+print(SENSE)
 INV: int = -1 if CONTROL["inverse"] else 1
 # </editor-fold>
 # ----------------------------
@@ -163,8 +164,8 @@ while run:
     if status == Event.Siren:
         # ------ playSiren ------------------
         root.fill((0, 0, 0))
-        siren.play()
-        if siren.isDone():
+        alarm.play()
+        if alarm.isDone():
             setTime = time.time()
             status = Event.Plus
             trigger.send(3)

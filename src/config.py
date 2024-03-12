@@ -17,7 +17,7 @@ CONFIG_STD = {
             "code": "1234",
         },
 
-        "siren": {
+        "alarm": {
             "enable": True,
             "freq": 440,
             "volume": 4096,
@@ -30,7 +30,7 @@ CONFIG_STD = {
         }
 
     },
-    "Mouse": {
+    "Mouses": {
         "graphics": {
             "sizes": {
                 "distMul": 1.5,
@@ -102,17 +102,19 @@ CONFIG_STD = {
             "answer": 3,
             "msi": 0.5
         },
-        "color": {
-            "bg": "#404040",
-            "plus": "#c0c0c0",
-            "circle": "#ff0000"
-        },
-        "size": {
-            "circleRadius": 40,
-            "plus": {
-                "radius": 30,
-                "width": 10
-            }
+        "graphics": {
+            "color": {
+                "bg": "#404040",
+                "plus": "#c0c0c0",
+                "circle": "#ff0000"
+            },
+            "size": {
+                "circleRadius": 40,
+                "plus": {
+                    "radius": 30,
+                    "width": 10
+                }
+            },
         },
         "timeStamps": {}
     },
@@ -120,15 +122,17 @@ CONFIG_STD = {
         "delay": {
             "plus": 120,
         },
-        "color": {
-            "bg": "#404040",
-            "plus": "#c0c0c0",
-        },
-        "size": {
-            "plus": {
-                "radius": 30,
-                "width": 10
-            }
+        "graphics": {
+            "color": {
+                "bg": "#404040",
+                "plus": "#c0c0c0",
+            },
+            "size": {
+                "plus": {
+                    "radius": 30,
+                    "width": 10
+                }
+            },
         },
         "timeStamps": {}
     }
@@ -155,6 +159,7 @@ def updateConfig(config: dict):
     global CONFIG
     print(f"Change to: {config}")
     CONFIG.update(config)
+    # CONFIG = config
     with open('config.json', 'w') as configFile:
         json.dump(CONFIG, configFile, indent=4, ensure_ascii=False)
 
