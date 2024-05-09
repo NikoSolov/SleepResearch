@@ -1,6 +1,0 @@
-Раунд	Пример	Оценка_примера	Ответил	Вывод	Время реакции
-1	33+8=3	False		Missed	Missed	5.0103
-2	11+8=19	True		Missed	Missed	5.001
-Задачи			Ответил
-True	False		T->T	F->F	T->F	F->T	Missed
-1	2		0	0	0	0	2
