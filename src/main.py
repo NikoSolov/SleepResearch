@@ -242,12 +242,18 @@ print(valueFrames["Mouses"]["graphics"]["colors"]["mouse"].get())
 
 # ======== versatile ===========
 nb = ttk.Notebook(root)
-nb.grid(row=0)
+nb.grid(row=0, columnspan=3)
 startButton = (CountdownButton(
     root,
     text="Start Experiment",
     relief="raised"))
-startButton.grid(row=1, sticky="NEWS")
+startButton.grid(row=1,column=2, sticky="NEWS")
+tk.Label(root, text="Программа").grid(column=0, row=1)
+(tk.OptionMenu(
+    root,
+    valueFrames["general"]["experiment"]["program"],
+    *programList)
+ .grid(column=1, row=1))
 # ======== general tab ===========
 # <editor-fold desc="Setting General">
 generalTab = ttk.Frame(nb)
@@ -324,16 +330,12 @@ tk.Label(alarmFrame, text="Длительность").grid(column=0, row=3)
 experimentFrame = tk.LabelFrame(generalTab, text="Experiments")
 experimentFrame.grid(column=1, row=0, sticky="news")
 experimentConfig = valueFrames["general"]["experiment"]
-tk.Label(experimentFrame, text="Программа").grid(column=0, row=0)
+
 tk.Label(experimentFrame, text="Кол-во раундов").grid(column=0, row=1)
 tk.Label(experimentFrame, text="Имя испытуемого").grid(column=0, row=2)
 tk.Label(experimentFrame, text="Код испытуемого").grid(column=0, row=3)
 
-(tk.OptionMenu(
-    experimentFrame,
-    experimentConfig["program"],
-    *programList)
- .grid(column=1, row=0))
+
 (tk.Spinbox(
     experimentFrame,
     width=5,
