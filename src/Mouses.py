@@ -259,7 +259,7 @@ roundStats = {
 # ================================
 roundTimer = 0
 
-trigger.send(1)
+
 
 while run:
     for event in pg.event.get():
@@ -290,6 +290,7 @@ while run:
     if not run:
         # ------- draw last position -------
         pathString += Ball.getPartial()
+        print(len(imageLogger))
         imageLogger.write(imageSample(pathString))
         imageLogger.close()
         ImageArchive.write(f"result/{DIR_NAME}/{roundCounter}.svg",
@@ -353,8 +354,7 @@ while run:
         # -------- Logger --------
         loggerStep = 0
         # -------- Image ---------
-        imageLogger = open(f"result/{DIR_NAME}/{roundCounter}.svg",
-                           "w")
+        imageLogger = open(f"result/{DIR_NAME}/{roundCounter}.svg", "w")
         pathString = ""
         # -------- Timers --------
         roundTimer = time.time()
@@ -409,8 +409,8 @@ while run:
             MainLog.write(f"E{roundCounter + 4}", Ball.getPos()[0])
             MainLog.write(f"F{roundCounter + 4}", Ball.getPos()[1])
 
-    if roundCounter >= ROUND:
-        run = False
+            if roundCounter >= ROUND:
+                run = False
 
     pg.display.flip()
     clk.tick(60)

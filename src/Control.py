@@ -52,7 +52,6 @@ class Event(Enum):
 
 
 status = Event.Siren
-trigger.send(1)
 setTime = time.time()
 run = True
 

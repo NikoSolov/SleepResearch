@@ -138,7 +138,6 @@ mainStats = {
 
 equationSurf: pg.Surface
 
-trigger.send(1)
 
 while run:
     for event in pg.event.get():
@@ -307,8 +306,9 @@ while run:
             roundCounter += 1
             trigger.send(3)
 
-    if roundCounter >= ROUND:
+    if roundCounter > ROUND:
         run = False
+
     pg.display.flip()
     clk.tick(60)
 trigger.send(8)

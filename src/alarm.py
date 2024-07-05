@@ -2,6 +2,7 @@ import time
 import numpy
 import pygame as pg
 import config as cfg
+import trigger
 
 cfg.loadConfig()
 config = cfg.getConfig()
@@ -21,6 +22,7 @@ SIREN_TIME = TONE["duration"]
 def play():
     global sound, playFlag, sirenTime
     if int(TONE["enable"]) and not playFlag:
+        trigger.send(1)
         sound.play(-1)
         playFlag = True
         sirenTime = time.time()

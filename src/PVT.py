@@ -108,7 +108,6 @@ setTime = time.time()
 
 # </editor-fold>
 
-trigger.send(1)
 
 while run:
     for event in pg.event.get():

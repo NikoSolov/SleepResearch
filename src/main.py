@@ -340,7 +340,7 @@ tk.Label(experimentFrame, text="Код испытуемого").grid(column=0, r
     experimentFrame,
     width=5,
     textvariable=experimentConfig["round"],
-    from_=0, to=20000)
+    from_=1, to=20000)
  .grid(column=1, row=1))
 (tk.Entry(
     experimentFrame,
