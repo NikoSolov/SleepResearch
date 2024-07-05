@@ -446,7 +446,7 @@ tk.Label(Sizes, text="Максимальный\nразброс\n[0.07; 1)").grid
     Sizes,
     width=5,
     textvariable=mouseGraphicsSizes["waitZone"],
-    from_=0, to=200)
+    from_=0)
  .grid(column=1, row=1))
 (tk.Spinbox(
     Sizes,

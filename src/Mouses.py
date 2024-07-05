@@ -269,7 +269,7 @@ while run:
             run = False
         # -------- Mouse process ------------
         if event.type == pg.MOUSEWHEEL and status == Event.answer:
-            if roundStats["reactionTime"] == 0:
+            if roundStats["ableToMove"] and roundStats["reactionTime"] == 0:
                 roundStats["reactionTime"] = time.time() - roundTimer
                 trigger.send(6)
             # wait until mouse passes WaitZone

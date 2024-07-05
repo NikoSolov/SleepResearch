@@ -145,9 +145,6 @@ while run:
                 event.type == pg.KEYDOWN and event.key == pg.K_ESCAPE):
             run = False
         if event.type == pg.MOUSEWHEEL and status == Event.Answer:
-            if roundStats["ReactionTime"] == None:
-                roundStats["ReactionTime"] = time.time() - setTime
-                trigger.send(6)
             print(rightLevel, wrongLevel)
             if event.y * INV > 0:
                 rightLevel += SENSE * event.y * INV
@@ -158,7 +155,7 @@ while run:
 
     root.fill(pg.Color(C_BG))
     lightSensor.draw(root)
-    print(time.time() - setTime)
+
     # ---------- Siren Plays ----------------
     if status == Event.Siren:
         # ------ playSiren ------------------
@@ -167,7 +164,7 @@ while run:
         if alarm.isDone():
             setTime = time.time()
             status = Event.Plus
-            trigger.send(3)
+
             # -------- stopSiren ---------------
             # siren.stop()
             lightSensor.pulse()
@@ -179,6 +176,7 @@ while run:
         if time.time() - setTime > DURATIONS["plus"]:
             setTime = time.time()
             status = Event.Answer
+            trigger.send(3)
             # ------------- generate equation --------------
             if file is not None:
                 lineFile = file.readline()
@@ -248,7 +246,14 @@ while run:
                   (WIN_SIZE[0] // 2 - equationSurf.get_width() // 2,
                    WIN_SIZE[1] // 2 - equationSurf.get_height() // 2))
         # --------- If One of Squares filled ---------------
+        print(time.time() - setTime)
         if rightLevel >= 1 or wrongLevel >= 1:
+
+            if roundStats["ReactionTime"] == None:
+                roundStats["ReactionTime"] = time.time() - setTime
+                print("GOTEM")
+                trigger.send(6)
+
             if rightLevel >= 1:
                 roundStats["Answer"] = True
             elif wrongLevel >= 1:
@@ -304,7 +309,7 @@ while run:
             status = Event.Plus
             lightSensor.pulse()
             roundCounter += 1
-            trigger.send(3)
+            # trigger.send(3)
 
     if roundCounter > ROUND:
         run = False
