@@ -1,12 +1,13 @@
 import time
 from enum import Enum
-from os import mkdir, path
+from os import mkdir, path, remove
 from random import choice as ch
 from random import uniform as rd
 
 import numpy as np
 import pygame as pg
 import xlsxwriter
+import zipfile
 
 import config as cfg
 import lightSensor
@@ -72,9 +73,9 @@ if not (path.exists("result")):
     mkdir("result")
 if not (path.exists(f"result/{DIR_NAME}")):
     mkdir(f"result/{DIR_NAME}")
-if not (path.exists(f"result/{DIR_NAME}/log_img")):
-    mkdir(f"result/{DIR_NAME}/log_img")
 # </editor-fold>
+
+ImageArchive = zipfile.ZipFile(f"result/{DIR_NAME}/log_img.zip", "w")
 
 # <editor-fold desc="Creating TABLE">
 # --- Setup Excel SpreadSheet -------------
@@ -291,6 +292,10 @@ while run:
         pathString += Ball.getPartial()
         imageLogger.write(imageSample(pathString))
         imageLogger.close()
+        ImageArchive.write(f"result/{DIR_NAME}/{roundCounter}.svg",
+                           f"log_img/{roundCounter}.svg",
+                               zipfile.ZIP_DEFLATED)
+        remove(f"result/{DIR_NAME}/{roundCounter}.svg")
         # ------- quit program -------
         continue
 
@@ -348,7 +353,7 @@ while run:
         # -------- Logger --------
         loggerStep = 0
         # -------- Image ---------
-        imageLogger = open(f"result/{DIR_NAME}/log_img/{roundCounter}.svg",
+        imageLogger = open(f"result/{DIR_NAME}/{roundCounter}.svg",
                            "w")
         pathString = ""
         # -------- Timers --------
@@ -379,6 +384,10 @@ while run:
             pathString += Ball.getPartial()
             imageLogger.write(imageSample(pathString))
             imageLogger.close()
+            ImageArchive.write(f"result/{DIR_NAME}/{roundCounter}.svg",
+                               f"log_img/{roundCounter}.svg",
+                               zipfile.ZIP_DEFLATED)
+            remove(f"result/{DIR_NAME}/{roundCounter}.svg")
             # -------------
             if Ball.touchHole():
                 print("got it")
