@@ -1,0 +1,7 @@
+/dist
+/build
+/.idea
+/venv
+/src/config.json
+/src/result
+/src/__pycache__

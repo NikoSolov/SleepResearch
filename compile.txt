@@ -1,0 +1,1 @@
+pyinstaller --onefile --windowed -n "SleepResearch 4.0.1" ./src/main.py
