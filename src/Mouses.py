@@ -49,7 +49,7 @@ C_HOLE = COLORS["hole"]
 # <editor-fold desc="Control">
 CONTROL = config["Mouses"]["control"]
 SENSITIVITY = CONTROL["sensitivity"]
-INVERSE = -1 if CONTROL["sensitivity"] else 1
+INVERSE = -1 if CONTROL["inverse"] else 1
 # </editor-fold>
 # ---------------------------
 # <editor-fold desc="Logger">
@@ -259,8 +259,6 @@ roundStats = {
 # ================================
 roundTimer = 0
 
-
-
 while run:
     for event in pg.event.get():
         # -------- Hard Quitting ------------
@@ -269,12 +267,14 @@ while run:
             run = False
         # -------- Mouse process ------------
         if event.type == pg.MOUSEWHEEL and status == Event.answer:
-            if roundStats["ableToMove"] and roundStats["reactionTime"] == 0:
+            if roundStats["ableToMove"] and roundStats[
+                "reactionTime"] == 0:
                 roundStats["reactionTime"] = time.time() - roundTimer
                 trigger.send(6)
             # wait until mouse passes WaitZone
             if np.linalg.norm(
-                    Ball.getPos() - np.array([RADIUS, WIN_SIZE[1] - RADIUS])
+                    Ball.getPos() - np.array(
+                        [RADIUS, WIN_SIZE[1] - RADIUS])
             ) > WAIT_ZONE:
                 roundStats["ableToMove"] = True
 
@@ -282,9 +282,9 @@ while run:
                 pathString += Ball.getPartial()
                 pathString += (
                     f"""M {Ball.getPos()[0]} {Ball.getPos()[1]} 
-            l {0} {-SENSITIVITY * event.y}""")
+            l {0} {-INVERSE * SENSITIVITY * event.y}""")
                 Ball.lastT = Ball.t
-                Ball.yOffset -= SENSITIVITY * event.y
+                Ball.yOffset -= SENSITIVITY * event.y * INVERSE
                 roundStats["notches"] += 1
 
     if not run:
@@ -295,7 +295,7 @@ while run:
         imageLogger.close()
         ImageArchive.write(f"result/{DIR_NAME}/{roundCounter}.svg",
                            f"log_img/{roundCounter}.svg",
-                               zipfile.ZIP_DEFLATED)
+                           zipfile.ZIP_DEFLATED)
         remove(f"result/{DIR_NAME}/{roundCounter}.svg")
         # ------- quit program -------
         continue
@@ -324,7 +324,8 @@ while run:
         roundCounter += 1
         lightSensor.pulse()
         # <editor-fold desc="Create Trajectory Table">
-        TRAJECTORY_LOG = TABLE.add_worksheet(f"Trajectories_{roundCounter}")
+        TRAJECTORY_LOG = TABLE.add_worksheet(
+            f"Trajectories_{roundCounter}")
         # ------- Default Headers-------------
         TRAJECTORY_LOG.merge_range("A1:C1", "Trajectory")
         TRAJECTORY_LOG.write("B2", "Generated")
@@ -371,10 +372,12 @@ while run:
         Ball.step()
         # ------- log positions ---------
         if (time.time() - loggerTime) > LOG_FREQ:
-            TRAJECTORY_LOG.write(f"A{loggerStep + 4}", int(Ball.getPos()[0]))
+            TRAJECTORY_LOG.write(f"A{loggerStep + 4}",
+                                 int(Ball.getPos()[0]))
             TRAJECTORY_LOG.write(f"B{loggerStep + 4}",
                                  int(Ball.func(Ball.t)[1]))
-            TRAJECTORY_LOG.write(f"C{loggerStep + 4}", int(Ball.getPos()[1]))
+            TRAJECTORY_LOG.write(f"C{loggerStep + 4}",
+                                 int(Ball.getPos()[1]))
             loggerStep += 1
             loggerTime = time.time()
 
@@ -405,7 +408,8 @@ while run:
             MainLog.write(f"A{roundCounter + 4}", roundCounter)
             MainLog.write(f"B{roundCounter + 4}", roundStats["answer"])
             MainLog.write(f"C{roundCounter + 4}", roundStats["notches"])
-            MainLog.write(f"D{roundCounter + 4}", roundStats["reactionTime"])
+            MainLog.write(f"D{roundCounter + 4}",
+                          roundStats["reactionTime"])
             MainLog.write(f"E{roundCounter + 4}", Ball.getPos()[0])
             MainLog.write(f"F{roundCounter + 4}", Ball.getPos()[1])
 
