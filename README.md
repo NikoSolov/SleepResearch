@@ -4,4 +4,4 @@ This is a program for examine brains =)
 
 Equations             |  Mouses
 :-------------------------:|:-------------------------:
-![alt text](media/Задачки.gif)  |  ![alt text](media/Мыши.gif)
+![alt text](media/Задачки.gif)  |  ![alt text](media/3.svg)
