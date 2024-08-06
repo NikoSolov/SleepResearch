@@ -2,6 +2,7 @@
 /build
 /.idea
 /venv
-/src/config.json
+config.json
 /src/result
 /src/__pycache__
+*.spec
