@@ -1,0 +1,16 @@
+
+<svg
+   style="background:#404040"
+   width="1024" height="768"
+   xmlns="http://www.w3.org/2000/svg">
+  <rect
+     id="BackGround" style="fill:#404040"
+     width="1024" height="768" x="0" y="0" />
+  <rect width="60" height="60" />
+
+  <g id="plus" stroke-width="10" stroke="#a0a0a0">
+   <line x1="482" x2="542" y1="384" y2="384"/>
+   <line x1="512" x2="512" y1="354" y2="414"/>
+  </g>
+
+</svg>
