@@ -28,7 +28,6 @@
       begin="0s;curveFade.end"
       dur="3s" 
       id="moveAnimation"
-      calcMode="linear"
       fill="freeze">
       <mpath href="#subjectTrail"/>
     </animateMotion>
