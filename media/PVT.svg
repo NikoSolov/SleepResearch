@@ -6,26 +6,40 @@
    <rect
       id="BackGround" style="fill:#404040"
       width="1024" height="768" x="0" y="0" />
-   <g stroke-width="10" stroke="#a0a0a0">
+   <rect
+      id="lightSensor" fill="white"
+      width="50" height="50" x="0" y="0">
+      <animate
+         attributeName="fill" 
+         from="white" to="black" 
+         begin="0;circleDisappear.end" dur="0.5"
+         calcMode="discrete"
+         fill="freeze"/>
+   </rect>
+
+   <g stroke-width="10" stroke="#a0a0a0" visibility="visible">
       <line x1="482" x2="542" y1="384" y2="384"/>
       <line x1="512" x2="512" y1="354" y2="414"/>
-      <animate id="plusAppear"
-         attributeName="visibility" 
-         from="hidden" to="visible" 
-         begin="0s;plusDisappear.end" dur="1"
-         fill="freeze">
       <animate id="plusDisappear"
          attributeName="visibility" 
          from="visible" to="hidden" 
-         begin="plusAppear.end" dur="0.1"
-         fill="freeze">
+         begin="0;circleDisappear.end" dur="1"
+         fill="freeze"/>
    </g>
  
    <circle
-      id="Mouse" fill="#ff0000"
-      r="40">
-   
-
+      id="Mouse" fill="#ff0000" visibility="hidden"
+      cx="512" cy="384" r="40">
+      <animate id="circleAppear"
+         attributeName="visibility" 
+         from="hidden" to="visible" 
+         begin="plusDisappear.end+3" dur="0.5"
+         fill="freeze"/>
+      <animate id="circleDisappear"
+         attributeName="visibility" 
+         from="visible" to="hidden" 
+         begin="circleAppear.end" dur="0.5"
+         fill="freeze"/>
    </circle>
 
 

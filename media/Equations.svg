@@ -1,0 +1,58 @@
+<svg style="background:#404040" width="1024" height="768" xmlns="http://www.w3.org/2000/svg">
+    <rect id="BackGround" style="fill:#404040" width="1024" height="768" x="0" y="0" />
+
+    <rect
+        id="lightSensor" fill="white"
+        width="50" height="50" x="0" y="0">
+        <animate
+            attributeName="fill" 
+            from="white" to="black" 
+            begin="0" dur="0.5"
+            calcMode="discrete"
+            fill="freeze"/>
+    </rect>
+
+    <g id="plus" stroke-width="10" stroke="#a0a0a0" visibility="hidden">
+        <line x1="482" x2="542" y1="384" y2="384"/>
+        <line x1="512" x2="512" y1="354" y2="414"/>
+        <animate
+            id="plusD1"
+            attributeName="visibility" 
+            from="visible" to="hidden"
+            begin="0;task1.end" dur="1"/>    
+    </g>
+
+    <g id="Task" visibility="hidden">
+        <g id="Equations"  font-size="150" dominant-baseline="middle" font-family="Comic Sans MS" text-anchor="middle" fill="white">
+            <text x='50%' y='50%' visibility="hidden">8+6=11 
+                <set attributeName="visibility" begin="plusD1.end-0.5" from="visible" to="hidden" dur="3s"/>
+            <text>
+        </g>
+        <rect width="150" height="150" x="420" y="100" fill="none" stroke-width="4" stroke="#0f0"/>
+        <rect width="150" height="150" x="420" y="500" fill="none" stroke-width="4" stroke="#f00"/>
+
+        <rect width="150"  x="420" y="250" fill="#0f0">
+            <animate 
+                attributeName="height" begin="plusD1.end-0.5" calcMode="discrete"
+                values="0; 30; 60; 90; 120; 150; 150"
+                keyTimes="0; 0.2; 0.4; 0.6; 0.8; 0.9; 1"
+                dur="2s"/>
+            <animate 
+                attributeName="y" begin="plusD1.end-0.5" calcMode="discrete"
+                values="250; 220; 190; 160; 130; 100; 100"
+                keyTimes="0; 0.2; 0.4; 0.6; 0.8; 0.9; 1"
+                dur="2s"/>
+
+        </rect>
+    
+        <rect width="150" height="150" x="420" y="500" fill="none" stroke-width="4" stroke="#f00"/>
+
+        </rect>
+
+        <animate id="task1"
+            attributeName="visibility" 
+            to="visible"
+            begin="plusD1.end-0.5" dur="2s"/>
+    </g>
+
+</svg>

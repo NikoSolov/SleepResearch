@@ -10,6 +10,17 @@
      id="Hole" fill="#c0c0c0"
      cx="984" cy="40" r="40"/>
 
+   <rect
+      id="lightSensor" fill="white"
+      width="50" height="50" x="0" y="0">
+      <animate
+         attributeName="fill" 
+         from="white" to="black" 
+         begin="0;curveFade.end" dur="0.5"
+         calcMode="discrete"
+         fill="freeze"/>
+   </rect>
+
   <circle
      id="Mouse" fill="#ff0000"
      r="40">
@@ -17,6 +28,7 @@
       begin="0s;curveFade.end"
       dur="3s" 
       id="moveAnimation"
+      calcMode="linear"
       fill="freeze">
       <mpath href="#subjectTrail"/>
     </animateMotion>
