@@ -152,7 +152,8 @@ while run:
             else:
                 wrongLevel -= SENSE * event.y * INV
                 rightLevel = 0
-
+        if event.type == pg.KEYDOWN and event.key == pg.K_SPACE:
+            trigger.send(9)
     root.fill(pg.Color(C_BG))
     lightSensor.draw(root)
 

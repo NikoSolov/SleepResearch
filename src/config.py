@@ -26,7 +26,9 @@ CONFIG_STD = {
         "timeStamps": {
             "trigger": True,
             "light": True,
-            "lightSize": 60
+            "lightSize": 60,
+            "manualStamps": True,
+            "manualStampsKey": "K_SPACE"
         }
 
     },

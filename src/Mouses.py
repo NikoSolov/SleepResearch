@@ -286,7 +286,9 @@ while run:
                 Ball.lastT = Ball.t
                 Ball.yOffset -= SENSITIVITY * event.y * INVERSE
                 roundStats["notches"] += 1
-
+        # -------------------------------
+        if event.type == pg.KEYDOWN and event.key == pg.K_SPACE:
+            trigger.send(9)
     if not run:
         # ------- draw last position -------
         pathString += Ball.getPartial()

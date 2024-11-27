@@ -133,7 +133,8 @@ while run:
                     reactions["rightAnswer"] += ANSWER_TIME
                 status = Event.MSI
             print(reactions)
-
+        if event.type == pg.KEYDOWN and event.key == pg.K_SPACE:
+            trigger.send(9)
     root.fill(C_BG)
     lightSensor.draw(root)
 
