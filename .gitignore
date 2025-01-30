@@ -6,3 +6,4 @@ config.json
 /src/result
 /src/__pycache__
 *.spec
+/result

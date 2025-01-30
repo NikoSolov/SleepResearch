@@ -1,0 +1,100 @@
+<!--Замкнутая анимация-->
+
+<!--1. lightOnOff (0; equationOff.end) 0.5 s-->
+<!--2. plusOnOff (0; equationOff.end) 1 s-->
+<!--3. equationOnOf (plusOnOff.end) 10s-->
+
+
+<svg xmlns="http://www.w3.org/2000/svg"
+        style="background:#404040"
+        width="1024" height="768">
+
+    <rect id="BackGround" style="fill:#404040"
+          width="1024" height="768" x="0" y="0" />
+
+    <rect
+        id="lightSensor" fill="white"
+        width="50" height="50" x="0" y="0">
+        <animate
+                id="lightOnOff"
+                attributeName="fill"
+                from="white" to="black"
+                begin="0;equationOnOff.end" dur="0.5"
+                calcMode="discrete"
+                fill="freeze"/>
+    </rect>
+
+    <g id="plus" stroke-width="10" stroke="#a0a0a0" visibility="hidden">
+        <line x1="482" x2="542" y1="384" y2="384"/>
+        <line x1="512" x2="512" y1="354" y2="414"/>
+        <animate
+                id="plusOnOff"
+                attributeName="visibility"
+                from="visible" to="hidden"
+                begin="0;equationOnOff.end" dur="1"/>
+    </g>
+
+    <g id="Task" visibility="hidden">
+
+        <text
+                font-size="150" dominant-baseline="middle"
+                font-family="Comic Sans MS"
+                text-anchor="middle" fill="white"
+                x='50%' y='50%'>
+            8+6=11
+        </text>
+
+
+        <rect
+                id="goodAnswer"
+                width="150" height="150"
+                x="420" y="100" fill="none"
+                stroke-width="4" stroke="#0f0"/>
+        <rect
+                id="badAnswer"
+                width="150" height="150"
+                x="420" y="500" fill="none"
+                stroke-width="4" stroke="#f00"/>
+
+        <rect
+                id="goodAnswerFill"
+                width="150"
+                x="420" y="250"
+                fill="#0f0">
+
+            <animate
+                id="goodFill"
+                attributeName="height" begin="plusOnOff.end-0.5" calcMode="discrete"
+                values="0; 30; 60; 90;  120"
+                keyTimes="0; 0.2; 0.4; 0.6; 1"
+                dur="2s"/>
+            <animate
+                attributeName="y" begin="plusOnOff.end-0.5" calcMode="discrete"
+                values="250; 220; 190; 160; 130"
+                keyTimes="0; 0.2; 0.4; 0.6; 1"
+                dur="2s"/>
+
+        </rect>
+
+        <rect
+                id="badAnswerFill"
+                width="150"
+                x="420" y="500" fill="#f00">
+
+            <animate
+                id="badFill"
+                attributeName="height" begin="goodFill.end-0.3" calcMode="discrete"
+                values="0; 30; 60; 90;  120;  150;  150"
+                keyTimes="0; 0.2; 0.4; 0.6; 0.7; 0.9;  1"
+                dur="1.5s"/>
+
+
+        </rect>
+
+        <animate id="equationOnOff"
+            attributeName="visibility"
+            to="visible"
+            begin="plusOnOff.end-0.5" dur="3.1s"/>
+    </g>
+
+</svg>

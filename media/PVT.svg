@@ -1,0 +1,60 @@
+<!--0.-->
+<!--1. CircleDisappear-->
+<!--2. plusDissappear-->
+<!--3. CircleAppear-->
+
+<svg
+   style="background:#404040"
+   width="1024" height="768"
+   xmlns="http://www.w3.org/2000/svg">
+
+   <!--   Обои -->
+   <rect
+      id="BackGround" style="fill:#404040"
+      width="1024" height="768" x="0" y="0" />
+
+   <!--   Квадрат датчика света  -->
+   <rect
+      id="lightSensor" fill="white"
+      width="50" height="50" x="0" y="0">
+      <animate
+         id="lightOnOff"
+         attributeName="fill" 
+         from="white" to="black" 
+         begin="0;circleDisappear.end" dur="0.5"
+         calcMode="discrete"
+         fill="freeze"/>
+   </rect>
+
+   <!--   Плюс  -->
+   <g stroke-width="10" stroke="#a0a0a0" visibility="visible">
+      <line x1="482" x2="542" y1="384" y2="384"/>
+      <line x1="512" x2="512" y1="354" y2="414"/>
+      <animate id="plusDisappear"
+         attributeName="visibility" 
+         from="visible" to="hidden" 
+         begin="0;circleDisappear.end" dur="1"
+         fill="freeze"/>
+   </g>
+ 
+   <!--   Круг  -->
+   <circle
+      id="Mouse" fill="#ff0000" visibility="hidden"
+      cx="512" cy="384" r="40">
+
+      <animate id="circleAppear"
+         attributeName="visibility" 
+         from="hidden" to="visible" 
+         begin="plusDisappear.end+3" dur="0.5"
+         fill="freeze"/>
+
+      <animate id="circleDisappear"
+         attributeName="visibility" 
+         from="visible" to="hidden" 
+         begin="circleAppear.end" dur="0.5"
+         fill="freeze"/>
+
+   </circle>
+
+
+</svg>

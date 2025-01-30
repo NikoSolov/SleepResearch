@@ -2,6 +2,6 @@
 
 This is a program for examine brains =)
 
-Equations             |  Mouses
-:-------------------------:|:-------------------------:
-![alt text](media/Задачки.gif)  |  ![alt text](media/3.svg)
+Equations|Mouses|PVT|Control
+:-:|:-:|:-:|:-:
+![](media/Equations.svg)|![](media/Mouses.svg)|![](media/PVT.svg)|![](media/Control.svg)
