@@ -4,4 +4,4 @@ This is a program for examine brains =)
 
 Equations|Mouses|PVT|Control
 :-:|:-:|:-:|:-:
-![](media/)|![](media/Mouses.svg)|![](media/PVT.svg)|![](media/Control.svg)
+![](media/Equations.svg)|![](media/Mouses.svg)|![](media/PVT.svg)|![](media/Control.svg)
