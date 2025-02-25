@@ -53,8 +53,8 @@ INVERSE = -1 if CONTROL["inverse"] else 1
 # </editor-fold>
 # ---------------------------
 # <editor-fold desc="Logger">
-DIR_NAME = (f"{SUBJECT_NAME}{SUBJECT_code}_{time.strftime("%d.%m.%y")}"
-            f"_Mouses_{time.strftime("%H.%M.%S")}")
+DIR_NAME = (f'{SUBJECT_NAME}{SUBJECT_code}_{time.strftime("%d.%m.%y")}'
+            f'_Mouses_{time.strftime("%H.%M.%S")}')
 LOG_FREQ = config["Mouses"]["logger"]["freq"]
 # </editor-fold>
 # </editor-fold>

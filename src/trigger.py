@@ -1,7 +1,5 @@
 import time
-
 import serial.tools.list_ports
-
 import config as cfg
 
 cfg.loadConfig()
@@ -13,17 +11,14 @@ ports = serial.tools.list_ports.comports()
 timeCode = None
 TRIGGER_ENABLE = config["general"]["timeStamps"]["trigger"]
 
-
 def send(number: int):
     global portWork, TRIGGER_ENABLE
     if TRIGGER_ENABLE and portWork:
         timeCode.write(bytearray([number]))
 
-
 def close():
     if portWork:
         timeCode.close()
-
 
 def update():
     global timeCode, portName, portWork

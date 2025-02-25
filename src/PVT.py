@@ -53,7 +53,7 @@ def emptyTime(): return rd(DELAYS["emptyMin"], DELAYS["emptyMax"])
 # </editor-fold>
 # ------------------------------
 # <editor-fold desc="Logger">
-DIR_NAME = f"{SUBJECT_NAME}{SUBJECT_code}_{time.strftime("%d.%m.%y")}_PVT_{time.strftime("%H.%M.%S")}"
+DIR_NAME = f'{SUBJECT_NAME}{SUBJECT_code}_{time.strftime("%d.%m.%y")}_PVT_{time.strftime("%H.%M.%S")}'
 # </editor-fold>
 # </editor-fold>
 # ======== Initialization ====================
@@ -185,11 +185,11 @@ while run:
     if status == Event.MSI:
         if time.time() - setTime > MSI_TIME:
             # --------------- Fill SpreadSheet ------------
-            MainLog.write(f"C{3 + roundCounter}",
-                          f"{reactions["wrongAnswer"]}")
-            MainLog.write(f"D{3 + roundCounter}",
-                          f"{reactions["rightAnswer"]}")
-            MainLog.write(f"E{3 + roundCounter}", f"{reactions["MSI"]}")
+            MainLog.write(f'C{3 + roundCounter}',
+                          f'{reactions["wrongAnswer"]}')
+            MainLog.write(f'D{3 + roundCounter}',
+                          f'{reactions["rightAnswer"]}')
+            MainLog.write(f'E{3 + roundCounter}", f"{reactions["MSI"]}')
 
             setTime = time.time()
             status = Event.Plus
