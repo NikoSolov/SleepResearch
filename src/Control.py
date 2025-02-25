@@ -60,10 +60,11 @@ while run:
         if event.type == pg.QUIT or (
                 event.type == pg.KEYDOWN and event.key == pg.K_ESCAPE):
             run = False
-        if event.type == pg.MOUSEBUTTONDOWN:
-            trigger.send(6)
-        if event.type == pg.KEYDOWN and event.key == pg.K_SPACE:
-            trigger.send(9)
+        trigger.triggerRoutine("Control", event)
+        # if event.type == pg.MOUSEBUTTONDOWN:
+        #     trigger.send(6)
+        # if event.type == pg.KEYDOWN and event.key == pg.K_SPACE:
+        #     trigger.send(9)
 
     root.fill(C_BG)
     lightSensor.draw(root)

@@ -1,6 +1,7 @@
 import time
 import serial.tools.list_ports
 import config as cfg
+import pygame as pg
 
 cfg.loadConfig()
 config = cfg.getConfig()
@@ -10,6 +11,20 @@ portName = ""
 ports = serial.tools.list_ports.comports()
 timeCode = None
 TRIGGER_ENABLE = config["general"]["timeStamps"]["trigger"]
+
+def triggerRoutine(program, event):
+    match(program):
+        case "Control":
+            if event.type == pg.MOUSEBUTTONDOWN:
+                send(6)
+        case "PVT":
+            if event.type == pg.KEYDOWN and event.key == pg.K_SPACE:
+                send(9)
+                print("Manual Stamp")
+        case _:
+            if event.type == pg.KEYDOWN and event.key == pg.K_SPACE:
+                send(9)
+                print("Manual Stamp")
 
 def send(number: int):
     global portWork, TRIGGER_ENABLE

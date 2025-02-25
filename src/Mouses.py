@@ -266,8 +266,9 @@ while run:
                 event.type == pg.KEYDOWN and event.key == pg.K_ESCAPE):
             run = False
         # -------- Manual TimeStamp ---------
-        if event.type == pg.KEYDOWN and event.key == pg.K_SPACE:
-            trigger.send(9)
+        # if event.type == pg.KEYDOWN and event.key == pg.K_SPACE:
+        #     trigger.send(9)
+        trigger.triggerRoutine("Mouses", event)
         # -------- Mouse process ------------
         if event.type == pg.MOUSEWHEEL and status == Event.answer:
             if roundStats["ableToMove"] and roundStats[

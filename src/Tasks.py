@@ -144,8 +144,9 @@ while run:
         if event.type == pg.QUIT or (
                 event.type == pg.KEYDOWN and event.key == pg.K_ESCAPE):
             run = False
-        if event.type == pg.KEYDOWN and event.key == pg.K_SPACE:
-            trigger.send(9)
+        trigger.triggerRoutine("Tasks", event)
+        # if event.type == pg.KEYDOWN and event.key == pg.K_SPACE:
+        #     trigger.send(9)
         if event.type == pg.MOUSEWHEEL and status == Event.Answer:
             print(rightLevel, wrongLevel)
             if event.y * INV > 0:
