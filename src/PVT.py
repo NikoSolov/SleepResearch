@@ -114,6 +114,8 @@ while run:
         if event.type == pg.QUIT or (
                 event.type == pg.KEYDOWN and event.key == pg.K_ESCAPE):
             run = False
+        if event.type == pg.KEYDOWN and event.key == pg.K_SPACE:
+            trigger.send(9)
         if event.type == pg.MOUSEBUTTONDOWN:
             print("Clicked")
             trigger.send(6)

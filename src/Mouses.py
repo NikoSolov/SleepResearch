@@ -265,6 +265,9 @@ while run:
         if event.type == pg.QUIT or (
                 event.type == pg.KEYDOWN and event.key == pg.K_ESCAPE):
             run = False
+        # -------- Manual TimeStamp ---------
+        if event.type == pg.KEYDOWN and event.key == pg.K_SPACE:
+            trigger.send(9)
         # -------- Mouse process ------------
         if event.type == pg.MOUSEWHEEL and status == Event.answer:
             if roundStats["ableToMove"] and roundStats[
@@ -286,7 +289,7 @@ while run:
                 Ball.lastT = Ball.t
                 Ball.yOffset -= SENSITIVITY * event.y * INVERSE
                 roundStats["notches"] += 1
-
+    
     if not run:
         # ------- draw last position -------
         pathString += Ball.getPartial()

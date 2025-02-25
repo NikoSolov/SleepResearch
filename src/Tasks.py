@@ -16,56 +16,56 @@ cfg.loadConfig()
 config = cfg.getConfig()
 # <editor-fold desc="CONFIG">
 # <editor-fold desc="General">
-WINDOW_CONFIG = config["general"]["window"]
-WIN_FS = WINDOW_CONFIG["fullScreen"]
-WIN_SIZE = (WINDOW_CONFIG["width"], WINDOW_CONFIG["height"])
-ROUND = config["general"]["experiment"]["round"]
-SUBJECT_NAME = config["general"]["experiment"]["name"]
-SUBJECT_code = config["general"]["experiment"]["code"]
+WINDOW_CONFIG = config['general']['window']
+WIN_FS = WINDOW_CONFIG['fullScreen']
+WIN_SIZE = (WINDOW_CONFIG['width'], WINDOW_CONFIG['height'])
+ROUND = config['general']['experiment']['round']
+SUBJECT_NAME = config['general']['experiment']['name']
+SUBJECT_code = config['general']['experiment']['code']
 # </editor-fold>
 # ----------------------------
 # <editor-fold desc="Colors">
-COLORS = config["Equation"]["graphics"]["colors"]
-C_BG = COLORS["bg"]
-C_PLUS = COLORS["plus"]
-C_RIGHT = COLORS["right"]
-C_WRONG = COLORS["wrong"]
-FONT = config["Equation"]["graphics"]["font"]
+COLORS = config['Equation']['graphics']['colors']
+C_BG = COLORS['bg']
+C_PLUS = COLORS['plus']
+C_RIGHT = COLORS['right']
+C_WRONG = COLORS['wrong']
+FONT = config['Equation']['graphics']['font']
 # </editor-fold>
 # ----------------------------
 # <editor-fold desc="Sizes">
-SIZES = config["Equation"]["graphics"]["sizes"]
-S_PLUS_RADIUS = SIZES["plus"]["radius"]
-S_PLUS_WIDTH = SIZES["plus"]["width"]
-S_SQR_WIDTH = SIZES["squares"]["width"]
-S_SQR_LENGTH = SIZES["squares"]["length"]
+SIZES = config['Equation']['graphics']['sizes']
+S_PLUS_RADIUS = SIZES['plus']['radius']
+S_PLUS_WIDTH = SIZES['plus']['width']
+S_SQR_WIDTH = SIZES['squares']['width']
+S_SQR_LENGTH = SIZES['squares']['length']
 # </editor-fold>
 # ----------------------------
 # <editor-fold desc="Durations">
-DURATIONS = config["Equation"]["duration"]
-PLUS_TIME = DURATIONS["plus"]
-ANSWER_TIME = DURATIONS["answer"]
-FAST_ANSWER_TIME = DURATIONS["fastAnswer"]
+DURATIONS = config['Equation']['duration']
+PLUS_TIME = DURATIONS['plus']
+ANSWER_TIME = DURATIONS['answer']
+FAST_ANSWER_TIME = DURATIONS['fastAnswer']
 # </editor-fold>
 # ----------------------------
 # <editor-fold desc="Control">
-CONTROL = config["Equation"]["control"]
-SENSE: float = CONTROL["sensitivity"]
+CONTROL = config['Equation']['control']
+SENSE: float = CONTROL['sensitivity']
 print(SENSE)
-INV: int = -1 if CONTROL["inverse"] else 1
+INV: int = -1 if CONTROL['inverse'] else 1
 # </editor-fold>
 # ----------------------------
 # <editor-fold desc="Other">
-DIR_NAME = f"{SUBJECT_NAME}{SUBJECT_code}_{time.strftime("%d.%m.%y")}_Tasks_{time.strftime("%H.%M.%S")}"
-FILEPATH = config["Equation"]["file"]["path"]
-file = open(FILEPATH, "r") if FILEPATH != "None" else None
+DIR_NAME = f"{SUBJECT_NAME}{SUBJECT_code}_{time.strftime('%d.%m.%y')}_Tasks_{time.strftime('%H.%M.%S')}"
+FILEPATH = config['Equation']['file']['path']
+file = open(FILEPATH, 'r') if FILEPATH != "None" else None
 # </editor-fold>
 # </editor-fold>
 # =========================================
 trigger.update()
 
 pg.font.init()
-equationFont = pg.font.SysFont(FONT, SIZES["font"])
+equationFont = pg.font.SysFont(FONT, SIZES['font'])
 
 if WIN_FS:
     root = pg.display.set_mode(WIN_SIZE, pg.FULLSCREEN)
@@ -144,6 +144,8 @@ while run:
         if event.type == pg.QUIT or (
                 event.type == pg.KEYDOWN and event.key == pg.K_ESCAPE):
             run = False
+        if event.type == pg.KEYDOWN and event.key == pg.K_SPACE:
+            trigger.send(9)
         if event.type == pg.MOUSEWHEEL and status == Event.Answer:
             print(rightLevel, wrongLevel)
             if event.y * INV > 0:
@@ -173,7 +175,7 @@ while run:
     if status == Event.Plus:
         drawPlus()
         # --------- lightSensorOn -----------------
-        if time.time() - setTime > DURATIONS["plus"]:
+        if time.time() - setTime > DURATIONS['plus']:
             setTime = time.time()
             status = Event.Answer
             trigger.send(3)
@@ -200,10 +202,10 @@ while run:
                         c = randint(0, 59)
                 equationText = f"{a}+{b}={c}"
 
-            mainStats["Equation"][str(equationScore)] += 1
+            mainStats['Equation'][str(equationScore)] += 1
             # ----------- getSurfaceOfEquation -------------
             equationSurf = equationFont.render(equationText, True,
-                                               pg.Color(COLORS["font"]))
+                                               pg.Color(COLORS['font']))
             # ----------- create RoundStats ----------------
             roundStats = {
                 "Equation": equationText,
@@ -249,35 +251,35 @@ while run:
         print(time.time() - setTime)
         if rightLevel >= 1 or wrongLevel >= 1:
 
-            if roundStats["ReactionTime"] == None:
-                roundStats["ReactionTime"] = time.time() - setTime
-                print("GOTEM")
+            if roundStats['ReactionTime'] == None:
+                roundStats['ReactionTime'] = time.time() - setTime
+                print('GOTEM')
                 trigger.send(6)
 
             if rightLevel >= 1:
-                roundStats["Answer"] = True
+                roundStats['Answer'] = True
             elif wrongLevel >= 1:
-                roundStats["Answer"] = False
+                roundStats['Answer'] = False
             else:
-                roundStats["Answer"] = "Missed"
+                roundStats['Answer'] = "Missed"
 
             if equationScore and rightLevel >= 1:
-                mainStats["Answer"]["TT"] += 1
-                roundStats["Result"] = True
+                mainStats['Answer']['TT'] += 1
+                roundStats['Result'] = True
             if equationScore and wrongLevel >= 1:
-                mainStats["Answer"]["TF"] += 1
-                roundStats["Result"] = False
+                mainStats['Answer']['TF'] += 1
+                roundStats['Result'] = False
             if not equationScore and rightLevel >= 1:
-                mainStats["Answer"]["FT"] += 1
-                roundStats["Result"] = False
+                mainStats['Answer']['FT'] += 1
+                roundStats['Result'] = False
             if not equationScore and wrongLevel >= 1:
-                mainStats["Answer"]["FF"] += 1
-                roundStats["Result"] = True
+                mainStats['Answer']['FF'] += 1
+                roundStats['Result'] = True
 
             status = Event.AnswerPlus
         # -----------------------------------------------------------
-        if time.time() - setTime > DURATIONS["answer"]:  # wait for skip
-            mainStats["Answer"]["Skip"] += 1
+        if time.time() - setTime > DURATIONS['answer']:  # wait for skip
+            mainStats['Answer']['Skip'] += 1
             status = Event.AnswerPlus
 
     if status == Event.AnswerPlus:
@@ -286,24 +288,24 @@ while run:
         rightLevel = 0
         wrongLevel = 0
 
-        if time.time() - setTime > DURATIONS["fastAnswer"]:
+        if time.time() - setTime > DURATIONS['fastAnswer']:
             # ---------- Fill SpreadSheet -----------------
             # ----------- MainStats --------------------
-            MainLog.write("A3", f"{mainStats["Equation"]["True"]}")
-            MainLog.write("B3", f"{mainStats["Equation"]["False"]}")
-            MainLog.write("C3", f"{mainStats["Answer"]["TT"]}")
-            MainLog.write("D3", f"{mainStats["Answer"]["FF"]}")
-            MainLog.write("E3", f"{mainStats["Answer"]["TF"]}")
-            MainLog.write("F3", f"{mainStats["Answer"]["FT"]}")
-            MainLog.write("G3", f"{mainStats["Answer"]["Skip"]}")
+            MainLog.write("A3", f"{mainStats['Equation']['True']}")
+            MainLog.write("B3", f"{mainStats['Equation']['False']}")
+            MainLog.write("C3", f"{mainStats['Answer']['TT']}")
+            MainLog.write("D3", f"{mainStats['Answer']['FF']}")
+            MainLog.write("E3", f"{mainStats['Answer']['TF']}")
+            MainLog.write("F3", f"{mainStats['Answer']['FT']}")
+            MainLog.write("G3", f"{mainStats['Answer']['Skip']}")
             # ----------- RoundStats --------------------
             MainLog.write(f"A{4 + roundCounter}", f"{roundCounter}")
-            MainLog.write(f"B{4 + roundCounter}", f"{roundStats["Equation"]}")
-            MainLog.write(f"C{4 + roundCounter}", f"{roundStats["Score"]}")
-            MainLog.write(f"D{4 + roundCounter}", f"{roundStats["Answer"]}")
-            MainLog.write(f"E{4 + roundCounter}", f"{roundStats["Result"]}")
+            MainLog.write(f"B{4 + roundCounter}", f"{roundStats['Equation']}")
+            MainLog.write(f"C{4 + roundCounter}", f"{roundStats['Score']}")
+            MainLog.write(f"D{4 + roundCounter}", f"{roundStats['Answer']}")
+            MainLog.write(f"E{4 + roundCounter}", f"{roundStats['Result']}")
             MainLog.write(f"F{4 + roundCounter}",
-                          f"{roundStats["ReactionTime"]}")
+                          f"{roundStats['ReactionTime']}")
             # ======== Change Event ==================
             setTime = time.time()
             status = Event.Plus
