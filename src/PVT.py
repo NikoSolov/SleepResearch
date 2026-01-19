@@ -1,6 +1,6 @@
 import os
 import time
-from enum import Enum
+from enum import Enum, auto
 from random import uniform as rd
 
 import pygame as pg
@@ -10,6 +10,7 @@ import config as cfg
 import lightSensor
 import alarm
 import trigger
+from excelTools import writeDataToPage
 
 # ======== Load Configs ====================
 cfg.loadConfig()
@@ -60,10 +61,8 @@ DIR_NAME = f'{SUBJECT_NAME}{SUBJECT_code}_{time.strftime("%d.%m.%y")}_PVT_{time.
 trigger.update()
 # -------------------
 pg.init()
-if WIN_FS:
-    root = pg.display.set_mode(WIN_SIZE, pg.FULLSCREEN)
-else:
-    root = pg.display.set_mode(WIN_SIZE)
+root = pg.display.set_mode(WIN_SIZE, flags = pg.FULLSCREEN if WIN_FS else 0)
+
 clk = pg.time.Clock()
 
 # --------- Setting up SpreadSheet -------
@@ -75,23 +74,31 @@ if not (os.path.exists("result")):
 # <editor-fold desc="CREATE TABLE">
 TABLE = xlsxwriter.Workbook(f"result/{DIR_NAME}.xlsx")
 MainLog = TABLE.add_worksheet("MainLog")
-MainLog.merge_range("A1:A2", "Round")
-MainLog.merge_range("B1:E1", "First Reaction")
-MainLog.write("B2", "EmptyTime")
-MainLog.write("C2", "FalseAnswer")
-MainLog.write("D2", "RightAnswer")
-MainLog.write("E2", "at MSI?")
+writeDataToPage(MainLog, {
+    "A1:A2": "Round",
+    "B1:E1": "First Reaction",
+    "B2":    "EmptyTime",
+    "C2":    "FalseAnswer",
+    "D2":    "RightAnswer",
+    "E2":    "at MSI?",
+})
 
 
 # </editor-fold>
 # --------- Vars ----------
 class Event(Enum):
-    Siren = 0
-    Plus = 1
-    Empty = 2
-    Circle = 3
-    MSI = 4
+    Siren = auto()
+    Plus = auto()
+    Empty = auto()
+    Circle = auto()
+    MSI = auto()
 
+class TimeStamp(Enum):
+    startPVT = 4
+    circleAppear = 5
+    userInput = 6
+    endProgram = 8
+    killProgram = 9
 
 # <editor-fold desc="Creating Classes and Variables">
 run = True
@@ -115,10 +122,10 @@ while run:
                 event.type == pg.KEYDOWN and event.key == pg.K_ESCAPE):
             run = False
         if event.type == pg.KEYDOWN and event.key == pg.K_SPACE:
-            trigger.send(9)
+            trigger.send(TimeStamp.killProgram)
         if event.type == pg.MOUSEBUTTONDOWN:
             print("Clicked")
-            trigger.send(6)
+            trigger.send(TimeStamp.userInput)
             if ((status == Event.Plus or status == Event.Empty)
                     and reactions["wrongAnswer"] is None):
                 reactions["wrongAnswer"] = time.time() - setTime
@@ -147,14 +154,16 @@ while run:
         if alarm.isDone():
             setTime = time.time()
             status = Event.Plus
-            trigger.send(4)
+            trigger.send(TimeStamp.startPVT)
             lightSensor.pulse()
 
     if status == Event.Plus:
 
         # print("plus")
-        MainLog.write(f"A{3 + roundCounter}", f"{roundCounter + 1}")
-        MainLog.write(f"B{3 + roundCounter}", f"{currentEmptyTime}")
+        writeDataToPage(MainLog, {
+            f"A{3 + roundCounter}": f"{roundCounter + 1}",
+            f"B{3 + roundCounter}": f"{currentEmptyTime}"
+        })
         pg.draw.line(root, C_PLUS,
                      (WIN_SIZE[0] // 2, WIN_SIZE[1] // 2 - PLUS_SIZE),
                      (WIN_SIZE[0] // 2, WIN_SIZE[1] // 2 + PLUS_SIZE),
@@ -172,7 +181,7 @@ while run:
         if time.time() - setTime > currentEmptyTime:
             setTime = time.time()
             status = Event.Circle
-            trigger.send(5)
+            trigger.send(TimeStamp.circleAppear)
             # trigger.send(roundCounter + 1)
     if status == Event.Circle:
         pg.draw.circle(
@@ -187,11 +196,11 @@ while run:
     if status == Event.MSI:
         if time.time() - setTime > MSI_TIME:
             # --------------- Fill SpreadSheet ------------
-            MainLog.write(f'C{3 + roundCounter}',
-                          f'{reactions["wrongAnswer"]}')
-            MainLog.write(f'D{3 + roundCounter}',
-                          f'{reactions["rightAnswer"]}')
-            MainLog.write(f'E{3 + roundCounter}", f"{reactions["MSI"]}')
+            writeDataToPage(MainLog, {
+                f'C{3 + roundCounter}', f'{reactions["wrongAnswer"]}',
+                f'D{3 + roundCounter}', f'{reactions["rightAnswer"]}',
+                f'E{3 + roundCounter}', f'{reactions["MSI"]}'
+            })
 
             setTime = time.time()
             status = Event.Plus
@@ -209,7 +218,7 @@ while run:
 
     # clk.tick(60)
     pg.display.flip()
-trigger.send(8)
+trigger.send(TimeStamp.endProgram)
 
 TABLE.close()
 trigger.close()

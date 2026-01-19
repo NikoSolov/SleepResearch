@@ -10,6 +10,7 @@ import config as cfg
 import lightSensor
 import alarm
 import trigger
+from excelTools import writeDataToPage
 
 # ============ GET ALL CONSTANTS =========
 cfg.loadConfig()
@@ -77,22 +78,24 @@ clk = pg.time.Clock()
 # <editor-fold desc="Create a Table">
 TABLE = xlsxwriter.Workbook(f"result/{DIR_NAME}.xlsx")
 MainLog = TABLE.add_worksheet("MainLog")
-MainLog.merge_range("A1:B1", "Задачи")
-MainLog.merge_range("C1:G1", "Ответил")
-MainLog.write("A2", "True")
-MainLog.write("B2", "False")
-MainLog.write("C2", "T->T")
-MainLog.write("D2", "F->F")
-MainLog.write("E2", "T->F")
-MainLog.write("F2", "F->T")
-MainLog.write("G2", "Missed")
+writeDataToPage(MainLog, {
+    "A1:B1": "Задачи",
+    "C1:G1": "Ответил",
+    "A2": "True",
+    "B2": "False",
+    "C2": "T->T",
+    "D2": "F->F",
+    "E2": "T->F",
+    "F2": "F->T",
+    "G2": "Missed",
+    "A4": "Раунд",
+    "B4": "Пример",
+    "C4": "Оценка_примера",
+    "D4": "Ответил",
+    "E4": "Вывод",
+    "F4": "Время реакции"
+})
 
-MainLog.write("A4", "Раунд")
-MainLog.write("B4", "Пример")
-MainLog.write("C4", "Оценка_примера")
-MainLog.write("D4", "Ответил")
-MainLog.write("E4", "Вывод")
-MainLog.write("F4", "Время реакции")
 # </editor-fold>
 # ============== Vars ========================
 
@@ -106,6 +109,12 @@ class Event(Enum):
     Answer = 2
     AnswerPlus = 3
 
+class TimeStamp(Enum):
+    startPVT = 4
+    circleAppear = 5
+    userInput = 6
+    endProgram = 8
+    killProgram = 9
 
 def drawPlus():
     pg.draw.line(root, pg.Color(C_PLUS),
@@ -145,7 +154,7 @@ while run:
                 event.type == pg.KEYDOWN and event.key == pg.K_ESCAPE):
             run = False
         if event.type == pg.KEYDOWN and event.key == pg.K_SPACE:
-            trigger.send(9)
+            trigger.send(TimeStamp.killProgram)
         if event.type == pg.MOUSEWHEEL and status == Event.Answer:
             print(rightLevel, wrongLevel)
             if event.y * INV > 0:
@@ -291,21 +300,23 @@ while run:
         if time.time() - setTime > DURATIONS['fastAnswer']:
             # ---------- Fill SpreadSheet -----------------
             # ----------- MainStats --------------------
-            MainLog.write("A3", f"{mainStats['Equation']['True']}")
-            MainLog.write("B3", f"{mainStats['Equation']['False']}")
-            MainLog.write("C3", f"{mainStats['Answer']['TT']}")
-            MainLog.write("D3", f"{mainStats['Answer']['FF']}")
-            MainLog.write("E3", f"{mainStats['Answer']['TF']}")
-            MainLog.write("F3", f"{mainStats['Answer']['FT']}")
-            MainLog.write("G3", f"{mainStats['Answer']['Skip']}")
-            # ----------- RoundStats --------------------
-            MainLog.write(f"A{4 + roundCounter}", f"{roundCounter}")
-            MainLog.write(f"B{4 + roundCounter}", f"{roundStats['Equation']}")
-            MainLog.write(f"C{4 + roundCounter}", f"{roundStats['Score']}")
-            MainLog.write(f"D{4 + roundCounter}", f"{roundStats['Answer']}")
-            MainLog.write(f"E{4 + roundCounter}", f"{roundStats['Result']}")
-            MainLog.write(f"F{4 + roundCounter}",
-                          f"{roundStats['ReactionTime']}")
+            writeDataToPage(MainLog, {
+                "A3": f"{mainStats['Equation']['True']}",
+                "B3": f"{mainStats['Equation']['False']}",
+                "C3": f"{mainStats['Answer']['TT']}",
+                "D3": f"{mainStats['Answer']['FF']}",
+                "E3": f"{mainStats['Answer']['TF']}",
+                "F3": f"{mainStats['Answer']['FT']}",
+                "G3": f"{mainStats['Answer']['Skip']}",
+                # ----------- RoundStats --------------------
+                f"A{4 + roundCounter}": f"{roundCounter}",
+                f"B{4 + roundCounter}": f"{roundStats['Equation']}",
+                f"C{4 + roundCounter}": f"{roundStats['Score']}",
+                f"D{4 + roundCounter}": f"{roundStats['Answer']}",
+                f"E{4 + roundCounter}": f"{roundStats['Result']}",
+                f"F{4 + roundCounter}": f"{roundStats['ReactionTime']}"
+            })
+
             # ======== Change Event ==================
             setTime = time.time()
             status = Event.Plus
@@ -318,6 +329,6 @@ while run:
 
     pg.display.flip()
     clk.tick(60)
-trigger.send(8)
+trigger.send(TimeStamp.endProgram)
 TABLE.close()
 trigger.close()

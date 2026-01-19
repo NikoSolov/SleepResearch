@@ -1,5 +1,5 @@
 import time
-from enum import Enum
+from enum import Enum, auto
 import pygame as pg
 import config as cfg
 import alarm
@@ -47,8 +47,14 @@ clk = pg.time.Clock()
 
 # --------- Vars ----------
 class Event(Enum):
-    Siren = 0
-    Plus = 1
+    Siren = auto()
+    Plus = auto()
+
+class TimeStamp(Enum):
+    userInput = 6
+    startControl = 7
+    endProgram = 8
+    killProgram = 9
 
 
 status = Event.Siren
@@ -61,9 +67,9 @@ while run:
                 event.type == pg.KEYDOWN and event.key == pg.K_ESCAPE):
             run = False
         if event.type == pg.MOUSEBUTTONDOWN:
-            trigger.send(6)
+            trigger.send(TimeStamp.userInput)
         if event.type == pg.KEYDOWN and event.key == pg.K_SPACE:
-            trigger.send(9)
+            trigger.send(TimeStamp.killProgram)
 
     root.fill(C_BG)
     lightSensor.draw(root)
@@ -75,7 +81,7 @@ while run:
         if alarm.isDone():
             setTime = time.time()
             status = Event.Plus
-            trigger.send(7)
+            trigger.send(TimeStamp.startControl)
             lightSensor.pulse()
 
     if status == Event.Plus:
@@ -94,5 +100,5 @@ while run:
     clk.tick(60)
     pg.display.flip()
 
-trigger.send(8)
+trigger.send(TimeStamp.endProgram)
 trigger.close()
