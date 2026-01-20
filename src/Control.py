@@ -38,10 +38,7 @@ PLUS_TIME = DELAYS["plus"]
 trigger.update()
 # -------------------
 pg.init()
-if WIN_FS:
-    root = pg.display.set_mode(WIN_SIZE, pg.FULLSCREEN)
-else:
-    root = pg.display.set_mode(WIN_SIZE)
+root = pg.display.set_mode(WIN_SIZE, flags = pg.FULLSCREEN if WIN_FS else pg.SHOWN)
 clk = pg.time.Clock()
 
 
@@ -49,12 +46,6 @@ clk = pg.time.Clock()
 class Event(Enum):
     Siren = auto()
     Plus = auto()
-
-class TimeStamp(Enum):
-    userInput = 6
-    startControl = 7
-    endProgram = 8
-    killProgram = 9
 
 
 status = Event.Siren
@@ -67,9 +58,9 @@ while run:
                 event.type == pg.KEYDOWN and event.key == pg.K_ESCAPE):
             run = False
         if event.type == pg.MOUSEBUTTONDOWN:
-            trigger.send(TimeStamp.userInput)
+            trigger.send(trigger.TimeStamp.userInput)
         if event.type == pg.KEYDOWN and event.key == pg.K_SPACE:
-            trigger.send(TimeStamp.killProgram)
+            trigger.send(trigger.TimeStamp.manualStamp)
 
     root.fill(C_BG)
     lightSensor.draw(root)
@@ -81,7 +72,7 @@ while run:
         if alarm.isDone():
             setTime = time.time()
             status = Event.Plus
-            trigger.send(TimeStamp.startControl)
+            trigger.send(trigger.TimeStamp.startControl)
             lightSensor.pulse()
 
     if status == Event.Plus:
@@ -100,5 +91,5 @@ while run:
     clk.tick(60)
     pg.display.flip()
 
-trigger.send(TimeStamp.endProgram)
+trigger.send(trigger.TimeStamp.endProgram)
 trigger.close()

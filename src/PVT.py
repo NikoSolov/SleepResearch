@@ -61,7 +61,7 @@ DIR_NAME = f'{SUBJECT_NAME}{SUBJECT_code}_{time.strftime("%d.%m.%y")}_PVT_{time.
 trigger.update()
 # -------------------
 pg.init()
-root = pg.display.set_mode(WIN_SIZE, flags = pg.FULLSCREEN if WIN_FS else 0)
+root = pg.display.set_mode(WIN_SIZE, flags = pg.FULLSCREEN if WIN_FS else pg.SHOWN)
 
 clk = pg.time.Clock()
 
@@ -93,13 +93,6 @@ class Event(Enum):
     Circle = auto()
     MSI = auto()
 
-class TimeStamp(Enum):
-    startPVT = 4
-    circleAppear = 5
-    userInput = 6
-    endProgram = 8
-    killProgram = 9
-
 # <editor-fold desc="Creating Classes and Variables">
 run = True
 status = Event.Siren
@@ -122,10 +115,10 @@ while run:
                 event.type == pg.KEYDOWN and event.key == pg.K_ESCAPE):
             run = False
         if event.type == pg.KEYDOWN and event.key == pg.K_SPACE:
-            trigger.send(TimeStamp.killProgram)
+            trigger.send(trigger.TimeStamp.manualStamp)
         if event.type == pg.MOUSEBUTTONDOWN:
             print("Clicked")
-            trigger.send(TimeStamp.userInput)
+            trigger.send(trigger.TimeStamp.userInput)
             if ((status == Event.Plus or status == Event.Empty)
                     and reactions["wrongAnswer"] is None):
                 reactions["wrongAnswer"] = time.time() - setTime
@@ -154,7 +147,7 @@ while run:
         if alarm.isDone():
             setTime = time.time()
             status = Event.Plus
-            trigger.send(TimeStamp.startPVT)
+            trigger.send(trigger.TimeStamp.startPVT)
             lightSensor.pulse()
 
     if status == Event.Plus:
@@ -181,7 +174,7 @@ while run:
         if time.time() - setTime > currentEmptyTime:
             setTime = time.time()
             status = Event.Circle
-            trigger.send(TimeStamp.circleAppear)
+            trigger.send(trigger.TimeStamp.circleAppear)
             # trigger.send(roundCounter + 1)
     if status == Event.Circle:
         pg.draw.circle(
@@ -197,9 +190,9 @@ while run:
         if time.time() - setTime > MSI_TIME:
             # --------------- Fill SpreadSheet ------------
             writeDataToPage(MainLog, {
-                f'C{3 + roundCounter}', f'{reactions["wrongAnswer"]}',
-                f'D{3 + roundCounter}', f'{reactions["rightAnswer"]}',
-                f'E{3 + roundCounter}', f'{reactions["MSI"]}'
+                f'C{3 + roundCounter}': f'{reactions["wrongAnswer"]}',
+                f'D{3 + roundCounter}': f'{reactions["rightAnswer"]}',
+                f'E{3 + roundCounter}': f'{reactions["MSI"]}'
             })
 
             setTime = time.time()
@@ -210,7 +203,7 @@ while run:
                 "MSI": False
             }
             roundCounter += 1
-            trigger.send(4)
+            trigger.send(trigger.TimeStamp.startPVT)
             lightSensor.pulse()
 
     if roundCounter >= ROUND:
@@ -218,7 +211,7 @@ while run:
 
     # clk.tick(60)
     pg.display.flip()
-trigger.send(TimeStamp.endProgram)
+trigger.send(trigger.TimeStamp.endProgram)
 
 TABLE.close()
 trigger.close()

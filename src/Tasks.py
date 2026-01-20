@@ -68,10 +68,7 @@ trigger.update()
 pg.font.init()
 equationFont = pg.font.SysFont(FONT, SIZES['font'])
 
-if WIN_FS:
-    root = pg.display.set_mode(WIN_SIZE, pg.FULLSCREEN)
-else:
-    root = pg.display.set_mode(WIN_SIZE)
+root = pg.display.set_mode(WIN_SIZE, flags = pg.FULLSCREEN if WIN_FS else pg.SHOWN)
 clk = pg.time.Clock()
 
 # ====================================================
@@ -108,13 +105,6 @@ class Event(Enum):
     Plus = 1
     Answer = 2
     AnswerPlus = 3
-
-class TimeStamp(Enum):
-    startPVT = 4
-    circleAppear = 5
-    userInput = 6
-    endProgram = 8
-    killProgram = 9
 
 def drawPlus():
     pg.draw.line(root, pg.Color(C_PLUS),
@@ -154,7 +144,7 @@ while run:
                 event.type == pg.KEYDOWN and event.key == pg.K_ESCAPE):
             run = False
         if event.type == pg.KEYDOWN and event.key == pg.K_SPACE:
-            trigger.send(TimeStamp.killProgram)
+            trigger.send(trigger.TimeStamp.manualStamp)
         if event.type == pg.MOUSEWHEEL and status == Event.Answer:
             print(rightLevel, wrongLevel)
             if event.y * INV > 0:
@@ -187,7 +177,7 @@ while run:
         if time.time() - setTime > DURATIONS['plus']:
             setTime = time.time()
             status = Event.Answer
-            trigger.send(3)
+            trigger.send(trigger.TimeStamp.startTask)
             # ------------- generate equation --------------
             if file is not None:
                 lineFile = file.readline()
@@ -263,7 +253,7 @@ while run:
             if roundStats['ReactionTime'] == None:
                 roundStats['ReactionTime'] = time.time() - setTime
                 print('GOTEM')
-                trigger.send(6)
+                trigger.send(trigger.TimeStamp.userInput)
 
             if rightLevel >= 1:
                 roundStats['Answer'] = True
@@ -322,13 +312,13 @@ while run:
             status = Event.Plus
             lightSensor.pulse()
             roundCounter += 1
-            # trigger.send(3)
+            # trigger.send(TimeStamp.startTask)
 
     if roundCounter > ROUND:
         run = False
 
     pg.display.flip()
     clk.tick(60)
-trigger.send(TimeStamp.endProgram)
+trigger.send(trigger.TimeStamp.endProgram)
 TABLE.close()
 trigger.close()

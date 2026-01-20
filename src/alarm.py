@@ -22,7 +22,7 @@ SIREN_TIME = TONE["duration"]
 def play():
     global sound, playFlag, sirenTime
     if int(TONE["enable"]) and not playFlag:
-        trigger.send(1)
+        trigger.send(trigger.TimeStamp.alarm)
         sound.play(-1)
         playFlag = True
         sirenTime = time.time()

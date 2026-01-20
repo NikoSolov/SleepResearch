@@ -63,10 +63,7 @@ LOG_FREQ = config["Mouses"]["logger"]["freq"]
 trigger.update()
 # ------------------------------
 pg.init()
-if FULLSCREEN:
-    root = pg.display.set_mode(WIN_SIZE, pg.FULLSCREEN)
-else:
-    root = pg.display.set_mode(WIN_SIZE)
+root = pg.display.set_mode(WIN_SIZE, flags = pg.FULLSCREEN if FULLSCREEN else pg.SHOWN)
 clk = pg.time.Clock()
 # -------- Setting Log Files -------------
 # <editor-fold desc="Creating Folders">
@@ -272,13 +269,13 @@ while run:
             run = False
         # -------- Manual TimeStamp ---------
         if event.type == pg.KEYDOWN and event.key == pg.K_SPACE:
-            trigger.send(9)
+            trigger.send(trigger.TimeStamp.manualStamp)
         # -------- Mouse process ------------
         if event.type == pg.MOUSEWHEEL and status == Event.answer:
             if roundStats["ableToMove"] and roundStats[
                 "reactionTime"] == 0:
                 roundStats["reactionTime"] = time.time() - roundTimer
-                trigger.send(6)
+                trigger.send(trigger.TimeStamp.userInput)
             # wait until mouse passes WaitZone
             if np.linalg.norm(
                     Ball.getPos() - np.array(
@@ -371,7 +368,7 @@ while run:
         roundTimer = time.time()
         loggerTime = roundTimer
         # ------ Timestamp ------
-        trigger.send(2)
+        trigger.send(trigger.TimeStamp.startMouse)
         # trigger.send(roundCounter)
         # </editor-fold>
 
@@ -432,7 +429,7 @@ while run:
     clk.tick(60)
 
 # ------- Filling the Main Log --------------
-trigger.send(8)
+trigger.send(trigger.TimeStamp.endProgram)
 trigger.close()
 writeDataToPage(MainLog, {
     "A2": f'{mainStats["arrived"]}',
