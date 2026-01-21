@@ -247,7 +247,7 @@ while run:
                   (WIN_SIZE[0] // 2 - equationSurf.get_width() // 2,
                    WIN_SIZE[1] // 2 - equationSurf.get_height() // 2))
         # --------- If One of Squares filled ---------------
-        print(time.time() - setTime)
+        # print(time.time() - setTime)
         if rightLevel >= 1 or wrongLevel >= 1:
 
             if roundStats['ReactionTime'] == None:
@@ -255,26 +255,29 @@ while run:
                 print('GOTEM')
                 trigger.send(trigger.TimeStamp.userInput)
 
-            if rightLevel >= 1:
-                roundStats['Answer'] = True
-            elif wrongLevel >= 1:
-                roundStats['Answer'] = False
-            else:
-                roundStats['Answer'] = "Missed"
+            roundStats['Answer'] = (
+                True     if rightLevel >= 1 else
+                False    if wrongLevel >= 1 else
+                "Missed"
+            )
+            confusionMatrix = {
+                'TT':     equationScore and rightLevel >= 1,
+                'FF': not equationScore and wrongLevel >= 1,
+                'TF':     equationScore and wrongLevel >= 1,
+                'FT': not equationScore and rightLevel >= 1
+            }
 
-            if equationScore and rightLevel >= 1:
-                mainStats['Answer']['TT'] += 1
-                roundStats['Result'] = True
-            if equationScore and wrongLevel >= 1:
-                mainStats['Answer']['TF'] += 1
-                roundStats['Result'] = False
-            if not equationScore and rightLevel >= 1:
-                mainStats['Answer']['FT'] += 1
-                roundStats['Result'] = False
-            if not equationScore and wrongLevel >= 1:
-                mainStats['Answer']['FF'] += 1
-                roundStats['Result'] = True
+            roundStats['Result'] = (
+                True  if confusionMatrix['TT'] or confusionMatrix['FF'] else
+                False if confusionMatrix['TF'] or confusionMatrix['FT']  else
+                None
+            )
+            
+            mainStats['Answer'][
+                next((key for key, value in confusionMatrix.items() if value))
+            ] += 1
 
+            print(next((key for key, value in confusionMatrix.items() if value)), mainStats['Answer'])
             status = Event.AnswerPlus
         # -----------------------------------------------------------
         if time.time() - setTime > DURATIONS['answer']:  # wait for skip
@@ -282,7 +285,7 @@ while run:
             status = Event.AnswerPlus
 
     if status == Event.AnswerPlus:
-        print(mainStats)
+        # print(mainStats)
         drawPlus()
         rightLevel = 0
         wrongLevel = 0
