@@ -5,6 +5,7 @@ from random import choice, randint
 
 import pygame as pg
 import xlsxwriter
+import numpy as np
 
 import config as cfg
 import lightSensor
@@ -19,7 +20,9 @@ config = cfg.getConfig()
 # <editor-fold desc="General">
 WINDOW_CONFIG = config['general']['window']
 WIN_FS = WINDOW_CONFIG['fullScreen']
-WIN_SIZE = (WINDOW_CONFIG['width'], WINDOW_CONFIG['height'])
+# WIN_SIZE = (WINDOW_CONFIG['width'], WINDOW_CONFIG['height'])
+WIN_SIZE = np.array([WINDOW_CONFIG['width'], WINDOW_CONFIG['height']], np.int16)
+
 ROUND = config['general']['experiment']['round']
 SUBJECT_NAME = config['general']['experiment']['name']
 SUBJECT_code = config['general']['experiment']['code']
@@ -98,7 +101,7 @@ writeDataToPage(MainLog, {
 
 rightLevel: float = 0
 wrongLevel: float = 0
-
+equationText: str = ""
 
 class Event(Enum):
     Siren = 0
@@ -106,15 +109,85 @@ class Event(Enum):
     Answer = 2
     AnswerPlus = 3
 
-def drawPlus():
-    pg.draw.line(root, pg.Color(C_PLUS),
-                 (WIN_SIZE[0] // 2, WIN_SIZE[1] // 2 - S_PLUS_RADIUS),
-                 (WIN_SIZE[0] // 2, WIN_SIZE[1] // 2 + S_PLUS_RADIUS),
-                 S_PLUS_WIDTH)
-    pg.draw.line(root, pg.Color(C_PLUS),
-                 (WIN_SIZE[0] // 2 - S_PLUS_RADIUS, WIN_SIZE[1] // 2),
-                 (WIN_SIZE[0] // 2 + S_PLUS_RADIUS, WIN_SIZE[1] // 2),
-                 S_PLUS_WIDTH)
+
+def drawGraphics(root, status, equationText, rightLevel, wrongLevel):
+    def drawPlus():
+        pg.draw.line(root, pg.Color(C_PLUS),
+                    WIN_SIZE // 2 + np.array([0, -1]) *  S_PLUS_RADIUS,
+                    WIN_SIZE // 2 + np.array([0,  1]) *  S_PLUS_RADIUS,
+                    S_PLUS_WIDTH)
+        pg.draw.line(root, pg.Color(C_PLUS),
+                    WIN_SIZE // 2 + np.array([-1, 0]) *  S_PLUS_RADIUS,
+                    WIN_SIZE // 2 + np.array([ 1, 0]) *  S_PLUS_RADIUS,
+                    S_PLUS_WIDTH)
+    def drawSquare(
+            color = C_RIGHT, 
+            pos = [
+                (WIN_SIZE[0] - S_SQR_LENGTH) // 2,
+                (WIN_SIZE[1] - 2 * S_SQR_LENGTH) // 4
+            ], 
+            sqrHeight = 1, 
+            sqrWidth = S_SQR_WIDTH
+        ):
+        pg.draw.rect(root, pg.Color(color),
+            (
+                *pos,
+                S_SQR_LENGTH, 
+                S_SQR_LENGTH * sqrHeight
+            ), 
+            sqrWidth
+        )
+
+    root.fill(pg.Color(C_BG))
+    lightSensor.draw(root)
+
+    match status:
+        case Event.Siren:
+            root.fill((0, 0, 0))            
+        case Event.Plus | Event.AnswerPlus:
+            drawPlus()
+        case Event.Answer:
+            drawSquare(
+                color = C_RIGHT, 
+                pos = (
+                    WIN_SIZE // 2 - np.array([0, WIN_SIZE[1]//4]) 
+                    - np.array([1,1]) * S_SQR_LENGTH // 2
+                )
+            )
+            drawSquare(
+                color = C_WRONG, 
+                pos = (
+                    WIN_SIZE // 2 + np.array([0, WIN_SIZE[1]//4]) 
+                    - np.array([1,1]) * S_SQR_LENGTH // 2
+                )
+            )
+            drawSquare(
+                color = C_RIGHT, 
+                pos = (
+                    WIN_SIZE // 2 - np.array([0, WIN_SIZE[1]//4])
+                    - np.array([1, 2*rightLevel-1]) * S_SQR_LENGTH // 2
+                ),
+                sqrWidth = 0,
+                sqrHeight = rightLevel
+            )
+            drawSquare(
+                color = C_WRONG, 
+                pos = (
+                    WIN_SIZE // 2 
+                    + np.array([0, WIN_SIZE[1]//4]) 
+                    - np.array([1,1]) * S_SQR_LENGTH // 2
+                ),
+                sqrWidth = 0,
+                sqrHeight = wrongLevel
+            )
+            equationSurf = equationFont.render(
+                equationText, True, pg.Color(COLORS['font'])
+            )
+            root.blit(equationSurf,
+                WIN_SIZE // 2 - np.array(equationSurf.get_size()) // 2
+            )
+    pg.display.flip()
+    clk.tick(60)
 
 
 status = Event.Siren
@@ -135,8 +208,6 @@ mainStats = {
     }
 }
 
-equationSurf: pg.Surface
-
 
 while run:
     for event in pg.event.get():
@@ -146,21 +217,19 @@ while run:
         if event.type == pg.KEYDOWN and event.key == pg.K_SPACE:
             trigger.send(trigger.TimeStamp.manualStamp)
         if event.type == pg.MOUSEWHEEL and status == Event.Answer:
+            notch = event.y * INV
+            rightLevel, wrongLevel = (
+                (rightLevel + SENSE * notch, 0)  
+                if (notch > 0) else 
+                (0, wrongLevel - SENSE * notch)
+            )
             print(rightLevel, wrongLevel)
-            if event.y * INV > 0:
-                rightLevel += SENSE * event.y * INV
-                wrongLevel = 0
-            else:
-                wrongLevel -= SENSE * event.y * INV
-                rightLevel = 0
 
-    root.fill(pg.Color(C_BG))
-    lightSensor.draw(root)
+    drawGraphics(root, status, equationText, rightLevel, wrongLevel)
 
     # ---------- Siren Plays ----------------
     if status == Event.Siren:
         # ------ playSiren ------------------
-        root.fill((0, 0, 0))
         alarm.play()
         if alarm.isDone():
             setTime = time.time()
@@ -172,7 +241,6 @@ while run:
 
     # ---------- Plus ----------------
     if status == Event.Plus:
-        drawPlus()
         # --------- lightSensorOn -----------------
         if time.time() - setTime > DURATIONS['plus']:
             setTime = time.time()
@@ -202,10 +270,6 @@ while run:
                 equationText = f"{a}+{b}={c}"
 
             mainStats['Equation'][str(equationScore)] += 1
-            # ----------- getSurfaceOfEquation -------------
-            equationSurf = equationFont.render(equationText, True,
-                                               pg.Color(COLORS['font']))
-            # ----------- create RoundStats ----------------
             roundStats = {
                 "Equation": equationText,
                 "Score": equationScore,
@@ -215,56 +279,26 @@ while run:
             }
 
     if status == Event.Answer:
-
-        pg.draw.rect(root,
-                     pg.Color(C_RIGHT),
-                     ((WIN_SIZE[0] - S_SQR_LENGTH) // 2,
-                      (WIN_SIZE[1] - 2 * S_SQR_LENGTH) // 4,
-                      S_SQR_LENGTH, S_SQR_LENGTH),
-                     S_SQR_WIDTH
-                     )
-        pg.draw.rect(root,
-                     pg.Color(C_WRONG),
-                     ((WIN_SIZE[0] - S_SQR_LENGTH) // 2,
-                      (3 * WIN_SIZE[1] - 2 * S_SQR_LENGTH) // 4,
-                      S_SQR_LENGTH, S_SQR_LENGTH),
-                     S_SQR_WIDTH
-                     )
-        pg.draw.rect(root,
-                     pg.Color(C_RIGHT),
-                     ((WIN_SIZE[0] - S_SQR_LENGTH) // 2,
-                      WIN_SIZE[1] // 4
-                      + S_SQR_LENGTH // 2 - S_SQR_LENGTH * rightLevel,
-                      S_SQR_LENGTH, S_SQR_LENGTH * rightLevel),
-                     )
-        pg.draw.rect(root,
-                     pg.Color(C_WRONG),
-                     ((WIN_SIZE[0] - S_SQR_LENGTH) // 2,
-                      (3 * WIN_SIZE[1] - 2 * S_SQR_LENGTH) // 4,
-                      S_SQR_LENGTH, S_SQR_LENGTH * wrongLevel),
-                     )
-        root.blit(equationSurf,
-                  (WIN_SIZE[0] // 2 - equationSurf.get_width() // 2,
-                   WIN_SIZE[1] // 2 - equationSurf.get_height() // 2))
-        # --------- If One of Squares filled ---------------
-        # print(time.time() - setTime)
         if rightLevel >= 1 or wrongLevel >= 1:
-
             if roundStats['ReactionTime'] == None:
                 roundStats['ReactionTime'] = time.time() - setTime
                 print('GOTEM')
                 trigger.send(trigger.TimeStamp.userInput)
 
+            levels = {
+                'right': rightLevel >= 1,
+                'wrong': wrongLevel >= 1
+            }
             roundStats['Answer'] = (
-                True     if rightLevel >= 1 else
-                False    if wrongLevel >= 1 else
+                True     if levels['right'] else
+                False    if levels['wrong'] else
                 "Missed"
             )
             confusionMatrix = {
-                'TT':     equationScore and rightLevel >= 1,
-                'FF': not equationScore and wrongLevel >= 1,
-                'TF':     equationScore and wrongLevel >= 1,
-                'FT': not equationScore and rightLevel >= 1
+                'TT':     equationScore and levels['right'],
+                'FF': not equationScore and levels['wrong'],
+                'TF':     equationScore and levels['wrong'],
+                'FT': not equationScore and levels['right']
             }
 
             roundStats['Result'] = (
@@ -276,8 +310,7 @@ while run:
             mainStats['Answer'][
                 next((key for key, value in confusionMatrix.items() if value))
             ] += 1
-
-            print(next((key for key, value in confusionMatrix.items() if value)), mainStats['Answer'])
+            # print(next((key for key, value in confusionMatrix.items() if value)), mainStats['Answer'])
             status = Event.AnswerPlus
         # -----------------------------------------------------------
         if time.time() - setTime > DURATIONS['answer']:  # wait for skip
@@ -286,7 +319,6 @@ while run:
 
     if status == Event.AnswerPlus:
         # print(mainStats)
-        drawPlus()
         rightLevel = 0
         wrongLevel = 0
 
@@ -320,8 +352,7 @@ while run:
     if roundCounter > ROUND:
         run = False
 
-    pg.display.flip()
-    clk.tick(60)
+
 trigger.send(trigger.TimeStamp.endProgram)
 TABLE.close()
 trigger.close()
