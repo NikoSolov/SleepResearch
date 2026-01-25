@@ -261,6 +261,30 @@ roundStats = {
 # ================================
 roundTimer = 0
 
+def drawGraphics(root, status):
+    # -------- color background ----------
+    root.fill(pg.Color(C_BG))
+    # -------- draw a hole ----------
+    pg.draw.circle(root,
+                   pg.Color(C_HOLE),
+                   (WIN_SIZE[0] - RADIUS, RADIUS),
+                   RADIUS
+                   )
+    # -------- draw light square ----------
+    lightSensor.draw(root)
+
+    match status:
+        case Event.siren:
+            root.fill((0, 0, 0))
+        case Event.answer:
+            # ------- draw a mouse ---------
+            pg.draw.circle(root, pg.Color(C_MOUSE), Ball.getPos(), RADIUS)
+
+    pg.display.flip()
+    clk.tick(60)
+
+
+
 while run:
     for event in pg.event.get():
         # -------- Hard Quitting ------------
@@ -305,22 +329,13 @@ while run:
         # ------- quit program -------
         continue
 
-    # -------- color background ----------
-    root.fill(pg.Color(C_BG))
-    # -------- draw a hole ----------
-    pg.draw.circle(root,
-                   pg.Color(C_HOLE),
-                   (WIN_SIZE[0] - RADIUS, RADIUS),
-                   RADIUS
-                   )
-    # -------- draw light square ----------
-    lightSensor.draw(root)
+    drawGraphics(root, status)
 
     # ---------- Siren Plays ----------------
     if status == Event.siren:
         # ------ playSiren ------------------
         alarm.play()
-        root.fill((0, 0, 0))
+        # root.fill((0, 0, 0))
         if alarm.isDone():
             setTime = time.time()
             status = Event.init
@@ -373,8 +388,6 @@ while run:
         # </editor-fold>
 
     if status == Event.answer:
-        # ------- draw a mouse ---------
-        pg.draw.circle(root, pg.Color(C_MOUSE), Ball.getPos(), RADIUS)
         # ------- make a step ---------
         Ball.step()
         # ------- log positions ---------
@@ -425,8 +438,6 @@ while run:
             if roundCounter >= ROUND:
                 run = False
 
-    pg.display.flip()
-    clk.tick(60)
 
 # ------- Filling the Main Log --------------
 trigger.send(trigger.TimeStamp.endProgram)

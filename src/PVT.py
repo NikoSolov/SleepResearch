@@ -5,6 +5,7 @@ from random import uniform as rd
 
 import pygame as pg
 import xlsxwriter
+import numpy as np
 
 import config as cfg
 import lightSensor
@@ -20,7 +21,7 @@ config = cfg.getConfig()
 WINDOW_CONFIG = config["general"]["window"]
 print(WINDOW_CONFIG)
 WIN_FS = WINDOW_CONFIG["fullScreen"]
-WIN_SIZE = (WINDOW_CONFIG["width"], WINDOW_CONFIG["height"])
+WIN_SIZE = np.array([WINDOW_CONFIG["width"], WINDOW_CONFIG["height"]])
 TIMESTAMPS_CONFIG = config["general"]["timeStamps"]
 ROUND = config["general"]["experiment"]["round"]
 SUBJECT_NAME = config["general"]["experiment"]["name"]
@@ -62,7 +63,6 @@ trigger.update()
 # -------------------
 pg.init()
 root = pg.display.set_mode(WIN_SIZE, flags = pg.FULLSCREEN if WIN_FS else pg.SHOWN)
-
 clk = pg.time.Clock()
 
 # --------- Setting up SpreadSheet -------
@@ -108,6 +108,32 @@ setTime = time.time()
 
 # </editor-fold>
 
+def drawGraphics(root, status):
+    root.fill(C_BG)
+    lightSensor.draw(root)
+
+    match status:
+        case Event.Siren:
+            root.fill((0, 0, 0))
+        case Event.Plus:
+            pg.draw.line(root, pg.Color(C_PLUS),
+                        WIN_SIZE // 2 + np.array([0, -1]) *  PLUS_SIZE,
+                        WIN_SIZE // 2 + np.array([0,  1]) *  PLUS_SIZE,
+                        PLUS_WIDTH)
+            pg.draw.line(root, pg.Color(C_PLUS),
+                        WIN_SIZE // 2 + np.array([-1, 0]) *  PLUS_SIZE,
+                        WIN_SIZE // 2 + np.array([ 1, 0]) *  PLUS_SIZE,
+                        PLUS_WIDTH)
+        case Event.Circle:
+            pg.draw.circle(
+                root,
+                C_CIRCLE,
+                WIN_SIZE // 2,
+                RADIUS
+            )
+    clk.tick(60)
+    pg.display.flip()
+
 
 while run:
     for event in pg.event.get():
@@ -128,7 +154,6 @@ while run:
             elif ((status == Event.Circle or status == Event.MSI)
                   and reactions["rightAnswer"] is None):
                 reactions["rightAnswer"] = time.time() - setTime
-
                 setTime = time.time()
                 if status == Event.MSI:
                     reactions["MSI"] = True
@@ -136,14 +161,11 @@ while run:
                 status = Event.MSI
             print(reactions)
 
-    root.fill(C_BG)
-    lightSensor.draw(root)
-
+    drawGraphics(root, status)
     # ---------- Siren Plays ----------------
     if status == Event.Siren:
         # ------ playSiren ------------------
         alarm.play()
-        root.fill((0, 0, 0))
         if alarm.isDone():
             setTime = time.time()
             status = Event.Plus
@@ -157,14 +179,6 @@ while run:
             f"A{3 + roundCounter}": f"{roundCounter + 1}",
             f"B{3 + roundCounter}": f"{currentEmptyTime}"
         })
-        pg.draw.line(root, C_PLUS,
-                     (WIN_SIZE[0] // 2, WIN_SIZE[1] // 2 - PLUS_SIZE),
-                     (WIN_SIZE[0] // 2, WIN_SIZE[1] // 2 + PLUS_SIZE),
-                     PLUS_WIDTH)
-        pg.draw.line(root, C_PLUS,
-                     (WIN_SIZE[0] // 2 - PLUS_SIZE, WIN_SIZE[1] // 2),
-                     (WIN_SIZE[0] // 2 + PLUS_SIZE, WIN_SIZE[1] // 2),
-                     PLUS_WIDTH)
         # print(time.time() - setTime)
         if time.time() - setTime > PLUS_TIME:
             status = Event.Empty
@@ -177,12 +191,6 @@ while run:
             trigger.send(trigger.TimeStamp.circleAppear)
             # trigger.send(roundCounter + 1)
     if status == Event.Circle:
-        pg.draw.circle(
-            root,
-            C_CIRCLE,
-            (WIN_SIZE[0] // 2, WIN_SIZE[1] // 2),
-            RADIUS
-        )
         if time.time() - setTime > ANSWER_TIME:
             setTime = time.time()
             status = Event.MSI
@@ -209,8 +217,6 @@ while run:
     if roundCounter >= ROUND:
         run = False
 
-    # clk.tick(60)
-    pg.display.flip()
 trigger.send(trigger.TimeStamp.endProgram)
 
 TABLE.close()
