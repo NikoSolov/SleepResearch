@@ -1,6 +1,7 @@
 /dist
 /build
 /.idea
+/.vscode
 /venv
 config.json
 /src/result
