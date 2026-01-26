@@ -1,6 +1,6 @@
 import time
 from enum import Enum
-from os import mkdir, path, remove
+from os import makedirs, path, remove
 from random import choice as ch
 from random import uniform as rd
 
@@ -13,6 +13,7 @@ import config as cfg
 import lightSensor
 import alarm
 import trigger
+from excelTools import writeDataToPage
 
 # ====== Setting up Config =========
 cfg.loadConfig()
@@ -62,17 +63,12 @@ LOG_FREQ = config["Mouses"]["logger"]["freq"]
 trigger.update()
 # ------------------------------
 pg.init()
-if FULLSCREEN:
-    root = pg.display.set_mode(WIN_SIZE, pg.FULLSCREEN)
-else:
-    root = pg.display.set_mode(WIN_SIZE)
+root = pg.display.set_mode(WIN_SIZE, flags = pg.FULLSCREEN if FULLSCREEN else pg.SHOWN)
 clk = pg.time.Clock()
 # -------- Setting Log Files -------------
 # <editor-fold desc="Creating Folders">
-if not (path.exists("result")):
-    mkdir("result")
 if not (path.exists(f"result/{DIR_NAME}")):
-    mkdir(f"result/{DIR_NAME}")
+    makedirs(f"result/{DIR_NAME}")
 # </editor-fold>
 
 ImageArchive = zipfile.ZipFile(f"result/{DIR_NAME}/log_img.zip", "w")
@@ -82,20 +78,22 @@ ImageArchive = zipfile.ZipFile(f"result/{DIR_NAME}/log_img.zip", "w")
 TABLE = xlsxwriter.Workbook(f"result/{DIR_NAME}/{DIR_NAME}.xlsx")
 # ---- Fill Up Defaults ----------------------
 MainLog = TABLE.add_worksheet("MainLog")
-MainLog.write("A1", "Arrived")
-MainLog.write("B1", "Missed")
-MainLog.write("C1", "Skipped")
-MainLog.merge_range("D1:E1", "Screen Resolution")
-MainLog.write("D2", f"{WIN_SIZE[0]}")
-MainLog.write("E2", f"{WIN_SIZE[1]}")
-MainLog.merge_range("A3:A4", "Round #")
-MainLog.merge_range("B3:B4", "Result")
-MainLog.merge_range("C3:C4", "Notches")
-MainLog.merge_range("D3:D4", "Reaction Time")
-MainLog.merge_range("E3:F3", "Last coord")
-MainLog.write("E4", "x")
-MainLog.write("F4", "y")
 
+writeDataToPage(MainLog, {
+    "A1": "Arrived",
+    "B1": "Missed",
+    "C1": "Skipped",
+    "D1:E1": "Screen Resolution",
+    "D2": f"{WIN_SIZE[0]}",
+    "E2": f"{WIN_SIZE[1]}",
+    "A3:A4": "Round #",
+    "B3:B4": "Result",
+    "C3:C4": "Notches",
+    "D3:D4": "Reaction Time",
+    "E3:F3": "Last coord",
+    "E4": "x",
+    "F4": "y"
+})
 
 # </editor-fold>
 
@@ -186,15 +184,19 @@ class Ball:
 
     @staticmethod
     def func(t: float):
-        return (Ball.P0 * (1 - t) ** 2
-                + 2 * Ball.P1 * (1 - t) * t
-                + Ball.P2 * t ** 2)
+        return (
+            Ball.P0 * (1 - t) * (1 - t)
+          + Ball.P1 * 2 * (1 - t) * t
+          + Ball.P2 * t * t
+        )
 
     @staticmethod
     def funcDer(t: float):
-        return (-2 * Ball.P0 * (1 - t)
-                + 2 * Ball.P1 * (1 - 2 * t)
-                + 2 * Ball.P2 * t)
+        return (
+          - Ball.P0 * 2 * (1 - t)
+          + Ball.P1 * 2 * (1 - 2 * t)
+          + Ball.P2 * 2 * t
+        )
 
     @staticmethod
     def getPartial():
@@ -246,18 +248,42 @@ status = Event.siren
 imageLogger = None
 mainStats = {
     "arrived": 0,
-    "missed": 0,
-    "skip": 0,
+    "missed":  0,
+    "skip":    0,
 }
 roundStats = {
-    "notches": 0,
-    "answer": "Skip",
+    "notches":      0,
+    "answer":       "Skip",
     "reactionTime": 0,
-    "ableToMove": False
+    "ableToMove":   False
 }
 # </editor-fold>
 # ================================
 roundTimer = 0
+
+def drawGraphics(root, status):
+    # -------- color background ----------
+    root.fill(pg.Color(C_BG))
+    # -------- draw a hole ----------
+    pg.draw.circle(root,
+                   pg.Color(C_HOLE),
+                   (WIN_SIZE[0] - RADIUS, RADIUS),
+                   RADIUS
+                   )
+    # -------- draw light square ----------
+    lightSensor.draw(root)
+
+    match status:
+        case Event.siren:
+            root.fill((0, 0, 0))
+        case Event.answer:
+            # ------- draw a mouse ---------
+            pg.draw.circle(root, pg.Color(C_MOUSE), Ball.getPos(), RADIUS)
+
+    pg.display.flip()
+    clk.tick(60)
+
+
 
 while run:
     for event in pg.event.get():
@@ -267,13 +293,13 @@ while run:
             run = False
         # -------- Manual TimeStamp ---------
         if event.type == pg.KEYDOWN and event.key == pg.K_SPACE:
-            trigger.send(9)
+            trigger.send(trigger.TimeStamp.manualStamp)
         # -------- Mouse process ------------
         if event.type == pg.MOUSEWHEEL and status == Event.answer:
             if roundStats["ableToMove"] and roundStats[
                 "reactionTime"] == 0:
                 roundStats["reactionTime"] = time.time() - roundTimer
-                trigger.send(6)
+                trigger.send(trigger.TimeStamp.userInput)
             # wait until mouse passes WaitZone
             if np.linalg.norm(
                     Ball.getPos() - np.array(
@@ -303,22 +329,13 @@ while run:
         # ------- quit program -------
         continue
 
-    # -------- color background ----------
-    root.fill(pg.Color(C_BG))
-    # -------- draw a hole ----------
-    pg.draw.circle(root,
-                   pg.Color(C_HOLE),
-                   (WIN_SIZE[0] - RADIUS, RADIUS),
-                   RADIUS
-                   )
-    # -------- draw light square ----------
-    lightSensor.draw(root)
+    drawGraphics(root, status)
 
     # ---------- Siren Plays ----------------
     if status == Event.siren:
         # ------ playSiren ------------------
         alarm.play()
-        root.fill((0, 0, 0))
+        # root.fill((0, 0, 0))
         if alarm.isDone():
             setTime = time.time()
             status = Event.init
@@ -330,18 +347,20 @@ while run:
         TRAJECTORY_LOG = TABLE.add_worksheet(
             f"Trajectories_{roundCounter}")
         # ------- Default Headers-------------
-        TRAJECTORY_LOG.merge_range("A1:C1", "Trajectory")
-        TRAJECTORY_LOG.write("B2", "Generated")
-        TRAJECTORY_LOG.write("C2", "Subject")
-        TRAJECTORY_LOG.write("A3", "x")
-        TRAJECTORY_LOG.write("C3", "y")
-        TRAJECTORY_LOG.write("B3", "y")
-        TRAJECTORY_LOG.merge_range("F1:G1", "Screen Resolution")
-        TRAJECTORY_LOG.write("E1", "Frequency")
+        writeDataToPage(TRAJECTORY_LOG, {
+            "A1:C1": "Trajectory",
+            "B2": "Generated",
+            "C2": "Subject",
+            "A3": "x",
+            "C3": "y",
+            "B3": "y",
+            "F1:G1": "Screen Resolution",
+            "E1": "Frequency",
         # --------- Fill with vars --------------
-        TRAJECTORY_LOG.write("E2", f"{LOG_FREQ}")
-        TRAJECTORY_LOG.write("F2", f"{WIN_SIZE[0]}")
-        TRAJECTORY_LOG.write("G2", f"{WIN_SIZE[1]}")
+            "E2": f"{LOG_FREQ}",
+            "F2": f"{WIN_SIZE[0]}",
+            "G2": f"{WIN_SIZE[1]}"
+        })
         # ==========================================
         # </editor-fold>
 
@@ -364,23 +383,21 @@ while run:
         roundTimer = time.time()
         loggerTime = roundTimer
         # ------ Timestamp ------
-        trigger.send(2)
+        trigger.send(trigger.TimeStamp.startMouse)
         # trigger.send(roundCounter)
         # </editor-fold>
 
     if status == Event.answer:
-        # ------- draw a mouse ---------
-        pg.draw.circle(root, pg.Color(C_MOUSE), Ball.getPos(), RADIUS)
         # ------- make a step ---------
         Ball.step()
         # ------- log positions ---------
         if (time.time() - loggerTime) > LOG_FREQ:
-            TRAJECTORY_LOG.write(f"A{loggerStep + 4}",
-                                 int(Ball.getPos()[0]))
-            TRAJECTORY_LOG.write(f"B{loggerStep + 4}",
-                                 int(Ball.func(Ball.t)[1]))
-            TRAJECTORY_LOG.write(f"C{loggerStep + 4}",
-                                 int(Ball.getPos()[1]))
+            writeDataToPage(TRAJECTORY_LOG, {
+                f"A{loggerStep + 4}": int(Ball.getPos()[0]),
+                f"B{loggerStep + 4}": int(Ball.func(Ball.t)[1]),
+                f"C{loggerStep + 4}": int(Ball.getPos()[1])
+            })
+
             loggerStep += 1
             loggerTime = time.time()
 
@@ -395,38 +412,39 @@ while run:
                                zipfile.ZIP_DEFLATED)
             remove(f"result/{DIR_NAME}/{roundCounter}.svg")
             # -------------
-            if Ball.touchHole():
-                print("got it")
-                roundStats["answer"] = "Arrived"
-                mainStats["arrived"] += 1
-            elif roundStats["notches"] > 0:
-                roundStats["answer"] = "Missed"
-                mainStats["missed"] += 1
-            else:
-                roundStats["answer"] = "Skipped"
-                mainStats["skip"] += 1
+    
+            if Ball.touchHole(): print("got it")
+            roundStats["answer"] = (
+                "Arrived" if Ball.touchHole()          else 
+                "Missed"  if roundStats["notches"] > 0 else 
+                "Skipped"
+            )
+            mainStats[
+                "arrived" if Ball.touchHole()          else 
+                "missed"  if roundStats["notches"] > 0 else 
+                "skip"
+            ] += 1
 
             # ======== Fill Round Log =========
             print(roundStats)
-            MainLog.write(f"A{roundCounter + 4}", roundCounter)
-            MainLog.write(f"B{roundCounter + 4}", roundStats["answer"])
-            MainLog.write(f"C{roundCounter + 4}", roundStats["notches"])
-            MainLog.write(f"D{roundCounter + 4}",
-                          roundStats["reactionTime"])
-            MainLog.write(f"E{roundCounter + 4}", Ball.getPos()[0])
-            MainLog.write(f"F{roundCounter + 4}", Ball.getPos()[1])
-
+            writeDataToPage(MainLog, {
+                f"A{roundCounter + 4}": roundCounter,
+                f"B{roundCounter + 4}": roundStats["answer"],
+                f"C{roundCounter + 4}": roundStats["notches"],
+                f"D{roundCounter + 4}": roundStats["reactionTime"],
+                f"E{roundCounter + 4}": Ball.getPos()[0],
+                f"F{roundCounter + 4}": Ball.getPos()[1]
+            })
             if roundCounter >= ROUND:
                 run = False
 
-    pg.display.flip()
-    clk.tick(60)
 
 # ------- Filling the Main Log --------------
-trigger.send(8)
+trigger.send(trigger.TimeStamp.endProgram)
 trigger.close()
-MainLog.write("A2", f'{mainStats["arrived"]}')
-MainLog.write("B2", f'{mainStats["missed"]}')
-MainLog.write("C2", f'{mainStats["skip"]}')
-
+writeDataToPage(MainLog, {
+    "A2": f'{mainStats["arrived"]}',
+    "B2": f'{mainStats["missed"]}',
+    "C2": f'{mainStats["skip"]}'
+})
 TABLE.close()

@@ -1,10 +1,12 @@
 import time
-from enum import Enum
+from enum import Enum, auto
 import pygame as pg
 import config as cfg
 import alarm
 import trigger
 import lightSensor
+import numpy as np
+
 # ======== Load Configs ====================
 cfg.loadConfig()
 config = cfg.getConfig()
@@ -12,7 +14,7 @@ config = cfg.getConfig()
 # <editor-fold desc="General">
 WINDOW_CONFIG = config["general"]["window"]
 WIN_FS = WINDOW_CONFIG["fullScreen"]
-WIN_SIZE = (WINDOW_CONFIG["width"], WINDOW_CONFIG["height"])
+WIN_SIZE = np.array([WINDOW_CONFIG["width"], WINDOW_CONFIG["height"]])
 TIMESTAMPS_CONFIG = config["general"]["timeStamps"]
 # </editor-fold>
 # ------------------------------
@@ -38,17 +40,35 @@ PLUS_TIME = DELAYS["plus"]
 trigger.update()
 # -------------------
 pg.init()
-if WIN_FS:
-    root = pg.display.set_mode(WIN_SIZE, pg.FULLSCREEN)
-else:
-    root = pg.display.set_mode(WIN_SIZE)
+root = pg.display.set_mode(WIN_SIZE, flags = pg.FULLSCREEN if WIN_FS else pg.SHOWN)
 clk = pg.time.Clock()
 
+def drawGraphics(root, status):
+    root.fill(C_BG)
+    lightSensor.draw(root)
+    match status:
+        case Event.Siren:
+            root.fill((0, 0, 0))
+        case Event.Plus:
+            pg.draw.line(
+                root, C_PLUS,
+                WIN_SIZE // 2 + np.array([0, -1]) * PLUS_SIZE,
+                WIN_SIZE // 2 + np.array([0, 1]) * PLUS_SIZE,
+                PLUS_WIDTH
+            )
+            pg.draw.line(
+                root, C_PLUS,
+                WIN_SIZE // 2 + np.array([-1, 0]) * PLUS_SIZE,
+                WIN_SIZE // 2 + np.array([1, 0]) * PLUS_SIZE,
+                PLUS_WIDTH
+            )
+    clk.tick(60)
+    pg.display.flip()
 
 # --------- Vars ----------
 class Event(Enum):
-    Siren = 0
-    Plus = 1
+    Siren = auto()
+    Plus = auto()
 
 
 status = Event.Siren
@@ -61,38 +81,26 @@ while run:
                 event.type == pg.KEYDOWN and event.key == pg.K_ESCAPE):
             run = False
         if event.type == pg.MOUSEBUTTONDOWN:
-            trigger.send(6)
+            trigger.send(trigger.TimeStamp.userInput)
         if event.type == pg.KEYDOWN and event.key == pg.K_SPACE:
-            trigger.send(9)
+            trigger.send(trigger.TimeStamp.manualStamp)
 
-    root.fill(C_BG)
-    lightSensor.draw(root)
+    drawGraphics(root, status)
+
     # ---------- Siren Plays ----------------
     if status == Event.Siren:
         # ------ playSiren ------------------
         alarm.play()
-        root.fill((0, 0, 0))
         if alarm.isDone():
             setTime = time.time()
             status = Event.Plus
-            trigger.send(7)
+            trigger.send(trigger.TimeStamp.startControl)
             lightSensor.pulse()
 
     if status == Event.Plus:
-        pg.draw.line(root, C_PLUS,
-                     (WIN_SIZE[0] // 2, WIN_SIZE[1] // 2 - PLUS_SIZE),
-                     (WIN_SIZE[0] // 2, WIN_SIZE[1] // 2 + PLUS_SIZE),
-                     PLUS_WIDTH)
-        pg.draw.line(root, C_PLUS,
-                     (WIN_SIZE[0] // 2 - PLUS_SIZE, WIN_SIZE[1] // 2),
-                     (WIN_SIZE[0] // 2 + PLUS_SIZE, WIN_SIZE[1] // 2),
-                     PLUS_WIDTH)
-        # print(time.time() - setTime)
         if time.time() - setTime > PLUS_TIME:
             run = False
 
-    clk.tick(60)
-    pg.display.flip()
 
-trigger.send(8)
+trigger.send(trigger.TimeStamp.endProgram)
 trigger.close()
