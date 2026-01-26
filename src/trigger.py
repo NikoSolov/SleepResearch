@@ -1,7 +1,6 @@
 import time
 import serial.tools.list_ports
 import config as cfg
-from enum import Enum
 
 cfg.loadConfig()
 config = cfg.getConfig()
