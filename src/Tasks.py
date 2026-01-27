@@ -66,7 +66,6 @@ file = open(FILEPATH, 'r') if FILEPATH != "None" else None
 # </editor-fold>
 # </editor-fold>
 # =========================================
-trigger.update()
 
 pg.font.init()
 equationFont = pg.font.SysFont(FONT, SIZES['font'])
@@ -95,6 +94,9 @@ writeDataToPage(MainLog, {
     "E4": "Вывод",
     "F4": "Время реакции"
 })
+
+TriggerLog = TABLE.add_worksheet("TimeStamps")
+trigger.update(TriggerLog)
 
 # </editor-fold>
 # ============== Vars ========================

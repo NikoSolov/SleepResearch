@@ -59,7 +59,6 @@ DIR_NAME = f'{SUBJECT_NAME}{SUBJECT_code}_{time.strftime("%d.%m.%y")}_PVT_{time.
 # </editor-fold>
 # </editor-fold>
 # ======== Initialization ====================
-trigger.update()
 # -------------------
 pg.init()
 root = pg.display.set_mode(WIN_SIZE, flags = pg.FULLSCREEN if WIN_FS else pg.SHOWN)
@@ -83,6 +82,8 @@ writeDataToPage(MainLog, {
     "E2":    "at MSI?",
 })
 
+TriggerLog = TABLE.add_worksheet("TimeStamps")
+trigger.update(TriggerLog)
 
 # </editor-fold>
 # --------- Vars ----------

@@ -60,7 +60,6 @@ LOG_FREQ = config["Mouses"]["logger"]["freq"]
 # </editor-fold>
 # </editor-fold>
 # ====== Initialization ==================
-trigger.update()
 # ------------------------------
 pg.init()
 root = pg.display.set_mode(WIN_SIZE, flags = pg.FULLSCREEN if FULLSCREEN else pg.SHOWN)
@@ -94,6 +93,9 @@ writeDataToPage(MainLog, {
     "E4": "x",
     "F4": "y"
 })
+
+TriggerLog = TABLE.add_worksheet("TimeStamps")
+trigger.update(TriggerLog)
 
 # </editor-fold>
 

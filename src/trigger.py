@@ -1,6 +1,7 @@
 import time
 import serial.tools.list_ports
 import config as cfg
+from excelTools import writeDataToPage
 
 cfg.loadConfig()
 config = cfg.getConfig()
@@ -10,6 +11,8 @@ portName = ""
 ports = serial.tools.list_ports.comports()
 timeCode = None
 TRIGGER_ENABLE = config["general"]["timeStamps"]["trigger"]
+logTable = None
+loggerCount = 0
 
 class TimeStamp:
     alarm = 1
@@ -23,18 +26,32 @@ class TimeStamp:
     manualStamp = 9
 
 def send(number: int):
-    global portWork, TRIGGER_ENABLE
+    global portWork, TRIGGER_ENABLE, loggerCount, logTable
     if TRIGGER_ENABLE and portWork:
         timeCode.write(bytearray([number]))
         print(f"Send {number} as {bytearray([number])}")
+    if logTable is not None:
+        writeDataToPage(logTable, {
+            f"A{loggerCount + 2}": time.strftime('%H:%M:%S'),
+            f"B{loggerCount + 2}": number
+        })
+        loggerCount += 1
+
 
 def close():
     if portWork:
         timeCode.close()
         print("COM-Port closed")
 
-def update():
-    global timeCode, portName, portWork
+def update(Table = None):
+    global timeCode, portName, portWork, logTable, loggerCount
+    logTable = Table
+    loggerCount = 0
+    if logTable is not None:
+        writeDataToPage(logTable, {
+            "A1": "Time",
+            "B1": "Stamp"
+        })
     for port, desc, hwid in sorted(ports):
         print(port, desc)
         if "USB-SERIAL CH340" in desc:
