@@ -1,23 +1,21 @@
-import os
 import time
 from enum import Enum, auto
 from random import uniform as rd
 
 import pygame as pg
-import xlsxwriter
 import numpy as np
 
 import config as cfg
 import lightSensor
 import alarm
 import trigger
-from excelTools import writeDataToPage
+from excelTools import ExcelTable
+from timer import Timer
 
 # ======== Load Configs ====================
 cfg.loadConfig()
 config = cfg.getConfig()
-# <editor-fold desc="CONFIG">
-# <editor-fold desc="General">
+# ------------------------------
 WINDOW_CONFIG = config["general"]["window"]
 print(WINDOW_CONFIG)
 WIN_FS = WINDOW_CONFIG["fullScreen"]
@@ -26,55 +24,36 @@ TIMESTAMPS_CONFIG = config["general"]["timeStamps"]
 ROUND = config["general"]["experiment"]["round"]
 SUBJECT_NAME = config["general"]["experiment"]["name"]
 SUBJECT_code = config["general"]["experiment"]["code"]
-# </editor-fold>
 # ------------------------------
-# <editor-fold desc="Colors">
 COLORS = config["PVT"]["graphics"]["color"]
 C_PLUS = pg.Color(COLORS["plus"])
 C_BG = pg.Color(COLORS["bg"])
 C_CIRCLE = pg.Color(COLORS["circle"])
-# </editor-fold>
 # ------------------------------
-# <editor-fold desc="Sizes">
 SIZES = config["PVT"]["graphics"]["size"]
 PLUS_SIZE = SIZES["plus"]["radius"]
 PLUS_WIDTH = SIZES["plus"]["width"]
 RADIUS = SIZES["circleRadius"]
-# </editor-fold>
 # ------------------------------
-# <editor-fold desc="Durations">
 DELAYS = config["PVT"]["delay"]
 MSI_TIME = DELAYS["msi"]
 PLUS_TIME = DELAYS["plus"]
 ANSWER_TIME = DELAYS["answer"]
-
-
-def emptyTime(): return rd(DELAYS["emptyMin"], DELAYS["emptyMax"])
-
-
-# </editor-fold>
+emptyTime = lambda: rd(DELAYS["emptyMin"], DELAYS["emptyMax"])
 # ------------------------------
-# <editor-fold desc="Logger">
 DIR_NAME = f'{SUBJECT_NAME}{SUBJECT_code}_{time.strftime("%d.%m.%y")}_PVT_{time.strftime("%H.%M.%S")}'
-# </editor-fold>
-# </editor-fold>
 # ======== Initialization ====================
-trigger.update()
 # -------------------
 pg.init()
 root = pg.display.set_mode(WIN_SIZE, flags = pg.FULLSCREEN if WIN_FS else pg.SHOWN)
 clk = pg.time.Clock()
 
 # --------- Setting up SpreadSheet -------
-# <editor-fold desc="Creating Folder">
-if not (os.path.exists("result")):
-    os.mkdir("result")
-# </editor-fold>
+PVTTable = ExcelTable("result", f"{DIR_NAME}.xlsx")
+PVTTable.createPage("MainLog")
+PVTTable.createPage("TimeStamps")
 
-# <editor-fold desc="CREATE TABLE">
-TABLE = xlsxwriter.Workbook(f"result/{DIR_NAME}.xlsx")
-MainLog = TABLE.add_worksheet("MainLog")
-writeDataToPage(MainLog, {
+PVTTable.writeDataToPage("MainLog", {
     "A1:A2": "Round",
     "B1:E1": "First Reaction",
     "B2":    "EmptyTime",
@@ -83,8 +62,8 @@ writeDataToPage(MainLog, {
     "E2":    "at MSI?",
 })
 
+trigger.update(PVTTable, "TimeStamps")
 
-# </editor-fold>
 # --------- Vars ----------
 class Event(Enum):
     Siren = auto()
@@ -93,7 +72,6 @@ class Event(Enum):
     Circle = auto()
     MSI = auto()
 
-# <editor-fold desc="Creating Classes and Variables">
 run = True
 status = Event.Siren
 currentEmptyTime = emptyTime()
@@ -104,9 +82,6 @@ reactions = {
     "MSI": False
 }
 # --------------
-setTime = time.time()
-
-# </editor-fold>
 
 def drawGraphics(root, status):
     root.fill(C_BG)
@@ -134,6 +109,7 @@ def drawGraphics(root, status):
     clk.tick(60)
     pg.display.flip()
 
+stageTimer = Timer()
 
 while run:
     for event in pg.event.get():
@@ -145,16 +121,22 @@ while run:
         if event.type == pg.MOUSEBUTTONDOWN:
             print("Clicked")
             trigger.send(trigger.TimeStamp.userInput)
-            if ((status == Event.Plus or status == Event.Empty)
-                    and reactions["wrongAnswer"] is None):
-                reactions["wrongAnswer"] = time.time() - setTime
-                setTime = time.time()
+            if (
+                (status == Event.Plus or status == Event.Empty)
+                    and reactions["wrongAnswer"] is None
+            ):
+                reactions["wrongAnswer"] = stageTimer.getDelta()
+                stageTimer.setTimer()
                 status = Event.MSI
 
-            elif ((status == Event.Circle or status == Event.MSI)
-                  and reactions["rightAnswer"] is None):
-                reactions["rightAnswer"] = time.time() - setTime
-                setTime = time.time()
+            elif (
+                (status == Event.Circle or status == Event.MSI)
+                  and reactions["rightAnswer"] is None
+            ):
+
+                reactions["rightAnswer"] = stageTimer.getDelta()
+                stageTimer.setTimer()
+
                 if status == Event.MSI:
                     reactions["MSI"] = True
                     reactions["rightAnswer"] += ANSWER_TIME
@@ -163,61 +145,59 @@ while run:
 
     drawGraphics(root, status)
     # ---------- Siren Plays ----------------
-    if status == Event.Siren:
-        # ------ playSiren ------------------
-        alarm.play()
-        if alarm.isDone():
-            setTime = time.time()
-            status = Event.Plus
-            trigger.send(trigger.TimeStamp.startPVT)
-            lightSensor.pulse()
+    match status:
+        case Event.Siren:
+          # ------ playSiren ------------------
+          alarm.play()
+          if alarm.isDone():
+              stageTimer.setTimer()
+              status = Event.Plus
+              trigger.send(trigger.TimeStamp.startPVT)
+              lightSensor.pulse()
 
-    if status == Event.Plus:
-
-        # print("plus")
-        writeDataToPage(MainLog, {
-            f"A{3 + roundCounter}": f"{roundCounter + 1}",
-            f"B{3 + roundCounter}": f"{currentEmptyTime}"
-        })
-        # print(time.time() - setTime)
-        if time.time() - setTime > PLUS_TIME:
-            status = Event.Empty
-            currentEmptyTime = emptyTime()
-    if status == Event.Empty:
-        # print(currentEmptyTime)
-        if time.time() - setTime > currentEmptyTime:
-            setTime = time.time()
-            status = Event.Circle
-            trigger.send(trigger.TimeStamp.circleAppear)
-            # trigger.send(roundCounter + 1)
-    if status == Event.Circle:
-        if time.time() - setTime > ANSWER_TIME:
-            setTime = time.time()
-            status = Event.MSI
-    if status == Event.MSI:
-        if time.time() - setTime > MSI_TIME:
-            # --------------- Fill SpreadSheet ------------
-            writeDataToPage(MainLog, {
-                f'C{3 + roundCounter}': f'{reactions["wrongAnswer"]}',
-                f'D{3 + roundCounter}': f'{reactions["rightAnswer"]}',
-                f'E{3 + roundCounter}': f'{reactions["MSI"]}'
+        case Event.Plus:
+            PVTTable.writeDataToPage("MainLog", {
+                f"A{3 + roundCounter}": f"{roundCounter + 1}",
+                f"B{3 + roundCounter}": f"{currentEmptyTime}"
             })
+            if stageTimer.wait(PLUS_TIME):
+                currentEmptyTime = emptyTime()
+                status = Event.Empty
 
-            setTime = time.time()
-            status = Event.Plus
-            reactions = {
-                "wrongAnswer": None,
-                "rightAnswer": None,
-                "MSI": False
-            }
-            roundCounter += 1
-            trigger.send(trigger.TimeStamp.startPVT)
-            lightSensor.pulse()
+        case Event.Empty:
+            if stageTimer.wait(currentEmptyTime):
+                stageTimer.setTimer()
+                status = Event.Circle
+                trigger.send(trigger.TimeStamp.circleAppear)
+
+        case Event.Circle:
+            if stageTimer.wait(ANSWER_TIME):
+                stageTimer.setTimer()
+                status = Event.MSI
+
+        case Event.MSI:
+            if stageTimer.wait(MSI_TIME):
+                stageTimer.setTimer()
+                # --------------- Fill SpreadSheet ------------
+                PVTTable.writeDataToPage("MainLog", {
+                    f'C{3 + roundCounter}': f'{reactions["wrongAnswer"]}',
+                    f'D{3 + roundCounter}': f'{reactions["rightAnswer"]}',
+                    f'E{3 + roundCounter}': f'{reactions["MSI"]}'
+                })
+                status = Event.Plus
+                reactions = {
+                    "wrongAnswer": None,
+                    "rightAnswer": None,
+                    "MSI": False
+                }
+                roundCounter += 1
+                trigger.send(trigger.TimeStamp.startPVT)
+                lightSensor.pulse()
 
     if roundCounter >= ROUND:
         run = False
 
 trigger.send(trigger.TimeStamp.endProgram)
 
-TABLE.close()
+PVTTable.close()
 trigger.close()

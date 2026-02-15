@@ -159,9 +159,10 @@ programList = ["Mouses", "Tasks", "PVT", "Control"]
 def changeColor(colorConfig, button):
     print(colorConfig)
     colors = askcolor(title="ColorsChooserPicker")
-    print(colors[1])
-    button.config(bg=colors[1])
-    colorConfig.set(colors[1])
+    print(colors)
+    if colors[1] is not None:
+      button.config(bg=colors[1])
+      colorConfig.set(colors[1])
 def changeFont(button):
     font = askfont(text="12+53=65",
                    family=valueFrames["Equation"]["graphics"]["font"].get(),
