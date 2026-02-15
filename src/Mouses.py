@@ -14,65 +14,51 @@ import lightSensor
 import alarm
 import trigger
 from excelTools import writeDataToPage
+from timer import Timer
 
 # ====== Setting up Config =========
 cfg.loadConfig()
 config = cfg.getConfig()
-# <editor-fold desc="CONFIG">
 # ========= CONFIG ==========
-# <editor-fold desc="General">
 WIN_SIZE = np.array([config["general"]["window"]["width"],
                      config["general"]["window"]["height"]])
 FULLSCREEN = config["general"]["window"]["fullScreen"]
 ROUND = config["general"]["experiment"]["round"]
 SUBJECT_NAME = config["general"]["experiment"]["name"]
 SUBJECT_code = config["general"]["experiment"]["code"]
-# </editor-fold>
 # ---------------------------
-# <editor-fold desc="Sizes">
 SIZES = config["Mouses"]["graphics"]["sizes"]
 RADIUS = SIZES["radius"]
 WAIT_ZONE = SIZES["waitZone"]
 DISTANCE_MULTIPLIER = SIZES["distMul"]
 STEP = SIZES["speed"]
 MAX_DISPERSION = SIZES["maxDispersion"]
-# </editor-fold>
 # ---------------------------
-# <editor-fold desc="Colors">
 COLORS = config["Mouses"]["graphics"]["colors"]
 C_BG = COLORS["bg"]
 C_GTRAIL = COLORS["gtrail"]
 C_STRAIL = COLORS["strail"]
 C_MOUSE = COLORS["mouse"]
 C_HOLE = COLORS["hole"]
-# </editor-fold>
 # ---------------------------
-# <editor-fold desc="Control">
 CONTROL = config["Mouses"]["control"]
 SENSITIVITY = CONTROL["sensitivity"]
 INVERSE = -1 if CONTROL["inverse"] else 1
-# </editor-fold>
 # ---------------------------
-# <editor-fold desc="Logger">
 DIR_NAME = (f'{SUBJECT_NAME}{SUBJECT_code}_{time.strftime("%d.%m.%y")}'
             f'_Mouses_{time.strftime("%H.%M.%S")}')
 LOG_FREQ = config["Mouses"]["logger"]["freq"]
-# </editor-fold>
-# </editor-fold>
 # ====== Initialization ==================
 # ------------------------------
 pg.init()
 root = pg.display.set_mode(WIN_SIZE, flags = pg.FULLSCREEN if FULLSCREEN else pg.SHOWN)
 clk = pg.time.Clock()
 # -------- Setting Log Files -------------
-# <editor-fold desc="Creating Folders">
 if not (path.exists(f"result/{DIR_NAME}")):
     makedirs(f"result/{DIR_NAME}")
-# </editor-fold>
 
 ImageArchive = zipfile.ZipFile(f"result/{DIR_NAME}/log_img.zip", "w")
 
-# <editor-fold desc="Creating TABLE">
 # --- Setup Excel SpreadSheet -------------
 TABLE = xlsxwriter.Workbook(f"result/{DIR_NAME}/{DIR_NAME}.xlsx")
 # ---- Fill Up Defaults ----------------------
@@ -97,10 +83,7 @@ writeDataToPage(MainLog, {
 TriggerLog = TABLE.add_worksheet("TimeStamps")
 trigger.update(TriggerLog)
 
-# </editor-fold>
-
 # --------- Vars --------------
-# <editor-fold desc="Creating Classes and Variables">
 def imageSample(subjectPath): return f"""
 <svg
    style="background:{C_BG}"
@@ -244,7 +227,8 @@ run = True
 
 roundCounter = 0
 loggerStep = 0
-loggerTime = time.time()
+loggerTimer = Timer()
+roundTimer = Timer()
 pathString = ""
 status = Event.siren
 imageLogger = None
@@ -259,9 +243,6 @@ roundStats = {
     "reactionTime": 0,
     "ableToMove":   False
 }
-# </editor-fold>
-# ================================
-roundTimer = 0
 
 def drawGraphics(root, status):
     # -------- color background ----------
@@ -286,7 +267,6 @@ def drawGraphics(root, status):
     clk.tick(60)
 
 
-
 while run:
     for event in pg.event.get():
         # -------- Hard Quitting ------------
@@ -300,7 +280,7 @@ while run:
         if event.type == pg.MOUSEWHEEL and status == Event.answer:
             if roundStats["ableToMove"] and roundStats[
                 "reactionTime"] == 0:
-                roundStats["reactionTime"] = time.time() - roundTimer
+                roundStats["reactionTime"] = roundTimer.getDelta()
                 trigger.send(trigger.TimeStamp.userInput)
             # wait until mouse passes WaitZone
             if np.linalg.norm(
@@ -334,112 +314,103 @@ while run:
     drawGraphics(root, status)
 
     # ---------- Siren Plays ----------------
-    if status == Event.siren:
-        # ------ playSiren ------------------
-        alarm.play()
-        # root.fill((0, 0, 0))
-        if alarm.isDone():
-            setTime = time.time()
-            status = Event.init
+    match status:
+      case Event.siren:
+          # ------ playSiren ------------------
+          alarm.play()
+          if alarm.isDone():
+              status = Event.init
+      case Event.init:
+          lightSensor.pulse()
+          roundCounter += 1
+          TRAJECTORY_LOG = TABLE.add_worksheet(
+              f"Trajectories_{roundCounter}")
+          # ------- Default Headers-------------
+          writeDataToPage(TRAJECTORY_LOG, {
+              "A1:C1": "Trajectory",
+              "B2": "Generated",
+              "C2": "Subject",
+              "A3": "x",
+              "C3": "y",
+              "B3": "y",
+              "F1:G1": "Screen Resolution",
+              "E1": "Frequency",
+          # --------- Fill with vars --------------
+              "E2": f"{LOG_FREQ}",
+              "F2": f"{WIN_SIZE[0]}",
+              "G2": f"{WIN_SIZE[1]}"
+          })
+          # ==========================================
+          # -------- Answer --------
+          status = Event.answer
+          roundStats = {
+              "notches": 0,
+              "answer": "Skip",
+              "reactionTime": 0,
+              "ableToMove": False
+          }
+          Ball.init(STEP)
+          # -------- Logger --------
+          loggerStep = 0
+          # -------- Image ---------
+          imageLogger = open(f"result/{DIR_NAME}/{roundCounter}.svg", "w")
+          pathString = ""
+          # -------- Timers --------
+          roundTimer.setTimer()
+          loggerTimer.setTimer(roundTimer.getTimer())
+          # ------ Timestamp ------
+          trigger.send(trigger.TimeStamp.startMouse)
+  
+      case Event.answer:
+          # ------- make a step ---------
+          Ball.step()
+          # ------- log positions ---------
+          if loggerTimer.wait(LOG_FREQ):
+              writeDataToPage(TRAJECTORY_LOG, {
+                  f"A{loggerStep + 4}": int(Ball.getPos()[0]),
+                  f"B{loggerStep + 4}": int(Ball.func(Ball.t)[1]),
+                  f"C{loggerStep + 4}": int(Ball.getPos()[1])
+              })
 
-    if status == Event.init:
-        roundCounter += 1
-        lightSensor.pulse()
-        # <editor-fold desc="Create Trajectory Table">
-        TRAJECTORY_LOG = TABLE.add_worksheet(
-            f"Trajectories_{roundCounter}")
-        # ------- Default Headers-------------
-        writeDataToPage(TRAJECTORY_LOG, {
-            "A1:C1": "Trajectory",
-            "B2": "Generated",
-            "C2": "Subject",
-            "A3": "x",
-            "C3": "y",
-            "B3": "y",
-            "F1:G1": "Screen Resolution",
-            "E1": "Frequency",
-        # --------- Fill with vars --------------
-            "E2": f"{LOG_FREQ}",
-            "F2": f"{WIN_SIZE[0]}",
-            "G2": f"{WIN_SIZE[1]}"
-        })
-        # ==========================================
-        # </editor-fold>
+              loggerStep += 1
+              loggerTimer.setTimer()
 
-        # <editor-fold desc="Setting up">
-        # -------- Answer --------
-        status = Event.answer
-        roundStats = {
-            "notches": 0,
-            "answer": "Skip",
-            "reactionTime": 0,
-            "ableToMove": False
-        }
-        Ball.init(STEP)
-        # -------- Logger --------
-        loggerStep = 0
-        # -------- Image ---------
-        imageLogger = open(f"result/{DIR_NAME}/{roundCounter}.svg", "w")
-        pathString = ""
-        # -------- Timers --------
-        roundTimer = time.time()
-        loggerTime = roundTimer
-        # ------ Timestamp ------
-        trigger.send(trigger.TimeStamp.startMouse)
-        # trigger.send(roundCounter)
-        # </editor-fold>
+          if Ball.touchWall() or Ball.touchHole():
+              status = Event.init
+              # --------------- Write File And Close ----------
+              pathString += Ball.getPartial()
+              imageLogger.write(imageSample(pathString))
+              imageLogger.close()
+              ImageArchive.write(f"result/{DIR_NAME}/{roundCounter}.svg",
+                                f"log_img/{roundCounter}.svg",
+                                zipfile.ZIP_DEFLATED)
+              remove(f"result/{DIR_NAME}/{roundCounter}.svg")
+              # -------------
+      
+              if Ball.touchHole(): print("got it")
+              roundStats["answer"] = (
+                  "Arrived" if Ball.touchHole()          else 
+                  "Missed"  if roundStats["notches"] > 0 else 
+                  "Skipped"
+              )
+              mainStats[
+                  "arrived" if Ball.touchHole()          else 
+                  "missed"  if roundStats["notches"] > 0 else 
+                  "skip"
+              ] += 1
 
-    if status == Event.answer:
-        # ------- make a step ---------
-        Ball.step()
-        # ------- log positions ---------
-        if (time.time() - loggerTime) > LOG_FREQ:
-            writeDataToPage(TRAJECTORY_LOG, {
-                f"A{loggerStep + 4}": int(Ball.getPos()[0]),
-                f"B{loggerStep + 4}": int(Ball.func(Ball.t)[1]),
-                f"C{loggerStep + 4}": int(Ball.getPos()[1])
-            })
-
-            loggerStep += 1
-            loggerTime = time.time()
-
-        if Ball.touchWall() or Ball.touchHole():
-            status = Event.init
-            # --------------- Write File And Close ----------
-            pathString += Ball.getPartial()
-            imageLogger.write(imageSample(pathString))
-            imageLogger.close()
-            ImageArchive.write(f"result/{DIR_NAME}/{roundCounter}.svg",
-                               f"log_img/{roundCounter}.svg",
-                               zipfile.ZIP_DEFLATED)
-            remove(f"result/{DIR_NAME}/{roundCounter}.svg")
-            # -------------
-    
-            if Ball.touchHole(): print("got it")
-            roundStats["answer"] = (
-                "Arrived" if Ball.touchHole()          else 
-                "Missed"  if roundStats["notches"] > 0 else 
-                "Skipped"
-            )
-            mainStats[
-                "arrived" if Ball.touchHole()          else 
-                "missed"  if roundStats["notches"] > 0 else 
-                "skip"
-            ] += 1
-
-            # ======== Fill Round Log =========
-            print(roundStats)
-            writeDataToPage(MainLog, {
-                f"A{roundCounter + 4}": roundCounter,
-                f"B{roundCounter + 4}": roundStats["answer"],
-                f"C{roundCounter + 4}": roundStats["notches"],
-                f"D{roundCounter + 4}": roundStats["reactionTime"],
-                f"E{roundCounter + 4}": Ball.getPos()[0],
-                f"F{roundCounter + 4}": Ball.getPos()[1]
-            })
-            if roundCounter >= ROUND:
-                run = False
-
+              # ======== Fill Round Log =========
+              print(roundStats)
+              writeDataToPage(MainLog, {
+                  f"A{roundCounter + 4}": roundCounter,
+                  f"B{roundCounter + 4}": roundStats["answer"],
+                  f"C{roundCounter + 4}": roundStats["notches"],
+                  f"D{roundCounter + 4}": roundStats["reactionTime"],
+                  f"E{roundCounter + 4}": Ball.getPos()[0],
+                  f"F{roundCounter + 4}": Ball.getPos()[1]
+              })
+              if roundCounter >= ROUND:
+                  run = False
 
 # ------- Filling the Main Log --------------
 trigger.send(trigger.TimeStamp.endProgram)

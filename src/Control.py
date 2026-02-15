@@ -1,4 +1,3 @@
-import time
 from enum import Enum, auto
 import pygame as pg
 import config as cfg
@@ -6,36 +5,28 @@ import alarm
 import trigger
 import lightSensor
 import numpy as np
+from timer import Timer
 
 # ======== Load Configs ====================
 cfg.loadConfig()
 config = cfg.getConfig()
-# <editor-fold desc="CONFIG">
-# <editor-fold desc="General">
+# ------------------------------
 WINDOW_CONFIG = config["general"]["window"]
 WIN_FS = WINDOW_CONFIG["fullScreen"]
 WIN_SIZE = np.array([WINDOW_CONFIG["width"], WINDOW_CONFIG["height"]])
 TIMESTAMPS_CONFIG = config["general"]["timeStamps"]
-# </editor-fold>
 # ------------------------------
-# <editor-fold desc="Colors">
 COLORS = config["Control"]["graphics"]["color"]
 C_PLUS = pg.Color(COLORS["plus"])
 C_BG = pg.Color(COLORS["bg"])
-# </editor-fold>
 # ------------------------------
-# <editor-fold desc="Sizes">
 SIZES = config["Control"]["graphics"]["size"]
 PLUS_SIZE = SIZES["plus"]["radius"]
 PLUS_WIDTH = SIZES["plus"]["width"]
-# </editor-fold>
 # ------------------------------
-# <editor-fold desc="Durations">
 DELAYS = config["Control"]["delay"]
 PLUS_TIME = DELAYS["plus"]
-# </editor-fold>
 # ------------------------------
-# </editor-fold>
 # ======== Initialization ====================
 trigger.update()
 # -------------------
@@ -72,7 +63,7 @@ class Event(Enum):
 
 
 status = Event.Siren
-setTime = time.time()
+stageTimer = Timer()
 run = True
 
 while run:
@@ -88,19 +79,18 @@ while run:
     drawGraphics(root, status)
 
     # ---------- Siren Plays ----------------
-    if status == Event.Siren:
-        # ------ playSiren ------------------
-        alarm.play()
-        if alarm.isDone():
-            setTime = time.time()
-            status = Event.Plus
-            trigger.send(trigger.TimeStamp.startControl)
-            lightSensor.pulse()
-
-    if status == Event.Plus:
-        if time.time() - setTime > PLUS_TIME:
-            run = False
-
+    match status:
+        case Event.Siren:
+          # ------ playSiren ------------------
+          alarm.play()
+          if alarm.isDone():
+              stageTimer.setTimer()
+              status = Event.Plus
+              trigger.send(trigger.TimeStamp.startControl)
+              lightSensor.pulse()
+        case Event.Plus:
+            if stageTimer.wait(PLUS_TIME):
+                run = False
 
 trigger.send(trigger.TimeStamp.endProgram)
 trigger.close()

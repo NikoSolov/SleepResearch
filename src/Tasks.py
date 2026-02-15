@@ -12,59 +12,46 @@ import lightSensor
 import alarm
 import trigger
 from excelTools import writeDataToPage
+from timer import Timer
 
 # ============ GET ALL CONSTANTS =========
 cfg.loadConfig()
 config = cfg.getConfig()
-# <editor-fold desc="CONFIG">
-# <editor-fold desc="General">
+# ----------------------------
 WINDOW_CONFIG = config['general']['window']
 WIN_FS = WINDOW_CONFIG['fullScreen']
-# WIN_SIZE = (WINDOW_CONFIG['width'], WINDOW_CONFIG['height'])
 WIN_SIZE = np.array([WINDOW_CONFIG['width'], WINDOW_CONFIG['height']], np.int16)
-
+# ----------------------------
 ROUND = config['general']['experiment']['round']
 SUBJECT_NAME = config['general']['experiment']['name']
 SUBJECT_code = config['general']['experiment']['code']
-# </editor-fold>
 # ----------------------------
-# <editor-fold desc="Colors">
 COLORS = config['Equation']['graphics']['colors']
 C_BG = COLORS['bg']
 C_PLUS = COLORS['plus']
 C_RIGHT = COLORS['right']
 C_WRONG = COLORS['wrong']
 FONT = config['Equation']['graphics']['font']
-# </editor-fold>
 # ----------------------------
-# <editor-fold desc="Sizes">
 SIZES = config['Equation']['graphics']['sizes']
 S_PLUS_RADIUS = SIZES['plus']['radius']
 S_PLUS_WIDTH = SIZES['plus']['width']
 S_SQR_WIDTH = SIZES['squares']['width']
 S_SQR_LENGTH = SIZES['squares']['length']
-# </editor-fold>
 # ----------------------------
-# <editor-fold desc="Durations">
 DURATIONS = config['Equation']['duration']
 PLUS_TIME = DURATIONS['plus']
 ANSWER_TIME = DURATIONS['answer']
 FAST_ANSWER_TIME = DURATIONS['fastAnswer']
-# </editor-fold>
 # ----------------------------
-# <editor-fold desc="Control">
 CONTROL = config['Equation']['control']
 SENSE: float = CONTROL['sensitivity']
 print(SENSE)
 INV: int = -1 if CONTROL['inverse'] else 1
-# </editor-fold>
 # ----------------------------
-# <editor-fold desc="Other">
 DIR_NAME = f"{SUBJECT_NAME}{SUBJECT_code}_{time.strftime('%d.%m.%y')}_Tasks_{time.strftime('%H.%M.%S')}"
 FILEPATH = config['Equation']['file']['path']
 file = open(FILEPATH, 'r') if FILEPATH != "None" else None
-# </editor-fold>
-# </editor-fold>
 # =========================================
 
 pg.font.init()
@@ -74,7 +61,6 @@ root = pg.display.set_mode(WIN_SIZE, flags = pg.FULLSCREEN if WIN_FS else pg.SHO
 clk = pg.time.Clock()
 
 # ====================================================
-# <editor-fold desc="Create a Table">
 TABLE = xlsxwriter.Workbook(f"result/{DIR_NAME}.xlsx")
 MainLog = TABLE.add_worksheet("MainLog")
 writeDataToPage(MainLog, {
@@ -98,7 +84,6 @@ writeDataToPage(MainLog, {
 TriggerLog = TABLE.add_worksheet("TimeStamps")
 trigger.update(TriggerLog)
 
-# </editor-fold>
 # ============== Vars ========================
 
 rightLevel: float = 0
@@ -194,7 +179,8 @@ def drawGraphics(root, status, equationText, rightLevel, wrongLevel):
 
 status = Event.Siren
 run = True
-setTime = time.time()
+stageTimer = Timer()
+
 roundCounter = 1
 mainStats = {
     "Equation": {
@@ -234,18 +220,18 @@ while run:
         # ------ playSiren ------------------
         alarm.play()
         if alarm.isDone():
-            setTime = time.time()
+            stageTimer.setTimer()
             status = Event.Plus
-
             # -------- stopSiren ---------------
-            # siren.stop()
             lightSensor.pulse()
 
     # ---------- Plus ----------------
     if status == Event.Plus:
         # --------- lightSensorOn -----------------
-        if time.time() - setTime > DURATIONS['plus']:
-            setTime = time.time()
+        # if time.time() - setTime > DURATIONS['plus']:
+        #     setTime = time.time()
+        if stageTimer.wait(DURATIONS['plus']):
+            stageTimer.setTimer()
             status = Event.Answer
             trigger.send(trigger.TimeStamp.startTask)
             # ------------- generate equation --------------
@@ -283,7 +269,8 @@ while run:
     if status == Event.Answer:
         if rightLevel >= 1 or wrongLevel >= 1:
             if roundStats['ReactionTime'] == None:
-                roundStats['ReactionTime'] = time.time() - setTime
+                # roundStats['ReactionTime'] = time.time() - setTime
+                roundStats['ReactionTime'] = stageTimer.getDelta()
                 print('GOTEM')
                 trigger.send(trigger.TimeStamp.userInput)
 
@@ -315,7 +302,8 @@ while run:
             # print(next((key for key, value in confusionMatrix.items() if value)), mainStats['Answer'])
             status = Event.AnswerPlus
         # -----------------------------------------------------------
-        if time.time() - setTime > DURATIONS['answer']:  # wait for skip
+        # if time.time() - setTime > DURATIONS['answer']:  # wait for skip
+        if stageTimer.wait(DURATIONS['answer']):  # wait for skip
             mainStats['Answer']['Skip'] += 1
             status = Event.AnswerPlus
 
@@ -324,7 +312,8 @@ while run:
         rightLevel = 0
         wrongLevel = 0
 
-        if time.time() - setTime > DURATIONS['fastAnswer']:
+        # if time.time() - setTime > DURATIONS['fastAnswer']:
+        if stageTimer.wait(DURATIONS['fastAnswer']):
             # ---------- Fill SpreadSheet -----------------
             # ----------- MainStats --------------------
             writeDataToPage(MainLog, {
@@ -345,7 +334,8 @@ while run:
             })
 
             # ======== Change Event ==================
-            setTime = time.time()
+            # setTime = time.time()
+            stageTimer.setTimer()
             status = Event.Plus
             lightSensor.pulse()
             roundCounter += 1
