@@ -1,19 +1,18 @@
 import time
 from enum import Enum
-from os import makedirs, path, remove
+from os import remove
 from random import choice as ch
 from random import uniform as rd
 
 import numpy as np
 import pygame as pg
-import xlsxwriter
 import zipfile
 
 import config as cfg
 import lightSensor
 import alarm
 import trigger
-from excelTools import writeDataToPage
+from excelTools import ExcelTable
 from timer import Timer
 
 # ====== Setting up Config =========
@@ -54,17 +53,11 @@ pg.init()
 root = pg.display.set_mode(WIN_SIZE, flags = pg.FULLSCREEN if FULLSCREEN else pg.SHOWN)
 clk = pg.time.Clock()
 # -------- Setting Log Files -------------
-if not (path.exists(f"result/{DIR_NAME}")):
-    makedirs(f"result/{DIR_NAME}")
-
-ImageArchive = zipfile.ZipFile(f"result/{DIR_NAME}/log_img.zip", "w")
-
-# --- Setup Excel SpreadSheet -------------
-TABLE = xlsxwriter.Workbook(f"result/{DIR_NAME}/{DIR_NAME}.xlsx")
+MousesTable = ExcelTable(f"result/{DIR_NAME}", f"{DIR_NAME}.xlsx")
+MousesTable.createPage("MainLog")
+MousesTable.createPage("TimeStamps")
 # ---- Fill Up Defaults ----------------------
-MainLog = TABLE.add_worksheet("MainLog")
-
-writeDataToPage(MainLog, {
+MousesTable.writeDataToPage("MainLog", {
     "A1": "Arrived",
     "B1": "Missed",
     "C1": "Skipped",
@@ -80,8 +73,8 @@ writeDataToPage(MainLog, {
     "F4": "y"
 })
 
-TriggerLog = TABLE.add_worksheet("TimeStamps")
-trigger.update(TriggerLog)
+trigger.update(MousesTable, "TimeStamps")
+ImageArchive = zipfile.ZipFile(f"result/{DIR_NAME}/log_img.zip", "w")
 
 # --------- Vars --------------
 def imageSample(subjectPath): return f"""
@@ -301,7 +294,7 @@ while run:
     if not run:
         # ------- draw last position -------
         pathString += Ball.getPartial()
-        print(len(imageLogger))
+        # print(len(imageLogger))
         imageLogger.write(imageSample(pathString))
         imageLogger.close()
         ImageArchive.write(f"result/{DIR_NAME}/{roundCounter}.svg",
@@ -323,10 +316,10 @@ while run:
       case Event.init:
           lightSensor.pulse()
           roundCounter += 1
-          TRAJECTORY_LOG = TABLE.add_worksheet(
-              f"Trajectories_{roundCounter}")
+          # TRAJECTORY_LOG = TABLE.add_worksheet(f"Trajectories_{roundCounter}")
+          MousesTable.createPage(f"Trajectories_{roundCounter}")
           # ------- Default Headers-------------
-          writeDataToPage(TRAJECTORY_LOG, {
+          MousesTable.writeDataToPage(f"Trajectories_{roundCounter}", {
               "A1:C1": "Trajectory",
               "B2": "Generated",
               "C2": "Subject",
@@ -366,7 +359,7 @@ while run:
           Ball.step()
           # ------- log positions ---------
           if loggerTimer.wait(LOG_FREQ):
-              writeDataToPage(TRAJECTORY_LOG, {
+              MousesTable.writeDataToPage(f"Trajectories_{roundCounter}", {
                   f"A{loggerStep + 4}": int(Ball.getPos()[0]),
                   f"B{loggerStep + 4}": int(Ball.func(Ball.t)[1]),
                   f"C{loggerStep + 4}": int(Ball.getPos()[1])
@@ -401,7 +394,7 @@ while run:
 
               # ======== Fill Round Log =========
               print(roundStats)
-              writeDataToPage(MainLog, {
+              MousesTable.writeDataToPage("MainLog", {
                   f"A{roundCounter + 4}": roundCounter,
                   f"B{roundCounter + 4}": roundStats["answer"],
                   f"C{roundCounter + 4}": roundStats["notches"],
@@ -415,9 +408,10 @@ while run:
 # ------- Filling the Main Log --------------
 trigger.send(trigger.TimeStamp.endProgram)
 trigger.close()
-writeDataToPage(MainLog, {
+ImageArchive.close()
+MousesTable.writeDataToPage("MainLog", {
     "A2": f'{mainStats["arrived"]}',
     "B2": f'{mainStats["missed"]}',
     "C2": f'{mainStats["skip"]}'
 })
-TABLE.close()
+MousesTable.close()

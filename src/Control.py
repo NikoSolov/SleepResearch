@@ -6,6 +6,8 @@ import trigger
 import lightSensor
 import numpy as np
 from timer import Timer
+from excelTools import ExcelTable
+import time
 
 # ======== Load Configs ====================
 cfg.loadConfig()
@@ -28,7 +30,13 @@ DELAYS = config["Control"]["delay"]
 PLUS_TIME = DELAYS["plus"]
 # ------------------------------
 # ======== Initialization ====================
-trigger.update()
+SUBJECT_NAME = config["general"]["experiment"]["name"]
+SUBJECT_code = config["general"]["experiment"]["code"]
+DIR_NAME = f'{SUBJECT_NAME}{SUBJECT_code}_{time.strftime("%d.%m.%y")}_Control_{time.strftime("%H.%M.%S")}'
+
+ControlTable = ExcelTable("result", f"{DIR_NAME}.xlsx")
+ControlTable.createPage("TimeStamps")
+trigger.update(ControlTable, "TimeStamps")
 # -------------------
 pg.init()
 root = pg.display.set_mode(WIN_SIZE, flags = pg.FULLSCREEN if WIN_FS else pg.SHOWN)
@@ -93,4 +101,5 @@ while run:
                 run = False
 
 trigger.send(trigger.TimeStamp.endProgram)
+ControlTable.close()
 trigger.close()

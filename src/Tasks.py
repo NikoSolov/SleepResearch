@@ -4,14 +4,13 @@ from enum import Enum
 from random import choice, randint
 
 import pygame as pg
-import xlsxwriter
 import numpy as np
 
 import config as cfg
 import lightSensor
 import alarm
 import trigger
-from excelTools import writeDataToPage
+from excelTools import ExcelTable
 from timer import Timer
 
 # ============ GET ALL CONSTANTS =========
@@ -61,9 +60,13 @@ root = pg.display.set_mode(WIN_SIZE, flags = pg.FULLSCREEN if WIN_FS else pg.SHO
 clk = pg.time.Clock()
 
 # ====================================================
-TABLE = xlsxwriter.Workbook(f"result/{DIR_NAME}.xlsx")
-MainLog = TABLE.add_worksheet("MainLog")
-writeDataToPage(MainLog, {
+# TABLE = xlsxwriter.Workbook(f"result/{DIR_NAME}.xlsx")
+# MainLog = TABLE.add_worksheet("MainLog")
+# writeDataToPage(MainLog, {
+
+TasksTable = ExcelTable("result", f"{DIR_NAME}.xlsx")
+TasksTable.createPage("MainLog")
+TasksTable.writeDataToPage("MainLog", {
     "A1:B1": "Задачи",
     "C1:G1": "Ответил",
     "A2": "True",
@@ -81,8 +84,9 @@ writeDataToPage(MainLog, {
     "F4": "Время реакции"
 })
 
-TriggerLog = TABLE.add_worksheet("TimeStamps")
-trigger.update(TriggerLog)
+TasksTable.createPage("TimeStamps")
+# TriggerLog = TABLE.add_worksheet("TimeStamps")
+trigger.update(TasksTable, "TimeStamps")
 
 # ============== Vars ========================
 
@@ -316,7 +320,8 @@ while run:
         if stageTimer.wait(DURATIONS['fastAnswer']):
             # ---------- Fill SpreadSheet -----------------
             # ----------- MainStats --------------------
-            writeDataToPage(MainLog, {
+            # writeDataToPage(MainLog, {
+            TasksTable.writeDataToPage("MainLog", {
                 "A3": f"{mainStats['Equation']['True']}",
                 "B3": f"{mainStats['Equation']['False']}",
                 "C3": f"{mainStats['Answer']['TT']}",
@@ -346,5 +351,5 @@ while run:
 
 
 trigger.send(trigger.TimeStamp.endProgram)
-TABLE.close()
+TasksTable.close()
 trigger.close()

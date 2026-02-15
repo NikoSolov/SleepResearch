@@ -1,17 +1,15 @@
-import os
 import time
 from enum import Enum, auto
 from random import uniform as rd
 
 import pygame as pg
-import xlsxwriter
 import numpy as np
 
 import config as cfg
 import lightSensor
 import alarm
 import trigger
-from excelTools import writeDataToPage
+from excelTools import ExcelTable
 from timer import Timer
 
 # ======== Load Configs ====================
@@ -51,12 +49,11 @@ root = pg.display.set_mode(WIN_SIZE, flags = pg.FULLSCREEN if WIN_FS else pg.SHO
 clk = pg.time.Clock()
 
 # --------- Setting up SpreadSheet -------
-if not (os.path.exists("result")):
-    os.mkdir("result")
+PVTTable = ExcelTable("result", f"{DIR_NAME}.xlsx")
+PVTTable.createPage("MainLog")
+PVTTable.createPage("TimeStamps")
 
-TABLE = xlsxwriter.Workbook(f"result/{DIR_NAME}.xlsx")
-MainLog = TABLE.add_worksheet("MainLog")
-writeDataToPage(MainLog, {
+PVTTable.writeDataToPage("MainLog", {
     "A1:A2": "Round",
     "B1:E1": "First Reaction",
     "B2":    "EmptyTime",
@@ -65,8 +62,7 @@ writeDataToPage(MainLog, {
     "E2":    "at MSI?",
 })
 
-TriggerLog = TABLE.add_worksheet("TimeStamps")
-trigger.update(TriggerLog)
+trigger.update(PVTTable, "TimeStamps")
 
 # --------- Vars ----------
 class Event(Enum):
@@ -160,7 +156,7 @@ while run:
               lightSensor.pulse()
 
         case Event.Plus:
-            writeDataToPage(MainLog, {
+            PVTTable.writeDataToPage("MainLog", {
                 f"A{3 + roundCounter}": f"{roundCounter + 1}",
                 f"B{3 + roundCounter}": f"{currentEmptyTime}"
             })
@@ -183,7 +179,7 @@ while run:
             if stageTimer.wait(MSI_TIME):
                 stageTimer.setTimer()
                 # --------------- Fill SpreadSheet ------------
-                writeDataToPage(MainLog, {
+                PVTTable.writeDataToPage("MainLog", {
                     f'C{3 + roundCounter}': f'{reactions["wrongAnswer"]}',
                     f'D{3 + roundCounter}': f'{reactions["rightAnswer"]}',
                     f'E{3 + roundCounter}': f'{reactions["MSI"]}'
@@ -203,5 +199,5 @@ while run:
 
 trigger.send(trigger.TimeStamp.endProgram)
 
-TABLE.close()
+PVTTable.close()
 trigger.close()

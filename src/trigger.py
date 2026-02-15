@@ -1,7 +1,7 @@
 import time
 import serial.tools.list_ports
 import config as cfg
-from excelTools import writeDataToPage
+from excelTools import ExcelTable
 
 cfg.loadConfig()
 config = cfg.getConfig()
@@ -12,6 +12,7 @@ ports = serial.tools.list_ports.comports()
 timeCode = None
 TRIGGER_ENABLE = config["general"]["timeStamps"]["trigger"]
 logTable = None
+logTablePageName = ""
 loggerCount = 0
 
 class TimeStamp:
@@ -26,12 +27,12 @@ class TimeStamp:
     manualStamp = 9
 
 def send(number: int):
-    global portWork, TRIGGER_ENABLE, loggerCount, logTable
+    global portWork, TRIGGER_ENABLE, loggerCount, logTable, logTablePageName
     if TRIGGER_ENABLE and portWork:
         timeCode.write(bytearray([number]))
         print(f"Send {number} as {bytearray([number])}")
     if logTable is not None:
-        writeDataToPage(logTable, {
+        logTable.writeDataToPage(logTablePageName, {
             f"A{loggerCount + 2}": time.strftime('%H:%M:%S'),
             f"B{loggerCount + 2}": number
         })
@@ -43,12 +44,13 @@ def close():
         timeCode.close()
         print("COM-Port closed")
 
-def update(Table = None):
-    global timeCode, portName, portWork, logTable, loggerCount
+def update(Table: ExcelTable = None, Page: str = ""):
+    global timeCode, portName, portWork, logTable, logTablePageName, loggerCount
     logTable = Table
+    logTablePageName = Page
     loggerCount = 0
     if logTable is not None:
-        writeDataToPage(logTable, {
+        logTable.writeDataToPage(logTablePageName, {
             "A1": "Time",
             "B1": "Stamp"
         })
