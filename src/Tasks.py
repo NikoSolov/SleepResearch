@@ -4,7 +4,6 @@ from enum import Enum
 from random import choice, randint
 
 import pygame as pg
-import numpy as np
 
 import config as cfg
 import lightSensor
@@ -12,31 +11,15 @@ import alarm
 import trigger
 from excelTools import ExcelTable
 from timer import Timer
+from graphics import Graphics
 
 # ============ GET ALL CONSTANTS =========
 cfg.loadConfig()
 config = cfg.getConfig()
 # ----------------------------
-WINDOW_CONFIG = config['general']['window']
-WIN_FS = WINDOW_CONFIG['fullScreen']
-WIN_SIZE = np.array([WINDOW_CONFIG['width'], WINDOW_CONFIG['height']], np.int16)
-# ----------------------------
 ROUND = config['general']['experiment']['round']
 SUBJECT_NAME = config['general']['experiment']['name']
 SUBJECT_code = config['general']['experiment']['code']
-# ----------------------------
-COLORS = config['Equation']['graphics']['colors']
-C_BG = COLORS['bg']
-C_PLUS = COLORS['plus']
-C_RIGHT = COLORS['right']
-C_WRONG = COLORS['wrong']
-FONT = config['Equation']['graphics']['font']
-# ----------------------------
-SIZES = config['Equation']['graphics']['sizes']
-S_PLUS_RADIUS = SIZES['plus']['radius']
-S_PLUS_WIDTH = SIZES['plus']['width']
-S_SQR_WIDTH = SIZES['squares']['width']
-S_SQR_LENGTH = SIZES['squares']['length']
 # ----------------------------
 DURATIONS = config['Equation']['duration']
 PLUS_TIME = DURATIONS['plus']
@@ -52,18 +35,9 @@ DIR_NAME = f"{SUBJECT_NAME}{SUBJECT_code}_{time.strftime('%d.%m.%y')}_Tasks_{tim
 FILEPATH = config['Equation']['file']['path']
 file = open(FILEPATH, 'r') if FILEPATH != "None" else None
 # =========================================
-
-pg.font.init()
-equationFont = pg.font.SysFont(FONT, SIZES['font'])
-
-root = pg.display.set_mode(WIN_SIZE, flags = pg.FULLSCREEN if WIN_FS else pg.SHOWN)
-clk = pg.time.Clock()
+TasksGraphics = Graphics("Equation")
 
 # ====================================================
-# TABLE = xlsxwriter.Workbook(f"result/{DIR_NAME}.xlsx")
-# MainLog = TABLE.add_worksheet("MainLog")
-# writeDataToPage(MainLog, {
-
 TasksTable = ExcelTable("result", f"{DIR_NAME}.xlsx")
 TasksTable.createPage("MainLog")
 TasksTable.writeDataToPage("MainLog", {
@@ -85,7 +59,6 @@ TasksTable.writeDataToPage("MainLog", {
 })
 
 TasksTable.createPage("TimeStamps")
-# TriggerLog = TABLE.add_worksheet("TimeStamps")
 trigger.update(TasksTable, "TimeStamps")
 
 # ============== Vars ========================
@@ -99,87 +72,6 @@ class Event(Enum):
     Plus = 1
     Answer = 2
     AnswerPlus = 3
-
-
-def drawGraphics(root, status, equationText, rightLevel, wrongLevel):
-    def drawPlus():
-        pg.draw.line(root, pg.Color(C_PLUS),
-                    WIN_SIZE // 2 + np.array([0, -1]) *  S_PLUS_RADIUS,
-                    WIN_SIZE // 2 + np.array([0,  1]) *  S_PLUS_RADIUS,
-                    S_PLUS_WIDTH)
-        pg.draw.line(root, pg.Color(C_PLUS),
-                    WIN_SIZE // 2 + np.array([-1, 0]) *  S_PLUS_RADIUS,
-                    WIN_SIZE // 2 + np.array([ 1, 0]) *  S_PLUS_RADIUS,
-                    S_PLUS_WIDTH)
-    def drawSquare(
-            color = C_RIGHT, 
-            pos = [
-                (WIN_SIZE[0] - S_SQR_LENGTH) // 2,
-                (WIN_SIZE[1] - 2 * S_SQR_LENGTH) // 4
-            ], 
-            sqrHeight = 1, 
-            sqrWidth = S_SQR_WIDTH
-        ):
-        pg.draw.rect(root, pg.Color(color),
-            (
-                *pos,
-                S_SQR_LENGTH, 
-                S_SQR_LENGTH * sqrHeight
-            ), 
-            sqrWidth
-        )
-
-    root.fill(pg.Color(C_BG))
-    lightSensor.draw(root)
-
-    match status:
-        case Event.Siren:
-            root.fill((0, 0, 0))            
-        case Event.Plus | Event.AnswerPlus:
-            drawPlus()
-        case Event.Answer:
-            drawSquare(
-                color = C_RIGHT, 
-                pos = (
-                    WIN_SIZE // 2 - np.array([0, WIN_SIZE[1]//4]) 
-                    - np.array([1,1]) * S_SQR_LENGTH // 2
-                )
-            )
-            drawSquare(
-                color = C_WRONG, 
-                pos = (
-                    WIN_SIZE // 2 + np.array([0, WIN_SIZE[1]//4]) 
-                    - np.array([1,1]) * S_SQR_LENGTH // 2
-                )
-            )
-            drawSquare(
-                color = C_RIGHT, 
-                pos = (
-                    WIN_SIZE // 2 - np.array([0, WIN_SIZE[1]//4])
-                    - np.array([1, 2*rightLevel-1]) * S_SQR_LENGTH // 2
-                ),
-                sqrWidth = 0,
-                sqrHeight = rightLevel
-            )
-            drawSquare(
-                color = C_WRONG, 
-                pos = (
-                    WIN_SIZE // 2 
-                    + np.array([0, WIN_SIZE[1]//4]) 
-                    - np.array([1,1]) * S_SQR_LENGTH // 2
-                ),
-                sqrWidth = 0,
-                sqrHeight = wrongLevel
-            )
-            equationSurf = equationFont.render(
-                equationText, True, pg.Color(COLORS['font'])
-            )
-            root.blit(equationSurf,
-                WIN_SIZE // 2 - np.array(equationSurf.get_size()) // 2
-            )
-    pg.display.flip()
-    clk.tick(60)
-
 
 status = Event.Siren
 run = True
@@ -217,7 +109,7 @@ while run:
             )
             print(rightLevel, wrongLevel)
 
-    drawGraphics(root, status, equationText, rightLevel, wrongLevel)
+    TasksGraphics.drawTasks(status, Event, equationText, rightLevel, wrongLevel)
 
     # ---------- Siren Plays ----------------
     if status == Event.Siren:
@@ -232,8 +124,6 @@ while run:
     # ---------- Plus ----------------
     if status == Event.Plus:
         # --------- lightSensorOn -----------------
-        # if time.time() - setTime > DURATIONS['plus']:
-        #     setTime = time.time()
         if stageTimer.wait(DURATIONS['plus']):
             stageTimer.setTimer()
             status = Event.Answer
@@ -273,7 +163,6 @@ while run:
     if status == Event.Answer:
         if rightLevel >= 1 or wrongLevel >= 1:
             if roundStats['ReactionTime'] == None:
-                # roundStats['ReactionTime'] = time.time() - setTime
                 roundStats['ReactionTime'] = stageTimer.getDelta()
                 print('GOTEM')
                 trigger.send(trigger.TimeStamp.userInput)
@@ -306,7 +195,6 @@ while run:
             # print(next((key for key, value in confusionMatrix.items() if value)), mainStats['Answer'])
             status = Event.AnswerPlus
         # -----------------------------------------------------------
-        # if time.time() - setTime > DURATIONS['answer']:  # wait for skip
         if stageTimer.wait(DURATIONS['answer']):  # wait for skip
             mainStats['Answer']['Skip'] += 1
             status = Event.AnswerPlus
@@ -316,11 +204,9 @@ while run:
         rightLevel = 0
         wrongLevel = 0
 
-        # if time.time() - setTime > DURATIONS['fastAnswer']:
         if stageTimer.wait(DURATIONS['fastAnswer']):
             # ---------- Fill SpreadSheet -----------------
             # ----------- MainStats --------------------
-            # writeDataToPage(MainLog, {
             TasksTable.writeDataToPage("MainLog", {
                 "A3": f"{mainStats['Equation']['True']}",
                 "B3": f"{mainStats['Equation']['False']}",
@@ -339,7 +225,6 @@ while run:
             })
 
             # ======== Change Event ==================
-            # setTime = time.time()
             stageTimer.setTimer()
             status = Event.Plus
             lightSensor.pulse()
@@ -349,7 +234,7 @@ while run:
     if roundCounter > ROUND:
         run = False
 
-
 trigger.send(trigger.TimeStamp.endProgram)
+TasksGraphics.close()
 TasksTable.close()
 trigger.close()

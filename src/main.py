@@ -119,12 +119,12 @@ valueFrames = {
             "msi": tk.DoubleVar()
         },
         "graphics": {
-            "color": {
+            "colors": {
                 "bg": tk.StringVar(),
                 "plus": tk.StringVar(),
                 "circle": tk.StringVar()
             },
-            "size": {
+            "sizes": {
                 "circleRadius": tk.IntVar(),
                 "plus": {
                     "radius": tk.IntVar(),
@@ -139,11 +139,11 @@ valueFrames = {
             "plus": tk.DoubleVar(),
         },
         "graphics": {
-            "color": {
+            "colors": {
                 "bg": tk.StringVar(),
                 "plus": tk.StringVar(),
             },
-            "size": {
+            "sizes": {
                 "plus": {
                     "radius": tk.IntVar(),
                     "width": tk.IntVar()
@@ -695,7 +695,7 @@ pvtGraphicsFrame = tk.LabelFrame(pvtTab, text="Графика")
 pvtGraphicsFrame.grid(column=0, row=0, sticky="news")
 
 # <editor-fold desc="Sizes">
-pvtSizesValues = pvtValues["graphics"]["size"]
+pvtSizesValues = pvtValues["graphics"]["sizes"]
 pvtSizesFrame = tk.LabelFrame(pvtGraphicsFrame, text="Размеры")
 pvtSizesFrame.grid(column=0, row=0, sticky="news")
 
@@ -731,7 +731,7 @@ pvtSizesPlus.grid(column=0, row=1, columnspan=2, sticky="news")
 # </editor-fold>
 # # ---------------------------
 # <editor-fold desc="Colors">
-pvtColorsValues = pvtValues["graphics"]["color"]
+pvtColorsValues = pvtValues["graphics"]["colors"]
 pvtColorsFrames = tk.LabelFrame(pvtGraphicsFrame, text="Цвета")
 pvtColorsFrames.grid(column=1, row=0, sticky="news")
 tk.Label(pvtColorsFrames, text="Фон").grid(column=0, row=0)
@@ -817,7 +817,7 @@ controlGraphicsFrame = tk.LabelFrame(controlTab, text="Графика")
 controlGraphicsFrame.grid(column=0, row=0, sticky="news")
 
 # <editor-fold desc="Sizes">
-controlSizesValues = pvtValues["graphics"]["size"]
+controlSizesValues = pvtValues["graphics"]["sizes"]
 controlSizesFrame = tk.LabelFrame(controlGraphicsFrame, text="Размеры Плюса")
 controlSizesFrame.grid(column=0, row=0, sticky="news")
 
@@ -842,7 +842,7 @@ controlSizesFrame.grid(column=0, row=0, sticky="news")
 # </editor-fold>
 # # ---------------------------
 # <editor-fold desc="Colors">
-controlColorsValues = controlValues["graphics"]["color"]
+controlColorsValues = controlValues["graphics"]["colors"]
 controlColorsFrames = tk.LabelFrame(controlGraphicsFrame, text="Цвета")
 controlColorsFrames.grid(column=1, row=0, sticky="news")
 tk.Label(controlColorsFrames, text="Фон").grid(column=0, row=0)

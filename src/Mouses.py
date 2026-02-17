@@ -1,12 +1,10 @@
 import time
 from enum import Enum
-from os import remove
 from random import choice as ch
 from random import uniform as rd
 
 import numpy as np
 import pygame as pg
-import zipfile
 
 import config as cfg
 import lightSensor
@@ -14,6 +12,8 @@ import alarm
 import trigger
 from excelTools import ExcelTable
 from timer import Timer
+from graphics import Graphics
+from VectorLogger import VectorLogger
 
 # ====== Setting up Config =========
 cfg.loadConfig()
@@ -49,9 +49,8 @@ DIR_NAME = (f'{SUBJECT_NAME}{SUBJECT_code}_{time.strftime("%d.%m.%y")}'
 LOG_FREQ = config["Mouses"]["logger"]["freq"]
 # ====== Initialization ==================
 # ------------------------------
-pg.init()
-root = pg.display.set_mode(WIN_SIZE, flags = pg.FULLSCREEN if FULLSCREEN else pg.SHOWN)
-clk = pg.time.Clock()
+MousesGraphics = Graphics("Mouses")
+
 # -------- Setting Log Files -------------
 MousesTable = ExcelTable(f"result/{DIR_NAME}", f"{DIR_NAME}.xlsx")
 MousesTable.createPage("MainLog")
@@ -74,52 +73,7 @@ MousesTable.writeDataToPage("MainLog", {
 })
 
 trigger.update(MousesTable, "TimeStamps")
-ImageArchive = zipfile.ZipFile(f"result/{DIR_NAME}/log_img.zip", "w")
-
-# --------- Vars --------------
-def imageSample(subjectPath): return f"""
-<svg
-   style="background:{C_BG}"
-   width="{WIN_SIZE[0]}" height="{WIN_SIZE[1]}"
-   xmlns="http://www.w3.org/2000/svg">
-  <rect
-     id="BackGround" style="fill:{C_BG}"
-     width="{WIN_SIZE[0]}" height="{WIN_SIZE[1]}" x="0" y="0" />
-  <circle
-     id="Hole" fill="{C_HOLE}"
-     cx="{WIN_SIZE[0] - RADIUS}" cy="{RADIUS}" r="{RADIUS}"/>
-  <circle
-     id="Hole" fill="none"
-     cx="{RADIUS}" cy="{WIN_SIZE[1] - RADIUS}" r="{WAIT_ZONE}"
-     stroke="red" stroke-width="3"/>
-  <path
-     id="generatedTrail"
-     stroke = "{C_GTRAIL}"
-     style="        
-        stroke-width:{5};
-        stroke-dasharray:none;
-        stroke-linejoin:round;
-        stroke-linecap:round"
-
-     fill="none"
-     d="M {Ball.P0[0]} {Ball.P0[1]} 
-        Q {Ball.P1[0]} {Ball.P1[1]} 
-          {Ball.P2[0]} {Ball.P2[1]}"
-      />
-  <circle
-     id="Mouse" fill="{C_MOUSE}"
-     cx="{Ball.getPos()[0]}" cy="{Ball.getPos()[1]}" r="{RADIUS}"/>
-  <path
-     id="subjectTrail" fill="none"
-     stroke="{C_STRAIL}"  stroke-width="{5}"
-     d="{subjectPath}"
-     style="stroke-width:3;
-            stroke-dasharray:none;
-            stroke-linejoin:round;
-            stroke-linecap:round"/>
-</svg>
-"""
-
+vecLogger = VectorLogger(f"result/{DIR_NAME}")
 
 class Ball:
     t = 0
@@ -128,8 +82,8 @@ class Ball:
     yOffset = 0
     lastT = 0
     P0 = np.array([RADIUS, WIN_SIZE[1] - RADIUS])
-    P1 = np.array([])
     P2 = np.array([WIN_SIZE[0] - 3 * RADIUS, RADIUS])
+    P1 = np.array([(P2[0] + P0[0]) // 2, P2[1]])
     S = 0
 
     @staticmethod
@@ -183,11 +137,7 @@ class Ball:
                     * Ball.funcDer(Ball.lastT) + Ball.func(Ball.lastT),
                     Ball.func(Ball.t)]
                    + np.array([0, Ball.yOffset]))
-
-        return f"""M {bPoints[0][0]} {bPoints[0][1]} 
-        Q {bPoints[1][0]} {bPoints[1][1]} 
-          {bPoints[2][0]} {bPoints[2][1]} 
-        """
+        return bPoints
 
     @staticmethod
     def step():
@@ -222,9 +172,7 @@ roundCounter = 0
 loggerStep = 0
 loggerTimer = Timer()
 roundTimer = Timer()
-pathString = ""
 status = Event.siren
-imageLogger = None
 mainStats = {
     "arrived": 0,
     "missed":  0,
@@ -236,29 +184,6 @@ roundStats = {
     "reactionTime": 0,
     "ableToMove":   False
 }
-
-def drawGraphics(root, status):
-    # -------- color background ----------
-    root.fill(pg.Color(C_BG))
-    # -------- draw a hole ----------
-    pg.draw.circle(root,
-                   pg.Color(C_HOLE),
-                   (WIN_SIZE[0] - RADIUS, RADIUS),
-                   RADIUS
-                   )
-    # -------- draw light square ----------
-    lightSensor.draw(root)
-
-    match status:
-        case Event.siren:
-            root.fill((0, 0, 0))
-        case Event.answer:
-            # ------- draw a mouse ---------
-            pg.draw.circle(root, pg.Color(C_MOUSE), Ball.getPos(), RADIUS)
-
-    pg.display.flip()
-    clk.tick(60)
-
 
 while run:
     for event in pg.event.get():
@@ -283,132 +208,126 @@ while run:
                 roundStats["ableToMove"] = True
 
             if roundStats["ableToMove"]:
-                pathString += Ball.getPartial()
-                pathString += (
-                    f"""M {Ball.getPos()[0]} {Ball.getPos()[1]} 
-            l {0} {-INVERSE * SENSITIVITY * event.y}""")
+                vecLogger.drawNotch(
+                    Ball.getPartial(), 
+                    Ball.getPos(), 
+                    -INVERSE * SENSITIVITY * event.y
+                )
+
                 Ball.lastT = Ball.t
                 Ball.yOffset -= SENSITIVITY * event.y * INVERSE
                 roundStats["notches"] += 1
     
+
     if not run:
         # ------- draw last position -------
-        pathString += Ball.getPartial()
-        # print(len(imageLogger))
-        imageLogger.write(imageSample(pathString))
-        imageLogger.close()
-        ImageArchive.write(f"result/{DIR_NAME}/{roundCounter}.svg",
-                           f"log_img/{roundCounter}.svg",
-                           zipfile.ZIP_DEFLATED)
-        remove(f"result/{DIR_NAME}/{roundCounter}.svg")
-        # ------- quit program -------
+        vecLogger.saveTrail(Ball.getPartial(), Ball.getPos(), roundCounter)
         continue
 
-    drawGraphics(root, status)
+    MousesGraphics.drawMouses(status, Event, Ball.getPos())
 
     # ---------- Siren Plays ----------------
     match status:
-      case Event.siren:
-          # ------ playSiren ------------------
-          alarm.play()
-          if alarm.isDone():
-              status = Event.init
-      case Event.init:
-          lightSensor.pulse()
-          roundCounter += 1
-          # TRAJECTORY_LOG = TABLE.add_worksheet(f"Trajectories_{roundCounter}")
-          MousesTable.createPage(f"Trajectories_{roundCounter}")
-          # ------- Default Headers-------------
-          MousesTable.writeDataToPage(f"Trajectories_{roundCounter}", {
-              "A1:C1": "Trajectory",
-              "B2": "Generated",
-              "C2": "Subject",
-              "A3": "x",
-              "C3": "y",
-              "B3": "y",
-              "F1:G1": "Screen Resolution",
-              "E1": "Frequency",
-          # --------- Fill with vars --------------
-              "E2": f"{LOG_FREQ}",
-              "F2": f"{WIN_SIZE[0]}",
-              "G2": f"{WIN_SIZE[1]}"
-          })
-          # ==========================================
-          # -------- Answer --------
-          status = Event.answer
-          roundStats = {
-              "notches": 0,
-              "answer": "Skip",
-              "reactionTime": 0,
-              "ableToMove": False
-          }
-          Ball.init(STEP)
-          # -------- Logger --------
-          loggerStep = 0
-          # -------- Image ---------
-          imageLogger = open(f"result/{DIR_NAME}/{roundCounter}.svg", "w")
-          pathString = ""
-          # -------- Timers --------
-          roundTimer.setTimer()
-          loggerTimer.setTimer(roundTimer.getTimer())
-          # ------ Timestamp ------
-          trigger.send(trigger.TimeStamp.startMouse)
-  
-      case Event.answer:
-          # ------- make a step ---------
-          Ball.step()
-          # ------- log positions ---------
-          if loggerTimer.wait(LOG_FREQ):
-              MousesTable.writeDataToPage(f"Trajectories_{roundCounter}", {
-                  f"A{loggerStep + 4}": int(Ball.getPos()[0]),
-                  f"B{loggerStep + 4}": int(Ball.func(Ball.t)[1]),
-                  f"C{loggerStep + 4}": int(Ball.getPos()[1])
-              })
+        case Event.siren:
+            # ------ playSiren ------------------
+            alarm.play()
+            if alarm.isDone():
+                status = Event.init
+        case Event.init:
+            lightSensor.pulse()
+            roundCounter += 1
+            MousesTable.createPage(f"Trajectories_{roundCounter}")
+            # ------- Default Headers-------------
+            MousesTable.writeDataToPage(f"Trajectories_{roundCounter}", {
+                "A1:C1": "Trajectory",
+                "B2": "Generated",
+                "C2": "Subject",
+                "A3": "x",
+                "C3": "y",
+                "B3": "y",
+                "F1:G1": "Screen Resolution",
+                "E1": "Frequency",
+            # --------- Fill with vars --------------
+                "E2": f"{LOG_FREQ}",
+                "F2": f"{MousesGraphics.WIN_SIZE[0]}",
+                "G2": f"{MousesGraphics.WIN_SIZE[1]}"
+            })
+            # ==========================================
+            # -------- Answer --------
+            status = Event.answer
+            roundStats = {
+                "notches": 0,
+                "answer": "Skip",
+                "reactionTime": 0,
+                "ableToMove": False
+            }
+            Ball.init(STEP)
+            # -------- Logger --------
+            loggerStep = 0
+            # -------- Image ---------
+            vecLogger.startTrail(Ball.getDots())
+            # -------- Timers --------
+            roundTimer.setTimer()
+            loggerTimer.setTimer(roundTimer.getTimer())
+            # ------ Timestamp ------
+            trigger.send(trigger.TimeStamp.startMouse)
+    
+        case Event.answer:
+            # ------- make a step ---------
+            Ball.step()
+            # ------- log positions ---------
+            if loggerTimer.wait(LOG_FREQ):
+                MousesTable.writeDataToPage(f"Trajectories_{roundCounter}", {
+                    f"A{loggerStep + 4}": int(Ball.getPos()[0]),
+                    f"B{loggerStep + 4}": int(Ball.func(Ball.t)[1]),
+                    f"C{loggerStep + 4}": int(Ball.getPos()[1])
+                })
 
-              loggerStep += 1
-              loggerTimer.setTimer()
+                loggerStep += 1
+                loggerTimer.setTimer()
 
-          if Ball.touchWall() or Ball.touchHole():
-              status = Event.init
-              # --------------- Write File And Close ----------
-              pathString += Ball.getPartial()
-              imageLogger.write(imageSample(pathString))
-              imageLogger.close()
-              ImageArchive.write(f"result/{DIR_NAME}/{roundCounter}.svg",
-                                f"log_img/{roundCounter}.svg",
-                                zipfile.ZIP_DEFLATED)
-              remove(f"result/{DIR_NAME}/{roundCounter}.svg")
-              # -------------
-      
-              if Ball.touchHole(): print("got it")
-              roundStats["answer"] = (
-                  "Arrived" if Ball.touchHole()          else 
-                  "Missed"  if roundStats["notches"] > 0 else 
-                  "Skipped"
-              )
-              mainStats[
-                  "arrived" if Ball.touchHole()          else 
-                  "missed"  if roundStats["notches"] > 0 else 
-                  "skip"
-              ] += 1
+            if Ball.touchWall() or Ball.touchHole():
+                status = Event.init
+                
+                # --------------- Write File And Close ----------
+                vecLogger.saveTrail(
+                    Ball.getPartial(),
+                    Ball.getPos(),
+                    roundCounter
+                )
+                # -------------
+        
+                if Ball.touchHole(): print("got it")
+                roundStats["answer"] = (
+                    "Arrived" if Ball.touchHole()          else 
+                    "Missed"  if roundStats["notches"] > 0 else 
+                    "Skipped"
+                )
+                mainStats[
+                    "arrived" if Ball.touchHole()          else 
+                    "missed"  if roundStats["notches"] > 0 else 
+                    "skip"
+                ] += 1
 
-              # ======== Fill Round Log =========
-              print(roundStats)
-              MousesTable.writeDataToPage("MainLog", {
-                  f"A{roundCounter + 4}": roundCounter,
-                  f"B{roundCounter + 4}": roundStats["answer"],
-                  f"C{roundCounter + 4}": roundStats["notches"],
-                  f"D{roundCounter + 4}": roundStats["reactionTime"],
-                  f"E{roundCounter + 4}": Ball.getPos()[0],
-                  f"F{roundCounter + 4}": Ball.getPos()[1]
-              })
-              if roundCounter >= ROUND:
-                  run = False
+                # ======== Fill Round Log =========
+                print(roundStats)
+                MousesTable.writeDataToPage("MainLog", {
+                    f"A{roundCounter + 4}": roundCounter,
+                    f"B{roundCounter + 4}": roundStats["answer"],
+                    f"C{roundCounter + 4}": roundStats["notches"],
+                    f"D{roundCounter + 4}": roundStats["reactionTime"],
+                    f"E{roundCounter + 4}": Ball.getPos()[0],
+                    f"F{roundCounter + 4}": Ball.getPos()[1]
+                })
+                if roundCounter >= ROUND:
+                    run = False
+
 
 # ------- Filling the Main Log --------------
 trigger.send(trigger.TimeStamp.endProgram)
 trigger.close()
-ImageArchive.close()
+MousesGraphics.close()
+vecLogger.close()
 MousesTable.writeDataToPage("MainLog", {
     "A2": f'{mainStats["arrived"]}',
     "B2": f'{mainStats["missed"]}',

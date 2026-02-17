@@ -103,12 +103,12 @@ CONFIG_STD = {
             "msi": 0.5
         },
         "graphics": {
-            "color": {
+            "colors": {
                 "bg": "#404040",
                 "plus": "#c0c0c0",
                 "circle": "#ff0000"
             },
-            "size": {
+            "sizes": {
                 "circleRadius": 40,
                 "plus": {
                     "radius": 30,
@@ -123,11 +123,11 @@ CONFIG_STD = {
             "plus": 120,
         },
         "graphics": {
-            "color": {
+            "colors": {
                 "bg": "#404040",
                 "plus": "#c0c0c0",
             },
-            "size": {
+            "sizes": {
                 "plus": {
                     "radius": 30,
                     "width": 10
@@ -157,7 +157,7 @@ def loadConfig():
 
 def updateConfig(config: dict):
     global CONFIG
-    print(f"Change to: {config}")
+    # print(f"Change to: {config}")
     CONFIG.update(config)
     # CONFIG = config
     with open('config.json', 'w') as configFile:
