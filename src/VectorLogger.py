@@ -15,12 +15,14 @@ class VectorLogger:
         self.ImageArchive = zipfile.ZipFile(f"{self.DIR_NAME}/log_img.zip", "w")
     
     # add part of path after a notch
-    def drawNotch(self, bPoints, ballPos, notch = 0):
+    def drawNotch(self, bPoints, notch = 0):
         # move to draw a bezier curve
-        self.pathString += f"""M {bPoints[0][0]} {bPoints[0][1]} Q {bPoints[1][0]} {bPoints[1][1]} {bPoints[2][0]} {bPoints[2][1]} """
+        print(bPoints)
+        self.pathString += f"M {bPoints[0][0]} {bPoints[0][1]} Q {bPoints[1][0]} {bPoints[1][1]} {bPoints[2][0]} {bPoints[2][1]} "
         # then move to draw a vertical notch
+        # print(notch)
         if notch != 0:
-            self.pathString += f"""M {ballPos[0]} {ballPos[1]} l {0} {notch}"""
+            self.pathString += f"M {bPoints[2][0]} {bPoints[2][1]} l {0} {notch} "
 
     # save generated trail bPoints
     def startTrail(self, bPoints):
@@ -28,10 +30,10 @@ class VectorLogger:
         self.pathString = ""
 
     # save (close) svg file, add to archive and delete
-    def saveTrail(self, bPoints, ballPos, roundCounter):
-        self.drawNotch(bPoints, ballPos)
+    def saveTrail(self, bPoints, roundCounter):
+        self.drawNotch(bPoints)
         imageLogger = open(f"{self.DIR_NAME}/{roundCounter}.svg", "w")
-        imageLogger.write(self.template(self.pathString, self.gTrailPoints, ballPos))
+        imageLogger.write(self.template((bPoints[2][0], bPoints[2][1])))
         imageLogger.close()
 
         self.ImageArchive.write(f"{self.DIR_NAME}/{roundCounter}.svg",
@@ -45,7 +47,7 @@ class VectorLogger:
         pass
     
     # svg file Template
-    def template(self, subjectPath, bPoints, ballLastPos):
+    def template(self, ballLastPos):
         config = cfg.getConfig()
         WIN_SIZE = [
             config["general"]["window"]["width"],
@@ -59,47 +61,46 @@ class VectorLogger:
         RADIUS    = config["Mouses"]["graphics"][ "sizes"]["radius"]
         WAIT_ZONE = config["Mouses"]["graphics"][ "sizes"]["waitZone"]
 
-        return f"""
-      <svg
-        style="background:{C_BG}"
-        width="{WIN_SIZE[0]}" height="{WIN_SIZE[1]}"
-        xmlns="http://www.w3.org/2000/svg">
-        <rect
-          id="BackGround" style="fill:{C_BG}"
-          width="{WIN_SIZE[0]}" height="{WIN_SIZE[1]}" x="0" y="0" />
-        <circle
-          id="Hole" fill="{C_HOLE}"
-          cx="{WIN_SIZE[0] - RADIUS}" cy="{RADIUS}" r="{RADIUS}"/>
-        <circle
-          id="Hole" fill="none"
-          cx="{RADIUS}" cy="{WIN_SIZE[1] - RADIUS}" r="{WAIT_ZONE}"
-          stroke="red" stroke-width="3"/>
-        <path
-          id="generatedTrail"
-          stroke = "{C_GTRAIL}"
-          style="        
-              stroke-width:{5};
-              stroke-dasharray:none;
-              stroke-linejoin:round;
-              stroke-linecap:round"
-
-          fill="none"
-          d="M {bPoints[0][0]} {bPoints[0][1]} 
-              Q {bPoints[1][0]} {bPoints[1][1]} 
-                {bPoints[2][0]} {bPoints[2][1]}"
-            />
-        <circle
-          id="Mouse" fill="{C_MOUSE}"
-          cx="{ballLastPos[0]}" cy="{ballLastPos[1]}" r="{RADIUS}"/>
-        <path
-          id="subjectTrail" fill="none"
-          stroke="{C_STRAIL}"  stroke-width="{5}"
-          d="{subjectPath}"
-          style="stroke-width:3;
-                  stroke-dasharray:none;
-                  stroke-linejoin:round;
-                  stroke-linecap:round"/>
-      </svg>
-      """
+        return f"""<svg \
+style="background:{C_BG}" \
+width="{WIN_SIZE[0]}" height="{WIN_SIZE[1]}" \
+xmlns="http://www.w3.org/2000/svg">
+<rect \
+id="BackGround" fill="{C_BG}" stroke="black" \
+width="{WIN_SIZE[0]}" height="{WIN_SIZE[1]}" x="0" y="0" />
+<circle \
+id="Hole" fill="{C_HOLE}" \
+cx="{WIN_SIZE[0] - RADIUS}" cy="{RADIUS}" r="{RADIUS}"/>
+<circle \
+id="Hole" fill="none" \
+cx="{RADIUS}" cy="{WIN_SIZE[1] - RADIUS}" r="{WAIT_ZONE}" \
+stroke="red" stroke-width="3"/>
+<path \
+id="generatedTrail" \
+stroke = "{C_GTRAIL}" \
+style="stroke-width:{5}; \
+stroke-dasharray:none; \
+stroke-linejoin:round; \
+stroke-linecap:round" \
+fill="none" \
+d="M {self.gTrailPoints[0][0]} 
+{self.gTrailPoints[0][1]} \
+Q {self.gTrailPoints[1][0]} \
+{self.gTrailPoints[1][1]} \
+{self.gTrailPoints[2][0]} \
+{self.gTrailPoints[2][1]}"/>
+<circle \
+id="Mouse" fill="{C_MOUSE}" \
+cx="{ballLastPos[0]}" cy="{ballLastPos[1]}" r="{RADIUS}"/>
+<path \
+id="subjectTrail" fill="none" \
+stroke="{C_STRAIL}"  stroke-width="{5}" \
+style="stroke-width:3; \
+stroke-dasharray:none; \
+stroke-linejoin:round; \
+stroke-linecap:round"
+d="{self.pathString}"
+/>
+</svg>"""
 
        

@@ -14,7 +14,7 @@ from excelTools import ExcelTable
 from timer import Timer
 from graphics import Graphics
 from VectorLogger import VectorLogger
-
+from MouseMechanics import MouseMechanics
 # ====== Setting up Config =========
 cfg.loadConfig()
 config = cfg.getConfig()
@@ -75,91 +75,6 @@ MousesTable.writeDataToPage("MainLog", {
 trigger.update(MousesTable, "TimeStamps")
 vecLogger = VectorLogger(f"result/{DIR_NAME}")
 
-class Ball:
-    t = 0
-    d = 0
-    a = 100
-    yOffset = 0
-    lastT = 0
-    P0 = np.array([RADIUS, WIN_SIZE[1] - RADIUS])
-    P2 = np.array([WIN_SIZE[0] - 3 * RADIUS, RADIUS])
-    P1 = np.array([(P2[0] + P0[0]) // 2, P2[1]])
-    S = 0
-
-    @staticmethod
-    def init(step: float):
-        Ball.t = 0
-        Ball.yOffset = 0
-        Ball.lastT = 0
-        Ball.d = rd(0.07, MAX_DISPERSION)  # 0.07 - experimental
-        Ball.lastPos = [RADIUS, WIN_SIZE[1] - RADIUS]
-        # print(Ball.d)
-        Ball.P2 = np.array(ch([
-            [WIN_SIZE[0] - 3 * RADIUS,
-             RADIUS * (1 - Ball.d) - Ball.a * Ball.d],
-            [WIN_SIZE[0] - RADIUS,
-             3 * RADIUS * (1 - Ball.d) + (WIN_SIZE[1] - RADIUS) * Ball.d]
-        ]))
-
-        Ball.P1 = np.array(ch([
-            [(Ball.P2[0] + Ball.P0[0]) // 2, Ball.P2[1]],
-            [(Ball.P2[0] + Ball.P0[0]) // 2, Ball.P0[1]],
-            [Ball.P0[0], (Ball.P2[1] + Ball.P0[1]) // 2],
-            # [Ball.P2[0], (Ball.P2[1] + Ball.P0[1]) // 2],
-        ]))
-
-        Ball.S = step
-
-    @staticmethod
-    def getPos():
-        return Ball.func(Ball.t) + np.array([0, Ball.yOffset])
-
-    @staticmethod
-    def func(t: float):
-        return (
-            Ball.P0 * (1 - t) * (1 - t)
-          + Ball.P1 * 2 * (1 - t) * t
-          + Ball.P2 * t * t
-        )
-
-    @staticmethod
-    def funcDer(t: float):
-        return (
-          - Ball.P0 * 2 * (1 - t)
-          + Ball.P1 * 2 * (1 - 2 * t)
-          + Ball.P2 * 2 * t
-        )
-
-    @staticmethod
-    def getPartial():
-        bPoints = ([Ball.func(Ball.lastT),
-                    (Ball.t - Ball.lastT) / 2
-                    * Ball.funcDer(Ball.lastT) + Ball.func(Ball.lastT),
-                    Ball.func(Ball.t)]
-                   + np.array([0, Ball.yOffset]))
-        return bPoints
-
-    @staticmethod
-    def step():
-        Ball.t += Ball.S / np.linalg.norm(
-            2 * (Ball.P0 - 2 * Ball.P1 + Ball.P2) * Ball.t +
-            (2 * (Ball.P1 - Ball.P0)))
-
-    @staticmethod
-    def getDots():
-        return [Ball.P0, Ball.P1, Ball.P2]
-
-    @staticmethod
-    def touchWall():
-        return any(Ball.getPos() <= np.array([RADIUS, RADIUS])) or any(
-            Ball.getPos() >= WIN_SIZE - RADIUS)
-
-    @staticmethod
-    def touchHole():
-        return np.linalg.norm(Ball.getPos() - np.array(
-            [WIN_SIZE[0] - RADIUS, RADIUS])) < 1.5 * RADIUS
-
-
 class Event(Enum):
     siren = 0
     init = 1
@@ -185,6 +100,8 @@ roundStats = {
     "ableToMove":   False
 }
 
+Ball = MouseMechanics()
+
 while run:
     for event in pg.event.get():
         # -------- Hard Quitting ------------
@@ -196,32 +113,25 @@ while run:
             trigger.send(trigger.TimeStamp.manualStamp)
         # -------- Mouse process ------------
         if event.type == pg.MOUSEWHEEL and status == Event.answer:
-            if roundStats["ableToMove"] and roundStats[
-                "reactionTime"] == 0:
+            if roundStats["ableToMove"] and roundStats["reactionTime"] == 0:
                 roundStats["reactionTime"] = roundTimer.getDelta()
                 trigger.send(trigger.TimeStamp.userInput)
             # wait until mouse passes WaitZone
-            if np.linalg.norm(
-                    Ball.getPos() - np.array(
-                        [RADIUS, WIN_SIZE[1] - RADIUS])
-            ) > WAIT_ZONE:
+            if Ball.isOutWaitZone():
                 roundStats["ableToMove"] = True
 
             if roundStats["ableToMove"]:
                 vecLogger.drawNotch(
                     Ball.getPartial(), 
-                    Ball.getPos(), 
                     -INVERSE * SENSITIVITY * event.y
                 )
-
-                Ball.lastT = Ball.t
-                Ball.yOffset -= SENSITIVITY * event.y * INVERSE
+                Ball.drag(-INVERSE * SENSITIVITY * event.y)
                 roundStats["notches"] += 1
     
 
     if not run:
         # ------- draw last position -------
-        vecLogger.saveTrail(Ball.getPartial(), Ball.getPos(), roundCounter)
+        vecLogger.saveTrail(Ball.getPartial(), roundCounter)
         continue
 
     MousesGraphics.drawMouses(status, Event, Ball.getPos())
@@ -261,7 +171,7 @@ while run:
                 "reactionTime": 0,
                 "ableToMove": False
             }
-            Ball.init(STEP)
+            Ball.startTrail()
             # -------- Logger --------
             loggerStep = 0
             # -------- Image ---------
@@ -279,7 +189,7 @@ while run:
             if loggerTimer.wait(LOG_FREQ):
                 MousesTable.writeDataToPage(f"Trajectories_{roundCounter}", {
                     f"A{loggerStep + 4}": int(Ball.getPos()[0]),
-                    f"B{loggerStep + 4}": int(Ball.func(Ball.t)[1]),
+                    f"B{loggerStep + 4}": int(Ball.function(Ball.t)[1]),
                     f"C{loggerStep + 4}": int(Ball.getPos()[1])
                 })
 
@@ -292,7 +202,6 @@ while run:
                 # --------------- Write File And Close ----------
                 vecLogger.saveTrail(
                     Ball.getPartial(),
-                    Ball.getPos(),
                     roundCounter
                 )
                 # -------------

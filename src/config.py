@@ -13,7 +13,7 @@ CONFIG_STD = {
         "experiment": {
             "program": "Mouses",
             "round": 20,
-            "name": "Иванов",
+            "name": "Subject",
             "code": "1234",
         },
 
