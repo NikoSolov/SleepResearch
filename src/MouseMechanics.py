@@ -72,7 +72,7 @@ class MouseMechanics():
             # np.array([(self.P2[0] + self.P0[0])/2, self.P2[1]]), # to keep symmetry
             np.array([self.P0[0], (self.P2[1] + self.P0[1])/2]),
             # np.array([self.P2[0], (self.P2[1] + self.P0[1])/2]) # will fly back
-        ][choice // 2]
+        ][choice % 2]
 
         # self.answer = [
         #     [
