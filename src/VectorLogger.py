@@ -17,10 +17,8 @@ class VectorLogger:
     # add part of path after a notch
     def drawNotch(self, bPoints, notch = 0):
         # move to draw a bezier curve
-        print(bPoints)
         self.pathString += f"M {bPoints[0][0]} {bPoints[0][1]} Q {bPoints[1][0]} {bPoints[1][1]} {bPoints[2][0]} {bPoints[2][1]} "
         # then move to draw a vertical notch
-        # print(notch)
         if notch != 0:
             self.pathString += f"M {bPoints[2][0]} {bPoints[2][1]} l {0} {notch} "
 

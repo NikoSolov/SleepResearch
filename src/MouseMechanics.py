@@ -114,7 +114,6 @@ class MouseMechanics():
     def drag(self, delta):
         self.lastT = self.t
         self.yOffset += delta
-        print(self.yOffset)
 
     def isOutWaitZone(self) -> bool:
         return np.linalg.norm(
