@@ -12,7 +12,6 @@ CONFIG_STD = {
         },
         "experiment": {
             "program": "Mouses",
-            "round": 20,
             "name": "Subject",
             "code": "1234",
         },
@@ -27,10 +26,28 @@ CONFIG_STD = {
             "trigger": True,
             "light": True,
             "lightSize": 60
+        },
+        "graphics": {
+            "sizes": {
+                "plus": {
+                    "radius": 30,
+                    "width": 10
+                },
+            },
+            "colors": {
+                "plus": "#c0c0c0",
+                "bg": "#404040"
+            }
         }
-
     },
     "Mouses": {
+        "duration": {
+            "plus": 5.0,
+        },
+        "experiment":{
+            "countInGroup": 3,
+            "countOfGroup": 2
+        },
         "graphics": {
             "sizes": {
                 "distMul": 1.5,
@@ -40,7 +57,6 @@ CONFIG_STD = {
                 "maxDispersion": 0.5
             },
             "colors": {
-                "bg": "#404040",
                 "mouse": "#ff0000",
                 "hole": "#c0c0c0",
                 "gtrail": "#0000ff",
@@ -59,6 +75,9 @@ CONFIG_STD = {
         }
     },
     "Equation": {
+        "experiment" : {
+            "round" : 20
+        },
         "duration": {
             "plus": 0.5,
             "fastAnswer": 2,
@@ -66,17 +85,11 @@ CONFIG_STD = {
         },
         "graphics": {
             "colors": {
-                "plus": "#c0c0c0",
-                "bg": "#404040",
                 "right": "#00ff00",
                 "wrong": "#ff0000",
                 "font": "#c0c0c0"
             },
             "sizes": {
-                "plus": {
-                    "radius": 30,
-                    "width": 10
-                },
                 "squares": {
                     "length": 150,
                     "width": 3
@@ -95,6 +108,9 @@ CONFIG_STD = {
         "timeStamps": {}
     },
     "PVT": {
+        "experiment" : {
+            "round" : 20
+        },
         "delay": {
             "plus": 0.5,
             "emptyMin": 1.5,
@@ -104,16 +120,10 @@ CONFIG_STD = {
         },
         "graphics": {
             "colors": {
-                "bg": "#404040",
-                "plus": "#c0c0c0",
                 "circle": "#ff0000"
             },
             "sizes": {
                 "circleRadius": 40,
-                "plus": {
-                    "radius": 30,
-                    "width": 10
-                }
             },
         },
         "timeStamps": {}
@@ -121,18 +131,6 @@ CONFIG_STD = {
     "Control": {
         "delay": {
             "plus": 120,
-        },
-        "graphics": {
-            "colors": {
-                "bg": "#404040",
-                "plus": "#c0c0c0",
-            },
-            "sizes": {
-                "plus": {
-                    "radius": 30,
-                    "width": 10
-                }
-            },
         },
         "timeStamps": {}
     }

@@ -21,13 +21,16 @@ def run():
         config["general"]["window"]["width"],
         config["general"]["window"]["height"]
     ]
-    ROUND = config["general"]["experiment"]["round"]
+    TRIAL_GROUPS = config["Mouses"]["experiment"]["countOfGroup"]
+    TRIALS       = config["Mouses"]["experiment"]["countInGroup"]
     SUBJECT_NAME = config["general"]["experiment"]["name"]
     SUBJECT_code = config["general"]["experiment"]["code"]
     # ---------------------------
     CONTROL = config["Mouses"]["control"]
     SENSITIVITY = CONTROL["sensitivity"]
     INVERSE = -1 if CONTROL["inverse"] else 1
+    # ---------------------------
+    PLUS_TIME = config["Mouses"]["duration"]["plus"]
     # ---------------------------
     DIR_NAME = (f'{SUBJECT_NAME}{SUBJECT_code}_{time.strftime("%d.%m.%y")}'
                 f'_Mouses_{time.strftime("%H.%M.%S")}')
@@ -45,15 +48,17 @@ def run():
         "B1": "Missed",
         "C1": "Skipped",
         "D1:E1": "Screen Resolution",
-        "D2": f"{WIN_SIZE[0]}",
-        "E2": f"{WIN_SIZE[1]}",
+        "F2": f"{WIN_SIZE[0]}",
+        "G2": f"{WIN_SIZE[1]}",
         "A3:A4": "Round #",
-        "B3:B4": "Result",
-        "C3:C4": "Notches",
-        "D3:D4": "Reaction Time",
-        "E3:F3": "Last coord",
-        "E4": "x",
-        "F4": "y"
+        "B3:B4": "Group #",
+        "C3:C4": "Trial #",
+        "D3:D4": "Result",
+        "E3:E4": "Notches",
+        "F3:F4": "Reaction Time",
+        "G3:H3": "Last coord",
+        "G4": "x",
+        "H4": "y"
     })
 
     trigger.update(MousesTable, "TimeStamps")
@@ -63,15 +68,18 @@ def run():
         siren = auto()
         init = auto()
         answer = auto()
-
+        plus = auto()
 
     run = True
 
-    roundCounter = 0
+    # roundCounter = 0
+    trialCounter = 0
+    groupCounter = 0
     loggerStep = 0
     loggerTimer = Timer()
     roundTimer = Timer()
-    status = Event.siren
+    plusTimer = Timer()
+    
     mainStats = {
         "arrived": 0,
         "missed":  0,
@@ -83,6 +91,8 @@ def run():
         "reactionTime": 0,
         "ableToMove":   False
     }
+
+    status = Event.siren
 
     Ball = MouseMechanics()
 
@@ -112,10 +122,9 @@ def run():
                     Ball.drag(-INVERSE * SENSITIVITY * event.y)
                     roundStats["notches"] += 1
         
-
         if not run:
             # ------- draw last position -------
-            vecLogger.saveTrail(Ball.getPartial(), roundCounter)
+            vecLogger.saveTrail(Ball.getPartial(), f"{groupCounter + 1}_{trialCounter + 1}")
             continue
 
         MousesGraphics.drawMouses(status, Event, Ball.getPos())
@@ -129,10 +138,10 @@ def run():
                     status = Event.init
             case Event.init:
                 lightSensor.pulse()
-                roundCounter += 1
-                MousesTable.createPage(f"Trajectories_{roundCounter}")
+
+                MousesTable.createPage(f"Trajectories_{groupCounter + 1}_{trialCounter + 1}")
                 # ------- Default Headers-------------
-                MousesTable.writeDataToPage(f"Trajectories_{roundCounter}", {
+                MousesTable.writeDataToPage(f"Trajectories_{groupCounter + 1}_{trialCounter + 1}", {
                     "A1:C1": "Trajectory",
                     "B2": "Generated",
                     "C2": "Subject",
@@ -148,7 +157,6 @@ def run():
                 })
                 # ==========================================
                 # -------- Answer --------
-                status = Event.answer
                 roundStats = {
                     "notches": 0,
                     "answer": "Skip",
@@ -165,28 +173,27 @@ def run():
                 loggerTimer.setTimer(roundTimer.getTimer())
                 # ------ Timestamp ------
                 trigger.send(trigger.TimeStamp.startMouse)
+
+                status = Event.answer
         
             case Event.answer:
                 # ------- make a step ---------
                 Ball.step()
                 # ------- log positions ---------
                 if loggerTimer.wait(LOG_FREQ):
-                    MousesTable.writeDataToPage(f"Trajectories_{roundCounter}", {
+                    MousesTable.writeDataToPage(f"Trajectories_{groupCounter + 1}_{trialCounter + 1}", {
                         f"A{loggerStep + 4}": int(Ball.getPos()[0]),
                         f"B{loggerStep + 4}": int(Ball.function(Ball.t)[1]),
                         f"C{loggerStep + 4}": int(Ball.getPos()[1])
                     })
-
                     loggerStep += 1
                     loggerTimer.setTimer()
 
                 if Ball.touchWall() or Ball.touchHole():
-                    status = Event.init
-                    
                     # --------------- Write File And Close ----------
                     vecLogger.saveTrail(
                         Ball.getPartial(),
-                        roundCounter
+                        f"{groupCounter + 1}_{trialCounter + 1}"
                     )
                     # -------------
             
@@ -204,17 +211,33 @@ def run():
 
                     # ======== Fill Round Log =========
                     print(roundStats)
+                    tableRow = (groupCounter * TRIALS + trialCounter) + 5
                     MousesTable.writeDataToPage("MainLog", {
-                        f"A{roundCounter + 4}": roundCounter,
-                        f"B{roundCounter + 4}": roundStats["answer"],
-                        f"C{roundCounter + 4}": roundStats["notches"],
-                        f"D{roundCounter + 4}": roundStats["reactionTime"],
-                        f"E{roundCounter + 4}": Ball.getPos()[0],
-                        f"F{roundCounter + 4}": Ball.getPos()[1]
+                        f"A{tableRow}": (groupCounter * TRIALS + trialCounter) + 1,
+                        f"B{tableRow}": groupCounter + 1,
+                        f"C{tableRow}": trialCounter + 1,
+                        f"D{tableRow}": roundStats["answer"],
+                        f"E{tableRow}": roundStats["notches"],
+                        f"F{tableRow}": roundStats["reactionTime"],
+                        f"G{tableRow}": Ball.getPos()[0],
+                        f"H{tableRow}": Ball.getPos()[1]
                     })
-                    if roundCounter >= ROUND:
+
+                    trialCounter += 1
+                    status = Event.init
+
+                    if trialCounter >= TRIALS:
+                        trialCounter = 0
+                        groupCounter += 1                        
+                        plusTimer.setTimer()
+                        status = Event.plus
+
+                    if groupCounter >= TRIAL_GROUPS:
                         run = False
 
+            case Event.plus:
+                if plusTimer.wait(PLUS_TIME):
+                    status = Event.init
 
     # ------- Filling the Main Log --------------
     trigger.send(trigger.TimeStamp.endProgram)

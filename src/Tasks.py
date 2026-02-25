@@ -18,7 +18,7 @@ def run():
     cfg.loadConfig()
     config = cfg.getConfig()
     # ----------------------------
-    ROUND = config['general']['experiment']['round']
+    ROUND = config['Equation']['experiment']['round']
     SUBJECT_NAME = config['general']['experiment']['name']
     SUBJECT_code = config['general']['experiment']['code']
     # ----------------------------

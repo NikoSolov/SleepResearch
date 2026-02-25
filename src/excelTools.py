@@ -11,7 +11,6 @@ class ExcelTable:
      return self.table.add_worksheet(pageName)
   def writeDataToPage(self, pageName: str, data: dict):
       page = self.table.get_worksheet_by_name(pageName)
-      # print(page)
       for cell in data:
           if ":" in cell:
               page.merge_range(cell, data[cell])

@@ -28,16 +28,16 @@ class VectorLogger:
         self.pathString = ""
 
     # save (close) svg file, add to archive and delete
-    def saveTrail(self, bPoints, roundCounter):
+    def saveTrail(self, bPoints, graphName):
         self.drawNotch(bPoints)
-        imageLogger = open(f"{self.DIR_NAME}/{roundCounter}.svg", "w")
+        imageLogger = open(f"{self.DIR_NAME}/{graphName}.svg", "w")
         imageLogger.write(self.template((bPoints[2][0], bPoints[2][1])))
         imageLogger.close()
 
-        self.ImageArchive.write(f"{self.DIR_NAME}/{roundCounter}.svg",
-                          f"log_img/{roundCounter}.svg",
+        self.ImageArchive.write(f"{self.DIR_NAME}/{graphName}.svg",
+                          f"log_img/{graphName}.svg",
                           zipfile.ZIP_DEFLATED)
-        os.remove(f"{self.DIR_NAME}/{roundCounter}.svg")
+        os.remove(f"{self.DIR_NAME}/{graphName}.svg")
 
     
     # save last Trail and close archive

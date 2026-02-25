@@ -18,7 +18,7 @@ def run():
     config = cfg.getConfig()
     # ------------------------------
     TIMESTAMPS_CONFIG = config["general"]["timeStamps"]
-    ROUND = config["general"]["experiment"]["round"]
+    ROUND = config["PVT"]["experiment"]["round"]
     SUBJECT_NAME = config["general"]["experiment"]["name"]
     SUBJECT_code = config["general"]["experiment"]["code"]
     # ------------------------------

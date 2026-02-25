@@ -23,17 +23,22 @@ class Graphics():
     )
     self.clk = pg.time.Clock()
     self.program = program
-    self.graphicDict = config[self.program]["graphics"]
-    print(self.graphicDict)
-    self.colorDict = self.graphicDict["colors"]
-    self.sizeDict = self.graphicDict["sizes"]
+    self.generalGraphicDict = config["general"]["graphics"]
+    self.programGraphicDict = config[self.program]["graphics"]
+
+    self.generalColorDict = self.generalGraphicDict["colors"]
+    self.generalSizeDict  = self.generalGraphicDict["sizes"]
+
+    self.programColorDict = self.programGraphicDict["colors"]
+    self.programSizeDict  = self.programGraphicDict["sizes"]
+
   def drawInit(self):
-    self.root.fill(self.colorDict["bg"])
+    self.root.fill(self.generalColorDict["bg"])
     lightSensor.draw(self.root)     
   def drawPlus(self):
-      C_PLUS = pg.Color(self.colorDict["plus"])
-      S_PLUS_RADIUS = self.sizeDict["plus"]["radius"]
-      S_PLUS_WIDTH  = self.sizeDict["plus"]["width"]
+      C_PLUS = pg.Color(self.generalColorDict["plus"])
+      S_PLUS_RADIUS = self.generalSizeDict["plus"]["radius"]
+      S_PLUS_WIDTH  = self.generalSizeDict["plus"]["width"]
       pg.draw.line(self.root, C_PLUS,
                   self.WIN_SIZE // 2 + pg.Vector2([0, -1]) *  S_PLUS_RADIUS,
                   self.WIN_SIZE // 2 + pg.Vector2([0,  1]) *  S_PLUS_RADIUS,
@@ -62,23 +67,23 @@ class Graphics():
         case Event.Circle:
             pg.draw.circle(
                 self.root,
-                pg.Color(self.colorDict["circle"]),
+                pg.Color(self.programColorDict["circle"]),
                 self.WIN_SIZE // 2,
-                self.sizeDict["circleRadius"]
+                self.programSizeDict["circleRadius"]
             )
     self.update()
 
   def drawTasks(self, status, Event, equationText, rightLevel, wrongLevel):
     # ----------------------------
-    C_RIGHT = self.colorDict['right']
-    C_WRONG = self.colorDict['wrong']
-    C_FONT = self.colorDict['font']
-    FONT = self.graphicDict['font']
+    C_RIGHT = self.programColorDict['right']
+    C_WRONG = self.programColorDict['wrong']
+    C_FONT = self.programColorDict['font']
+    FONT = self.programGraphicDict['font']
     # ----------------------------
-    S_SQR_WIDTH = self.sizeDict['squares']['width']
-    S_SQR_LENGTH = self.sizeDict['squares']['length']
+    S_SQR_WIDTH = self.programSizeDict['squares']['width']
+    S_SQR_LENGTH = self.programSizeDict['squares']['length']
     # ----------------------------    
-    equationFont = pg.font.SysFont(FONT, self.sizeDict['font'])
+    equationFont = pg.font.SysFont(FONT, self.programSizeDict['font'])
 
     self.drawInit()
 
@@ -100,14 +105,11 @@ class Graphics():
           sqrWidth
       )
 
-    print(status.name)
     match status:
         case Event.Siren:
             self.root.fill((0, 0, 0))
-            print("drawSiren")
         case Event.Plus | Event.AnswerPlus:
             self.drawPlus()
-            print("drawPlus")
         case Event.Answer:
             drawSquare(
                 color = C_RIGHT, 
@@ -152,17 +154,17 @@ class Graphics():
 
   def drawMouses(self, status, Event, BallPos):
     self.drawInit()
-    C_MOUSE = self.colorDict["mouse"]
-    C_HOLE  = self.colorDict["hole"]
-    RADIUS = self.sizeDict["radius"]
+    C_MOUSE = self.programColorDict["mouse"]
+    C_HOLE  = self.programColorDict["hole"]
+    RADIUS = self.programSizeDict["radius"]
 
     # -------- draw a hole ----------
-    pg.draw.circle(self.root,
-                   pg.Color(C_HOLE),
-                   (self.WIN_SIZE[0] - RADIUS, RADIUS),
-                   RADIUS
-                   )
-    # -------- draw light square ----------
+    pg.draw.circle(
+        self.root,
+        pg.Color(C_HOLE),
+        (self.WIN_SIZE[0] - RADIUS, RADIUS),
+        RADIUS
+    )
 
     match status:
         case Event.siren:
@@ -170,6 +172,8 @@ class Graphics():
         case Event.answer:
             # ------- draw a mouse ---------
             pg.draw.circle(self.root, pg.Color(C_MOUSE), BallPos, RADIUS)
+        case Event.plus:
+            self.drawPlus()
 
     self.update()
 

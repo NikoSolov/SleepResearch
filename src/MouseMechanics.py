@@ -143,3 +143,16 @@ class MouseMechanics():
         
     def getDots(self):
         return np.array([self.P0, self.P1, self.P2]).astype(np.int16)
+    
+    # def inCorridor(self) -> bool:
+    #     critBotFunction = (
+    #         self.P0 * (1 - self.t) * (1 - self.t)
+    #       + np.array([(self.BOTTOM_POS(0)[1] + self.P0[1])/2], self.P0[1]) * 2 * (1 - self.t) * self.t
+    #       + self.BOTTOM_POS(0) * self.t * self.t 
+    #     )
+    #     critTopFunction = (
+    #         self.P0 * (1 - self.t) * (1 - self.t)
+    #       + np.array([self.P0[0], (self.TOP_POS(0)[1] + self.P0[1])/2]) * 2 * (1 - self.t) * self.t
+    #       + self.TOP_POS(0) * self.t * self.t 
+    #     )
+    #     self.getPos() 
