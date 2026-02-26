@@ -120,11 +120,19 @@ class MouseMechanics():
             self.getPos() - np.array([RADIUS_MOUSE, WIN_SIZE[1] - RADIUS_MOUSE])
         ) > WAIT_ZONE
 
-    def function(self, t: float):
+    def bezier(self, t:float, P0, P1, P2):
         return (
-            self.P0 * (1 - t) * (1 - t)
-          + self.P1 * 2 * (1 - t) * t
-          + self.P2 * t * t 
+            P0 * (1 - t) * (1 - t)
+          + P1 * 2 * (1 - t) * t
+          + P2 * t * t 
+        )
+
+    def function(self, t: float):
+        return self.bezier(
+            t, 
+            self.P0,
+            self.P1,
+            self.P2
         )
 
     def derivative(self, t):
@@ -144,15 +152,60 @@ class MouseMechanics():
     def getDots(self):
         return np.array([self.P0, self.P1, self.P2]).astype(np.int16)
     
-    # def inCorridor(self) -> bool:
-    #     critBotFunction = (
-    #         self.P0 * (1 - self.t) * (1 - self.t)
-    #       + np.array([(self.BOTTOM_POS(0)[1] + self.P0[1])/2], self.P0[1]) * 2 * (1 - self.t) * self.t
-    #       + self.BOTTOM_POS(0) * self.t * self.t 
-    #     )
-    #     critTopFunction = (
-    #         self.P0 * (1 - self.t) * (1 - self.t)
-    #       + np.array([self.P0[0], (self.TOP_POS(0)[1] + self.P0[1])/2]) * 2 * (1 - self.t) * self.t
-    #       + self.TOP_POS(0) * self.t * self.t 
-    #     )
-    #     self.getPos() 
+    def getCorridor(self):
+        P2 = [
+            self.BOTTOM_POS(0),
+            self.TOP_POS(0)
+        ]
+
+        P1 = [
+            np.array([(P2[0][0] + self.P0[0])/2, self.P0[1]]),
+            np.array([self.P0[0], (P2[1][1] + self.P0[1])/2]),
+        ]
+
+        endP2 = [
+            np.array([
+                WIN_SIZE[0],
+                (P2[0][1]-self.START_POS[1])
+                /((P2[0][0]-self.START_POS[0])**2)
+                *((WIN_SIZE[0]-self.START_POS[0])**2)
+                 + self.START_POS[1]
+            ]),
+            np.array([
+                (P2[1][0]-self.START_POS[0])
+                /((2*P2[1][1]-WIN_SIZE[1])**2) 
+                *((self.START_POS[1])**2)
+                + self.START_POS[0],
+                0
+            ])
+        ]
+
+        print((
+            [self.P0, P1[0], endP2[0]],
+            [self.P0, P1[1], endP2[1]]
+        ))
+
+        return (
+            [self.P0, P1[0], endP2[0]],
+            [self.P0, P1[1], endP2[1]]
+        )
+    
+    def inCorridor(self) -> bool:
+        cur = self.getPos()
+
+        P2_bot = self.BOTTOM_POS(0)
+        P2_top = self.TOP_POS(0)
+
+        P1_bot = np.array([(P2_bot[0] + self.P0[0]) / 2, self.P0[1]], dtype=int)
+        P1_top = np.array([self.P0[0], (P2_top[1] + self.P0[1]) / 2], dtype=int)
+
+        coef_bot = self.P0 - 2.0 * P1_bot + P2_bot
+        coef_top = self.P0 - 2.0 * P1_top + P2_top
+
+        t12 = ((self.P0 - P1_bot - np.sqrt(cur * coef_bot + P1_bot**2 - P2_bot * self.P0)) / coef_bot)[1]
+        t21 = ((self.P0 - P1_top + np.sqrt(cur * coef_top + P1_top**2 - P2_top * self.P0)) / coef_top)[0]
+
+        botPosX1 = self.bezier(t12, self.P0, P1_bot, P2_bot).astype(int)
+        botPosX2 = self.bezier(t21, self.P0, P1_top, P2_top).astype(int)
+
+        return (botPosX1[0] - cur[0]) > 0 and (cur[1] - botPosX2[1]) > 0

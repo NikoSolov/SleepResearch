@@ -23,8 +23,9 @@ class VectorLogger:
             self.pathString += f"M {bPoints[2][0]} {bPoints[2][1]} l {0} {notch} "
 
     # save generated trail bPoints
-    def startTrail(self, bPoints):
-        self.gTrailPoints = bPoints
+    def startTrail(self, bGenPoints, bCorridorPoints):
+        self.gTrailPoints = bGenPoints
+        self.CorridorPoints = bCorridorPoints
         self.pathString = ""
 
     # save (close) svg file, add to archive and delete
@@ -70,9 +71,24 @@ width="{WIN_SIZE[0]}" height="{WIN_SIZE[1]}" x="0" y="0" />
 id="Hole" fill="{C_HOLE}" \
 cx="{WIN_SIZE[0] - RADIUS}" cy="{RADIUS}" r="{RADIUS}"/>
 <circle \
-id="Hole" fill="none" \
+id="disableArea" fill="none" \
 cx="{RADIUS}" cy="{WIN_SIZE[1] - RADIUS}" r="{WAIT_ZONE}" \
 stroke="red" stroke-width="3"/>
+
+<path \
+id="corridorArea" \
+fill="#ffff00" \
+fill-opacity="0.3" \
+d="\
+M {self.CorridorPoints[0][0][0]} {self.CorridorPoints[0][0][1]} \
+Q {self.CorridorPoints[0][1][0]} {self.CorridorPoints[0][1][1]} \
+{self.CorridorPoints[0][2][0]} {self.CorridorPoints[0][2][1]} \
+L {WIN_SIZE[0]} {0} \
+L {self.CorridorPoints[1][2][0]} {self.CorridorPoints[1][2][1]} \
+Q {self.CorridorPoints[1][1][0]} {self.CorridorPoints[1][1][1]} \
+{self.CorridorPoints[1][0][0]} \
+{self.CorridorPoints[1][0][1]} \
+"/>
 <path \
 id="generatedTrail" \
 stroke = "{C_GTRAIL}" \
@@ -81,7 +97,7 @@ stroke-dasharray:none; \
 stroke-linejoin:round; \
 stroke-linecap:round" \
 fill="none" \
-d="M {self.gTrailPoints[0][0]} 
+d="M {self.gTrailPoints[0][0]} \
 {self.gTrailPoints[0][1]} \
 Q {self.gTrailPoints[1][0]} \
 {self.gTrailPoints[1][1]} \
@@ -102,3 +118,36 @@ d="{self.pathString}"
 </svg>"""
 
        
+
+#        <path \
+# id="corridorArea" \
+# fill="#ffff00" \
+# fill-opacity="0.3" \
+# d="\
+# M {self.CorridorPoints[0][0][0]} {self.CorridorPoints[0][0][1]} \
+# Q {self.CorridorPoints[0][1][0]} \
+# {self.CorridorPoints[0][1][1]} \
+# {self.CorridorPoints[0][2][0]} \
+# {self.CorridorPoints[0][2][1]} \
+# L {WIN_SIZE[0] - RADIUS} {RADIUS} \
+# L {self.CorridorPoints[1][2][0]} {self.CorridorPoints[1][2][1]} \
+# Q {self.CorridorPoints[1][1][0]} \
+# {self.CorridorPoints[1][1][1]} \
+# {self.CorridorPoints[1][0][0]} \
+# {self.CorridorPoints[1][0][1]} \
+# "/>
+
+# <path \
+# id="corridorArea" \
+# fill="#ffff00" \
+# fill-opacity="0.3" \
+# d="\
+# M {self.CorridorPoints[0][0][0]} {self.CorridorPoints[0][0][1]} \
+# Q {self.CorridorPoints[0][1][0]} {self.CorridorPoints[0][1][1]} \
+# {self.CorridorPoints[0][2][0]} {self.CorridorPoints[0][2][1]} \
+# A {3 * RADIUS} {3 * RADIUS} 0 0 1 \
+# {self.CorridorPoints[1][2][0]} {self.CorridorPoints[1][2][1]} \
+# Q {self.CorridorPoints[1][1][0]} {self.CorridorPoints[1][1][1]} \
+# {self.CorridorPoints[1][0][0]} \
+# {self.CorridorPoints[1][0][1]} \
+# "/>

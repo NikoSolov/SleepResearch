@@ -145,9 +145,10 @@ def run():
                     "A1:C1": "Trajectory",
                     "B2": "Generated",
                     "C2": "Subject",
+                    "D1:D3": "In Corridor?",
                     "A3": "x",
-                    "C3": "y",
                     "B3": "y",
+                    "C3": "y",
                     "F1:G1": "Screen Resolution",
                     "E1": "Frequency",
                 # --------- Fill with vars --------------
@@ -167,7 +168,7 @@ def run():
                 # -------- Logger --------
                 loggerStep = 0
                 # -------- Image ---------
-                vecLogger.startTrail(Ball.getDots())
+                vecLogger.startTrail(Ball.getDots(), Ball.getCorridor())
                 # -------- Timers --------
                 roundTimer.setTimer()
                 loggerTimer.setTimer(roundTimer.getTimer())
@@ -184,10 +185,12 @@ def run():
                     MousesTable.writeDataToPage(f"Trajectories_{groupCounter + 1}_{trialCounter + 1}", {
                         f"A{loggerStep + 4}": int(Ball.getPos()[0]),
                         f"B{loggerStep + 4}": int(Ball.function(Ball.t)[1]),
-                        f"C{loggerStep + 4}": int(Ball.getPos()[1])
+                        f"C{loggerStep + 4}": int(Ball.getPos()[1]),
+                        f"D{loggerStep + 4}": int(Ball.inCorridor())
                     })
                     loggerStep += 1
                     loggerTimer.setTimer()
+                    Ball.inCorridor()
 
                 if Ball.touchWall() or Ball.touchHole():
                     # --------------- Write File And Close ----------
