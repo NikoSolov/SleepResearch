@@ -2,7 +2,7 @@ import numpy as np
 from random import choice as ch
 from random import uniform as rd
 import config as cfg
-
+# from icecream import ic
 cfg.loadConfig()
 
 config = cfg.getConfig()
@@ -15,7 +15,6 @@ WAIT_ZONE = SIZES["waitZone"]
 DISTANCE_MULTIPLIER = SIZES["distMul"]
 STEP = SIZES["speed"]
 MAX_DISPERSION = SIZES["maxDispersion"]
-
 
 WIN_SIZE = np.array([config["general"]["window"]["width"],
                      config["general"]["window"]["height"]])
@@ -76,19 +75,36 @@ class MouseMechanics():
 
         # self.answer = [
         #     [
-        #         self.CRIT_POS[choice // 2](0)[1] 
-        #      - (self.CRIT_POS[choice // 2](self.disp)[1] - RADIUS_MOUSE) 
-        #      * (
-        #          (self.CRIT_POS[choice // 2](0)[0]         - RADIUS_HOLE) 
-        #        / (self.CRIT_POS[choice // 2](self.disp)[0] - RADIUS_HOLE)
-        #        ) ** 2
-        #      - RADIUS_MOUSE,
+        #        self.CRIT_POS[0](0)[1] - RADIUS_MOUSE
+        #      - (self.P2[1] - RADIUS_MOUSE) 
+        #      * ((
+        #          (self.CRIT_POS[0](0)[0] - RADIUS_HOLE)
+        #         /(self.P2[0] - RADIUS_HOLE)
+        #     )** 2),
+        #        self.CRIT_POS[1](0)[1] - RADIUS_MOUSE
+        #      - (self.P2[1] - RADIUS_MOUSE) 
+        #      * ((
+        #          (self.CRIT_POS[0](0)[0] - RADIUS_HOLE)
+        #         /(self.P2[0] - RADIUS_HOLE)
+        #     )** 2)
         #     ],
-        #     0,
-        #     0,
-        #     0
-        # ][choice]
-        # print(self.answer)
+        #     [
+        #        self.CRIT_POS[0](0)[1] - RADIUS_MOUSE
+        #      - (self.P2[1] - RADIUS_MOUSE) 
+        #      * np.sqrt(
+        #          (self.CRIT_POS[0](0)[0]         - RADIUS_HOLE)
+        #        / (self.P2[0] - RADIUS_HOLE)
+        #     ),
+        #        self.CRIT_POS[1](0)[1] - RADIUS_MOUSE
+        #      - (self.P2[1] - RADIUS_MOUSE) 
+        #      * np.sqrt(
+        #          (self.CRIT_POS[0](0)[0]         - RADIUS_HOLE)
+        #        / (self.P2[0] - RADIUS_HOLE)
+        #     )
+        #     ]
+        # ]
+        # # ][choice]
+        # ic(self.answer)
 
     def getPos(self):
         return self.function(self.t) + np.array([0, self.yOffset])
@@ -114,6 +130,7 @@ class MouseMechanics():
     def drag(self, delta):
         self.lastT = self.t
         self.yOffset += delta
+        # ic(self.yOffset)
 
     def isOutWaitZone(self) -> bool:
         return np.linalg.norm(
@@ -179,12 +196,6 @@ class MouseMechanics():
                 0
             ])
         ]
-
-        print((
-            [self.P0, P1[0], endP2[0]],
-            [self.P0, P1[1], endP2[1]]
-        ))
-
         return (
             [self.P0, P1[0], endP2[0]],
             [self.P0, P1[1], endP2[1]]
