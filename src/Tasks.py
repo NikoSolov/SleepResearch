@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import time
 from enum import Enum
-from random import choice, randint
+from random import choice, randint, sample
 
 import pygame as pg
 
@@ -12,7 +12,7 @@ import trigger
 from excelTools import ExcelTable
 from timer import Timer
 from graphics import Graphics
-
+from icecream import ic
 def run():
     # ============ GET ALL CONSTANTS =========
     cfg.loadConfig()
@@ -26,6 +26,7 @@ def run():
     PLUS_TIME = DURATIONS['plus']
     ANSWER_TIME = DURATIONS['answer']
     FAST_ANSWER_TIME = DURATIONS['fastAnswer']
+    TERM_TIME = 2 # in seconds
     # ----------------------------
     CONTROL = config['Equation']['control']
     SENSE: float = CONTROL['sensitivity']
@@ -35,6 +36,10 @@ def run():
     DIR_NAME = f"{SUBJECT_NAME}{SUBJECT_code}_{time.strftime('%d.%m.%y')}_Tasks_{time.strftime('%H.%M.%S')}"
     FILEPATH = config['Equation']['file']['path']
     file = open(FILEPATH, 'r') if FILEPATH != "None" else None
+    # ---------------------------
+    TERM_COUNT = 4
+    EQU_COUNT = 4
+    GENERATED = True
     # =========================================
     TasksGraphics = Graphics("Equation")
 
@@ -73,6 +78,7 @@ def run():
         Plus = 1
         Answer = 2
         AnswerPlus = 3
+        Term = 4
 
     status = Event.Siren
     run = True
@@ -92,6 +98,49 @@ def run():
             "Skip": 0
         }
     }
+
+    def equationGenerator(equationScore: bool, termCount: int = 2):
+        ic(equationScore)
+        while True:
+            firstTerm = [choice([randint(1, 9), randint(10, 50)])]
+            term = firstTerm + sample(range(1, 9), termCount - 1)
+            ic(term)
+            if equationScore:
+                term.append(sum(term))
+            else:
+                wrongChoiceForTwo = choice([True, False])
+                wrongChoice = choice([
+                    "plusMinusDelta", 
+                    "plusMinusDelta2", 
+                    "minusRandom", 
+                    # "oldStyle"
+                ])
+                ic(wrongChoice)
+                if termCount == 2 and wrongChoiceForTwo:
+                    ic("minusNotPlus")
+                    term.append(term[0] - term[1])
+                else:
+                    match wrongChoice:
+                        case "plusMinusDelta":
+                            term.append(sum(term) + choice([-1, 1]) * randint(1, 3))
+                        case "plusMinusDelta2":
+                            term.append(sum(term) + choice([-1, 1]) * 10)
+                        case "minusRandom":
+                            term.append(sum(term) - choice(term))
+                        # case "oldStyle":
+                        #     c = randint(0, 50 + termCount*9)
+                        #     while c == sum(term):
+                        #         c = randint(0, 50 + termCount*9)
+                        #     term.append(c)
+            if len(term) == termCount + 1 and term[-1] > 0:
+                break
+
+        equationText = f"{term[0]}"
+        for i in term[1:-1]:
+            equationText += f"+{i}"
+        equationText += f"={term[-1]}"
+
+        return equationText
 
     while run:
         for event in pg.event.get():
@@ -140,17 +189,7 @@ def run():
                         equationScore = bool(int(lineFile[1]))
                     else:
                         equationScore = choice([True, False])
-                        # print(mainStats)
-                        # print(equationScore)
-                        a = randint(0, 50)
-                        b = randint(0, 9)
-                        if equationScore:
-                            c = a + b
-                        else:
-                            c = randint(0, 59)
-                            while c == a + b:
-                                c = randint(0, 59)
-                        equationText = f"{a}+{b}={c}"
+                        equationText = equationGenerator(equationScore)
 
                     mainStats['Equation'][str(equationScore)] += 1
                     roundStats = {
@@ -160,6 +199,9 @@ def run():
                         "Result": None,
                         "ReactionTime": None
                     }
+            case Event.Term:
+                pass
+
             case Event.Answer:
                 if rightLevel >= 1 or wrongLevel >= 1:
                     if roundStats['ReactionTime'] == None:
