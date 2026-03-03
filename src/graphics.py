@@ -110,6 +110,15 @@ class Graphics():
             self.root.fill((0, 0, 0))
         case Event.Plus | Event.AnswerPlus:
             self.drawPlus()
+        case Event.Term | Event.Answer:
+            equationSurf = equationFont.render(
+                equationText, True, pg.Color(C_FONT)
+            )
+            self.root.blit(equationSurf,
+                self.WIN_SIZE // 2 - pg.Vector2(equationSurf.get_size()) // 2
+            )
+
+    match status:
         case Event.Answer:
             drawSquare(
                 color = C_RIGHT, 
@@ -143,12 +152,6 @@ class Graphics():
                 ),
                 sqrWidth = 0,
                 sqrHeight = wrongLevel
-            )
-            equationSurf = equationFont.render(
-                equationText, True, pg.Color(C_FONT)
-            )
-            self.root.blit(equationSurf,
-                self.WIN_SIZE // 2 - pg.Vector2(equationSurf.get_size()) // 2
             )
     self.update()    
 

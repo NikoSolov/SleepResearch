@@ -76,12 +76,17 @@ CONFIG_STD = {
     },
     "Equation": {
         "experiment" : {
-            "round" : 20
+            "round" : 20,
+            "fileMode": False,
+            "filePath": "None",
+            "generatedTermCount": 4
         },
         "duration": {
             "plus": 0.5,
-            "fastAnswer": 2,
-            "answer": 5
+            "fastAnswer": 2.0,
+            "answer": 5.0,
+            "term": 1.0,
+            "pause": 0.5
         },
         "graphics": {
             "colors": {
@@ -97,9 +102,6 @@ CONFIG_STD = {
                 "font": 150
             },
             "font": "Comic Sans"
-        },
-        "file": {
-            "path": "None"
         },
         "control": {
             "sensitivity": 0.3,

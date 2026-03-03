@@ -4,7 +4,7 @@ from tkinter import ttk, filedialog
 from tkinter.colorchooser import askcolor
 from tkfontchooser import askfont
 import config as cfg
-
+import trigger
 
 class MainMenu:
     def __init__(self):
@@ -14,7 +14,6 @@ class MainMenu:
         self.root.title('Configuration window'); 
         self.root.minsize(220, 120)
         self.root.protocol("WM_DELETE_WINDOW", self._on_close)
-
         user32 = ctypes.windll.user32
         self.displaySize = user32.GetSystemMetrics(0), user32.GetSystemMetrics(1)
         cfg.loadConfig()
@@ -22,8 +21,8 @@ class MainMenu:
 
         self.valueFrames = self._setToType(self.config)
         self._update_dict_values(self.valueFrames, self.config)
-
         self._create_widgets()
+        trigger.update()
         # self._apply_dark_theme()
 
     def get_timer_value(self):
@@ -86,13 +85,18 @@ class MainMenu:
 
     def _selectFile(self):
         filetypes = (('.txt файлы', '*.txt'), ('Все файлы', '*.*'))
-        file = filedialog.askopenfilename(title='Выберите файл', initialdir='/',
-                                        filetypes=filetypes)
+        filePath = self.valueFrames["Equation"]["experiment"]["filePath"].get()
+        file = filedialog.askopenfilename(
+            title='Выберите файл', 
+            initialdir='/' if filePath == "None" 
+            else filePath[:filePath.rfind("/")],
+            filetypes=filetypes
+        )
         print(file)
-        if file == "":
-            self.valueFrames["Equation"]["file"]["path"].set("None")
-        else:
-            self.valueFrames["Equation"]["file"]["path"].set(file)
+        if file != "":
+            self.valueFrames["Equation"]["experiment"]["filePath"].set(file)
+            self.taskFileBtn.configure(text = f"{file.split('/')[-2]}/{file.split('/')[-1]}")
+
 
     class CountdownButton(tk.Button):
         def __init__(self, get_timer_value, on_timeout, *args, **kwargs):
@@ -124,7 +128,13 @@ class MainMenu:
         self.valueFrames["general"]["experiment"]["program"].set(selectedTabName)
         self.startButton.config(text=f"Запустить программу '{selectedTabName}'")
 
+    def _on_space_press(self, event):
+        print("space")
+        trigger.send(trigger.TimeStamp.manualStamp)        
+        print("trigger.send")
+
     def _create_widgets(self):
+        self.root.bind('<space>', self._on_space_press)
 
         generalFrame = tk.LabelFrame(self.root, text="Общие настройки", borderwidth=10); generalFrame    .grid(column=0, row=0, sticky="news")
 
@@ -143,7 +153,14 @@ class MainMenu:
             relief = "raised",
         )
         self.startButton.grid(column=1, row=1) #, sticky="NEWS")
+        
+        self.drawGeneralMenu(generalFrame)
+        self.drawMouseMenu(mouseTab)
+        self.drawTaskMenu(taskTab)
+        self.drawPVTMenu(pvtTab)
+        self.drawControlMenu(controlTab)
 
+    def drawGeneralMenu(self, generalFrame):
         # ======== general tab ===========
         generalConfig = self.valueFrames["general"   ]
         windowConfig          = generalConfig["window"    ]
@@ -197,12 +214,14 @@ class MainMenu:
         tk.Entry  (taskExperimentFrame, textvariable=experimentConfig["name" ], width=10,                  ).grid(column=1, row=2)
         tk.Entry  (taskExperimentFrame, textvariable=experimentConfig["code" ], width=10,                  ).grid(column=1, row=3)
         # ---------- timeStampsFrame ----------------
-        tk.Label      (timeStampsFrame, text="USB-метки?"                                                     ).grid(column=0, row=0)
-        tk.Label      (timeStampsFrame, text="Датчик света?"                                                  ).grid(column=0, row=1)
-        tk.Label      (timeStampsFrame, text="Размер квадрата света"                                          ).grid(column=0, row=2)
-        tk.Checkbutton(timeStampsFrame,     variable=timeStampsConfig["trigger"  ], onvalue=1, offvalue=0     ).grid(column=1, row=0)
-        tk.Checkbutton(timeStampsFrame,     variable=timeStampsConfig["light"    ], onvalue=1, offvalue=0     ).grid(column=1, row=1)
-        tk.Spinbox    (timeStampsFrame, textvariable=timeStampsConfig["lightSize"], width=5, from_=0, to=20000).grid(column=1, row=2)
+        tk.Label      (timeStampsFrame, text="Датчик света?"                                                  ).grid(column=0, row=0)
+        tk.Label      (timeStampsFrame, text="Размер квадрата света"                                          ).grid(column=0, row=1)
+        tk.Label      (timeStampsFrame, text="USB-метки?"                                                     ).grid(column=0, row=2)
+        tk.Checkbutton(timeStampsFrame,     variable=timeStampsConfig["light"    ], onvalue=1, offvalue=0     ).grid(column=1, row=0)
+        tk.Spinbox    (timeStampsFrame, textvariable=timeStampsConfig["lightSize"], width=5, from_=0, to=20000).grid(column=1, row=1)
+        tk.Checkbutton(timeStampsFrame,     variable=timeStampsConfig["trigger"  ], onvalue=1, offvalue=0     ).grid(column=1, row=2)
+
+    def drawMouseMenu(self, mouseTab):
         # ======== Mouse Tab =======================
         mouseConfig = self.valueFrames["Mouses"]
         mouseControlConfig  = mouseConfig["control"]
@@ -259,6 +278,8 @@ class MainMenu:
         mouseHOLE   = tk.Button(mousesColorsFrame, text="***", fg="white", bg=mouseGraphicsColors["hole"  ].get(), command=lambda element="hole"   : self._changeColor(mouseGraphicsColors[element], mouseHOLE  )); mouseHOLE  .grid(column=1, row=1)
         mouseGTRAIL = tk.Button(mousesColorsFrame, text="***", fg="white", bg=mouseGraphicsColors["gtrail"].get(), command=lambda element="gtrail" : self._changeColor(mouseGraphicsColors[element], mouseGTRAIL)); mouseGTRAIL.grid(column=1, row=2)
         mouseSTRAIL = tk.Button(mousesColorsFrame, text="***", fg="white", bg=mouseGraphicsColors["strail"].get(), command=lambda element="strail" : self._changeColor(mouseGraphicsColors[element], mouseSTRAIL)); mouseSTRAIL.grid(column=1, row=3)
+
+    def drawTaskMenu(self, taskTab):
         # ======= Task Tab =====================
         taskValues = self.valueFrames["Equation"]
         taskSizesValues    = taskValues["graphics"]["sizes"]
@@ -266,22 +287,41 @@ class MainMenu:
         taskFontFamily     = taskValues["graphics"]["font"]
         taskControlConfig  = taskValues["control"]
         taskDurationConfig = taskValues["duration"]
-        taskSelectFile     = taskValues["file"]["path"]
         taskExperiment     = taskValues["experiment"]
+        taskSelectFile     = taskExperiment["filePath"]
+        taskTermCount      = taskExperiment["generatedTermCount"]
+        taskRound          = taskExperiment["round"]
+        taskMode           = taskExperiment["fileMode"]
         # ----------------------------
         taskControlFrame    = tk.LabelFrame(taskTab, text="Управление"    ); taskControlFrame.grid(column=1, row=0, sticky="news")
         taskDelayFrame      = tk.LabelFrame(taskTab, text="Time Delays"); taskDelayFrame     .grid(column=1, row=1, sticky="news")
         taskGraphicsFrame   = tk.LabelFrame(taskTab, text="Графика"    ); taskGraphicsFrame  .grid(column=2, row=0, sticky="news", rowspan=4)
         # ----------- Experiment -------------------
-        taskExperimentFrame = tk.LabelFrame(taskTab, text="Настройка эксперимента" ); taskExperimentFrame.grid(column=0, row=0, sticky="news")
+        taskExperimentFrame = tk.LabelFrame(taskTab, text="Настройка эксперимента" ); taskExperimentFrame.grid(column=0, row=0, rowspan=2, sticky="news")
 
         taskRoundFrame  = tk.LabelFrame(taskExperimentFrame, borderwidth=10); taskRoundFrame.grid(column=0, row=0, columnspan=2, sticky="news")
         tk.Label  (taskRoundFrame, text="Кол-во трайлов"                                   ).grid(column=0, row=0)
-        tk.Spinbox(taskRoundFrame, textvariable=taskExperiment["round"], width=5,  from_=1, to=20000).grid(column=1, row=0)
+        tk.Spinbox(taskRoundFrame, textvariable=taskRound, width=5,  from_=1, to=20000).grid(column=1, row=0)
+
+        taskModeFrame  = tk.LabelFrame(taskExperimentFrame, text = "Режим эксперимента"); taskModeFrame.grid(column=0, row=1, sticky="news")
+        tk.Radiobutton(taskModeFrame, text="Генерация", variable=taskMode, value=False).grid(column=0, row=0, sticky="w")
+        tk.Radiobutton(taskModeFrame, text="Из файла",  variable=taskMode, value=True ).grid(column=0, row=1, sticky="w")
         # ----------- fileChoice --------------------
-        taskFileFrame       = tk.LabelFrame(taskExperimentFrame, text="File Choice"); taskFileFrame      .grid(column=0, row=1, sticky="news")
-        tk.Label (taskFileFrame, text="Choose File:"                                                     ).grid(column=0, row=0)
-        tk.Button(taskFileFrame, textvariable=taskSelectFile, command=self._selectFile).grid(column=1, row=0)
+        self.taskFileFrame  = tk.LabelFrame(taskExperimentFrame, text="File Choice"); self.taskFileFrame .grid(column=0, row=2, sticky="news")
+        tk.Label (self.taskFileFrame, text="Choose File:"                                  ).grid(column=0, row=0)
+        
+
+        self.taskFileBtn = tk.Button(
+            self.taskFileFrame, 
+            text="None" if taskSelectFile.get() == "None" else f"{taskSelectFile.get().split('/')[-2]}/{taskSelectFile.get().split('/')[-1]}",
+            command=self._selectFile
+        ); self.taskFileBtn.grid(column=1, row=0)
+        
+        # ----------- generated --------------------
+        self.generatedFrame = tk.LabelFrame(taskExperimentFrame, text="Generated"  ); self.generatedFrame.grid(column=0, row=3, sticky="news")
+        tk.Label  (self.generatedFrame, text="Кол-во слагаемых:"                             ).grid(column=0, row=0)
+        tk.Spinbox(self.generatedFrame, textvariable=taskTermCount, width=5,  from_=1, to=20000).grid(column=1, row=0)
+
 
         taskSizesFrame   = tk.LabelFrame(taskGraphicsFrame, text="Размеры"                                                                     ); taskSizesFrame  .grid(column=0, row=0, sticky="news")
         (                  tk.Label     (taskGraphicsFrame, text="Тип Шрифта"                                                                  )                  .grid(column=0, row=1, sticky="news"))
@@ -291,7 +331,6 @@ class MainMenu:
         taskSizesSquares = tk.LabelFrame(taskSizesFrame, text="Квадраты"); taskSizesSquares.grid(column=0, columnspan=2, row=1, sticky="news")
 
         # --------------------------------------------
-
         tk.Label  (taskSizesSquares, text="Длина"                                                                 ).grid(column=0, row=0)
         tk.Label  (taskSizesSquares, text="Контур"                                                                ).grid(column=0, row=1)
         tk.Spinbox(taskSizesSquares, textvariable=taskSizesValues["squares"]["length"], width=5, from_=0, to=20000).grid(column=1, row=0)
@@ -314,13 +353,17 @@ class MainMenu:
         tk.Checkbutton(taskControlFrame,     variable=taskControlConfig["inverse"    ], onvalue=1, offvalue=0                  ).grid(column=1, row=0)
         tk.Spinbox    (taskControlFrame, textvariable=taskControlConfig["sensitivity"], width=5, increment=0.1, from_=0.1, to=1).grid(column=1, row=1) 
         # ----------- timeDelays --------------------
-        tk.Label  (taskDelayFrame, text="Plus Time"                                                                                     ).grid(column=0, row=0)
-        tk.Label  (taskDelayFrame, text="Answer Time"                                                                                   ).grid(column=0, row=1)
+        tk.Label  (taskDelayFrame, text="Plus Time"                                                                    ).grid(column=0, row=0)
+        tk.Label  (taskDelayFrame, text="Answer Time"                                                                  ).grid(column=0, row=1)
+        tk.Label  (taskDelayFrame, text="Term Time"                                                                    ).grid(column=0, row=2)
+        tk.Label  (taskDelayFrame, text="Pause Time"                                                                   ).grid(column=0, row=3)
         tk.Spinbox(taskDelayFrame, textvariable=taskDurationConfig["plus"  ], width=5, increment=0.1, from_=0, to=20000).grid(column=1, row=0)
         tk.Spinbox(taskDelayFrame, textvariable=taskDurationConfig["answer"], width=5, increment=0.1, from_=0, to=20000).grid(column=1, row=1)
+        tk.Spinbox(taskDelayFrame, textvariable=taskDurationConfig["term"  ], width=5, increment=0.1, from_=0, to=20000).grid(column=1, row=2)
+        tk.Spinbox(taskDelayFrame, textvariable=taskDurationConfig["pause" ], width=5, increment=0.1, from_=0, to=20000).grid(column=1, row=3)
 
+    def drawPVTMenu(self, pvtTab):
         # ======= PVT Tab =====================
-
         pvtValues = self.valueFrames["PVT"]
         pvtSizesValues      = pvtValues["graphics"]["sizes" ]
         pvtColorsValues     = pvtValues["graphics"]["colors"]
@@ -358,6 +401,8 @@ class MainMenu:
         tk.Spinbox(pvtDelayFrame, textvariable=pvtDelayValues["emptyMax"], width=5, increment=0.1, from_=0, to=20000).grid(column=1, row=2)
         tk.Spinbox(pvtDelayFrame, textvariable=pvtDelayValues["answer"  ], width=5, increment=0.1, from_=0, to=20000).grid(column=1, row=3)
         tk.Spinbox(pvtDelayFrame, textvariable=pvtDelayValues["msi"     ], width=5, increment=0.1, from_=0, to=20000).grid(column=1, row=4)
+
+    def drawControlMenu(self, controlTab):
         # ======= Control Tab =====================
 
         controlValues = self.valueFrames["Control"]

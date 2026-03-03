@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import time
-from enum import Enum
+from enum import Enum, auto
 from random import choice, randint, sample
 
 import pygame as pg
@@ -23,23 +23,23 @@ def run():
     SUBJECT_code = config['general']['experiment']['code']
     # ----------------------------
     DURATIONS = config['Equation']['duration']
-    PLUS_TIME = DURATIONS['plus']
-    ANSWER_TIME = DURATIONS['answer']
+    PLUS_TIME        = DURATIONS['plus']
+    ANSWER_TIME      = DURATIONS['answer']
     FAST_ANSWER_TIME = DURATIONS['fastAnswer']
-    TERM_TIME = 2 # in seconds
+    TERM_TIME        = DURATIONS['term'] # in seconds
+    PAUSE_TIME       = DURATIONS['pause'] # in seconds
     # ----------------------------
     CONTROL = config['Equation']['control']
     SENSE: float = CONTROL['sensitivity']
-    print(SENSE)
+    # print(SENSE)
     INV: int = -1 if CONTROL['inverse'] else 1
     # ----------------------------
     DIR_NAME = f"{SUBJECT_NAME}{SUBJECT_code}_{time.strftime('%d.%m.%y')}_Tasks_{time.strftime('%H.%M.%S')}"
-    FILEPATH = config['Equation']['file']['path']
+    FILEPATH = config['Equation']['experiment']['filePath']
     file = open(FILEPATH, 'r') if FILEPATH != "None" else None
     # ---------------------------
-    TERM_COUNT = 4
-    EQU_COUNT = 4
-    GENERATED = True
+    TERM_COUNT = config['Equation']['experiment']['generatedTermCount']
+    FILE_MODE  = config['Equation']['experiment']['fileMode']
     # =========================================
     TasksGraphics = Graphics("Equation")
 
@@ -72,17 +72,20 @@ def run():
     rightLevel: float = 0
     wrongLevel: float = 0
     equationText: str = ""
+    shownEquationText: str = ""
 
     class Event(Enum):
-        Siren = 0
-        Plus = 1
-        Answer = 2
-        AnswerPlus = 3
-        Term = 4
+        Siren      = auto()
+        Plus       = auto()
+        Answer     = auto()
+        AnswerPlus = auto()
+        Term       = auto()
+        Pause      = auto()
 
     status = Event.Siren
     run = True
     stageTimer = Timer()
+    termIndex = 0
 
     roundCounter = 1
     mainStats = {
@@ -156,9 +159,9 @@ def run():
                     if (notch > 0) else 
                     (0, wrongLevel - SENSE * notch)
                 )
-                print(rightLevel, wrongLevel)
+                # print(rightLevel, wrongLevel)
 
-        TasksGraphics.drawTasks(status, Event, equationText, rightLevel, wrongLevel)
+        TasksGraphics.drawTasks(status, Event, shownEquationText, rightLevel, wrongLevel)
 
         match status:
             # ---------- Siren Plays ----------------
@@ -175,13 +178,10 @@ def run():
             case Event.Plus:
                 # --------- lightSensorOn -----------------
                 if stageTimer.wait(PLUS_TIME):
-                    stageTimer.setTimer()
-                    status = Event.Answer
                     trigger.send(trigger.TimeStamp.startTask)
                     # ------------- generate equation --------------
-                    if file is not None:
+                    if file is not None and FILE_MODE:
                         lineFile = file.readline()
-                        # print(d)
                         if lineFile == "":
                             run = False
                         lineFile = lineFile.split()
@@ -189,7 +189,17 @@ def run():
                         equationScore = bool(int(lineFile[1]))
                     else:
                         equationScore = choice([True, False])
-                        equationText = equationGenerator(equationScore)
+                        equationText = equationGenerator(equationScore, TERM_COUNT)
+
+                    textParts = equationText.split("+")
+
+                    if len(textParts) > 2:
+                        status = Event.Term
+                        shownEquationText = f"{textParts[0]}+{textParts[1]}"
+                        termIndex = 0
+                    else:
+                        status = Event.Answer
+                        shownEquationText = equationText
 
                     mainStats['Equation'][str(equationScore)] += 1
                     roundStats = {
@@ -199,14 +209,29 @@ def run():
                         "Result": None,
                         "ReactionTime": None
                     }
+                    stageTimer.setTimer()
+
             case Event.Term:
-                pass
+                if stageTimer.wait(TERM_TIME):
+                    termIndex += 1
+                    ic(termIndex, len(textParts))
+                    if termIndex < len(textParts) - 1:
+                        shownEquationText = f"+{textParts[termIndex + 1]}"
+                    status = Event.Pause
+                    stageTimer.setTimer()
+
+            case Event.Pause:
+                if stageTimer.wait(PAUSE_TIME):
+                    if termIndex < len(textParts) - 2:
+                        status = Event.Term
+                    else:
+                        status = Event.Answer
+                    stageTimer.setTimer()
 
             case Event.Answer:
                 if rightLevel >= 1 or wrongLevel >= 1:
                     if roundStats['ReactionTime'] == None:
                         roundStats['ReactionTime'] = stageTimer.getDelta()
-                        print('GOTEM')
                         trigger.send(trigger.TimeStamp.userInput)
 
                     levels = {
