@@ -52,7 +52,7 @@ class VectorLogger:
             config["general"]["window"]["width"],
             config["general"]["window"]["height"]
         ]
-        C_BG      = config["Mouses"]["graphics"]["colors"]["bg"]
+        C_BG      = config["general"]["graphics"]["colors"]["bg"]
         C_GTRAIL  = config["Mouses"]["graphics"]["colors"]["gtrail"]
         C_STRAIL  = config["Mouses"]["graphics"]["colors"]["strail"]
         C_MOUSE   = config["Mouses"]["graphics"]["colors"]["mouse"]

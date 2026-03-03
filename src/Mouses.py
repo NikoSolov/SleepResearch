@@ -58,7 +58,8 @@ def run():
         "F3:F4": "Reaction Time",
         "G3:H3": "Last coord",
         "G4": "x",
-        "H4": "y"
+        "H4": "y",
+        "I3:I4": "Процент нахождения\nв коридоре"
     })
 
     trigger.update(MousesTable, "TimeStamps")
@@ -76,6 +77,7 @@ def run():
     trialCounter = 0
     groupCounter = 0
     loggerStep = 0
+    loggerInCorridor = 0
     loggerTimer = Timer()
     roundTimer = Timer()
     plusTimer = Timer()
@@ -167,6 +169,7 @@ def run():
                 Ball.startTrail()
                 # -------- Logger --------
                 loggerStep = 0
+                loggerInCorridor = 0
                 # -------- Image ---------
                 vecLogger.startTrail(Ball.getDots(), Ball.getCorridor())
                 # -------- Timers --------
@@ -189,6 +192,7 @@ def run():
                         f"D{loggerStep + 4}": int(Ball.inCorridor())
                     })
                     loggerStep += 1
+                    loggerInCorridor += Ball.inCorridor()
                     loggerTimer.setTimer()
                     Ball.inCorridor()
 
@@ -223,7 +227,8 @@ def run():
                         f"E{tableRow}": roundStats["notches"],
                         f"F{tableRow}": roundStats["reactionTime"],
                         f"G{tableRow}": Ball.getPos()[0],
-                        f"H{tableRow}": Ball.getPos()[1]
+                        f"H{tableRow}": Ball.getPos()[1],
+                        f"I{tableRow}": loggerInCorridor/loggerStep,
                     })
 
                     trialCounter += 1
