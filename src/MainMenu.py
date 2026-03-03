@@ -5,13 +5,12 @@ from tkinter.colorchooser import askcolor
 from tkfontchooser import askfont
 import config as cfg
 import trigger
-
 class MainMenu:
     def __init__(self):
         self.result = None
         self.root = tk.Tk(); 
         self.root.resizable(False, False); 
-        self.root.title('Configuration window'); 
+        self.root.title('SleepResearch'); 
         self.root.minsize(220, 120)
         self.root.protocol("WM_DELETE_WINDOW", self._on_close)
         user32 = ctypes.windll.user32
@@ -69,9 +68,7 @@ class MainMenu:
         return dict1
 
     def _changeColor(self, colorConfig, button):
-        print(colorConfig)
-        colors = askcolor(title="ColorsChooserPicker")
-        print(colors)
+        colors = askcolor(title="Окно выбора цвета")
         if colors[1] is not None:
             button.config(bg=colors[1])
             colorConfig.set(colors[1])
@@ -80,19 +77,19 @@ class MainMenu:
         font = askfont(text="12+53=65",
                     family=self.valueFrames["Equation"]["graphics"]["font"].get(),
                     size=self.valueFrames["Equation"]["graphics"]["sizes"]["font"].get())
-        button.config(text=font["family"])
-        self.valueFrames["Equation"]["graphics"]["font"].set(font["family"])
+        if font != "":
+            button.config(text=font["family"])
+            self.valueFrames["Equation"]["graphics"]["font"].set(font["family"])
 
     def _selectFile(self):
         filetypes = (('.txt файлы', '*.txt'), ('Все файлы', '*.*'))
         filePath = self.valueFrames["Equation"]["experiment"]["filePath"].get()
         file = filedialog.askopenfilename(
-            title='Выберите файл', 
+            title='Выберите файл',
             initialdir='/' if filePath == "None" 
             else filePath[:filePath.rfind("/")],
             filetypes=filetypes
         )
-        print(file)
         if file != "":
             self.valueFrames["Equation"]["experiment"]["filePath"].set(file)
             self.taskFileBtn.configure(text = f"{file.split('/')[-2]}/{file.split('/')[-1]}")
@@ -109,15 +106,12 @@ class MainMenu:
         def start_countdown(self):
             self.configure(state="disabled")
             self.count = self.get_timer_value()
-            print(self.count)
-            print("start countdown")
             self.countdown()
 
         def countdown(self):
-            print("countdown", self.count)
             if self.count > 0:
                 self.count -= 1
-                self.configure(text=f"Get Ready...{self.count}")
+                self.configure(text=f"Приготовтесь...{self.count}")
                 self.after(1000, self.countdown)  # repeat after 1 second
             else:
                 self.on_timeout()
@@ -129,9 +123,7 @@ class MainMenu:
         self.startButton.config(text=f"Запустить программу '{selectedTabName}'")
 
     def _on_space_press(self, event):
-        print("space")
         trigger.send(trigger.TimeStamp.manualStamp)        
-        print("trigger.send")
 
     def _create_widgets(self):
         self.root.bind('<space>', self._on_space_press)
@@ -224,15 +216,15 @@ class MainMenu:
     def drawMouseMenu(self, mouseTab):
         # ======== Mouse Tab =======================
         mouseConfig = self.valueFrames["Mouses"]
-        mouseControlConfig  = mouseConfig["control"]
-        mouseGraphics       = mouseConfig["graphics"]
+        mouseControlConfig  = mouseConfig["control"   ]
+        mouseGraphics       = mouseConfig["graphics"  ]
         mouseExperiment     = mouseConfig["experiment"]
-        mouseGraphicsSizes  = mouseGraphics["sizes"]
+        mouseGraphicsSizes  = mouseGraphics["sizes" ]
         mouseGraphicsColors = mouseGraphics["colors"]
         mouseExpFrame      = tk.LabelFrame(mouseTab, text="Настройка эксперимента"   ); mouseExpFrame     .grid(column=0, row=0, sticky="news", rowspan=3)
         mouseControlFrame  = tk.LabelFrame(mouseTab, text="Управление"               ); mouseControlFrame .grid(column=1, row=0, sticky="news")
-        mouseDelaysFrame   = tk.LabelFrame(mouseTab, text="Time Delays"              ); mouseDelaysFrame  .grid(column=1, row=1, sticky="news")
-        mouseLoggerFrame   = tk.LabelFrame(mouseTab, text="Logger"                   ); mouseLoggerFrame  .grid(column=1, row=2, sticky="news")
+        mouseDelaysFrame   = tk.LabelFrame(mouseTab, text="Длительность"             ); mouseDelaysFrame  .grid(column=1, row=1, sticky="news")
+        mouseLoggerFrame   = tk.LabelFrame(mouseTab, text="Логгер траекторий"        ); mouseLoggerFrame  .grid(column=1, row=2, sticky="news")
         mouseGraphicsFrame = tk.LabelFrame(mouseTab, text="Графика"                  ); mouseGraphicsFrame.grid(column=2, row=0, sticky="news", rowspan=3)
 
         # ------- ExperimentFrame
@@ -250,10 +242,10 @@ class MainMenu:
         tk.Checkbutton(mouseControlFrame,     variable=mouseControlConfig["inverse"    ], onvalue=1, offvalue=0     ).grid(column=1, row=0)
         tk.Spinbox    (mouseControlFrame, textvariable=mouseControlConfig["sensitivity"], from_=0, to=20000, width=5).grid(column=1, row=1)
         # ----------- durationFrame --------------------
-        tk.Label  (mouseDelaysFrame, text="Plus Time"                                                                        ).grid(column=0, row=0)
+        tk.Label  (mouseDelaysFrame, text="Плюс"                                                                        ).grid(column=0, row=0)
         tk.Spinbox(mouseDelaysFrame, textvariable=mouseConfig["duration"]["plus"], width=5, increment=0.01, from_=0, to=20000).grid(column=1, row=0)
         # ----------- loggerFrame --------------------
-        tk.Label  (mouseLoggerFrame, text="Frequency"                                                                      ).grid(column=0, row=0)
+        tk.Label  (mouseLoggerFrame, text="Период записи (сек.)"                                                           ).grid(column=0, row=0)
         tk.Spinbox(mouseLoggerFrame, textvariable=mouseConfig["logger"]["freq"], width=5, increment=0.01, from_=0, to=20000).grid(column=1, row=0)
         # ----------- graphics --------------------
         mousesColorsFrame = tk.LabelFrame(mouseGraphicsFrame, text="Цвета"  ); mousesColorsFrame.grid(column=1, row=0, sticky="news")
@@ -262,7 +254,7 @@ class MainMenu:
         tk.Label  (mousesSizesFrame, text="Радиус зоны\nбездействия"                                                            ).grid(column=0, row=1)
         tk.Label  (mousesSizesFrame, text="Радиусы"                                                                             ).grid(column=0, row=2)
         tk.Label  (mousesSizesFrame, text="Скорость мыши"                                                                       ).grid(column=0, row=3)
-        tk.Label  (mousesSizesFrame, text="Максимальный\nразброс\n[0.07; 1)"                                                    ).grid(column=0, row=4)
+        tk.Label  (mousesSizesFrame, text="Максимальный\nразброс\n[0.01; 1)"                                                    ).grid(column=0, row=4)
         tk.Spinbox(mousesSizesFrame, textvariable=mouseGraphicsSizes["distMul"      ], width=5, from_=0, to=20000, increment=0.1).grid(column=1, row=0)
         tk.Spinbox(mousesSizesFrame, textvariable=mouseGraphicsSizes["waitZone"     ], width=5, from_=0                         ).grid(column=1, row=1)
         tk.Spinbox(mousesSizesFrame, textvariable=mouseGraphicsSizes["radius"       ], width=5, from_=0, to=200                 ).grid(column=1, row=2)
@@ -293,9 +285,9 @@ class MainMenu:
         taskRound          = taskExperiment["round"]
         taskMode           = taskExperiment["fileMode"]
         # ----------------------------
-        taskControlFrame    = tk.LabelFrame(taskTab, text="Управление"    ); taskControlFrame.grid(column=1, row=0, sticky="news")
-        taskDelayFrame      = tk.LabelFrame(taskTab, text="Time Delays"); taskDelayFrame     .grid(column=1, row=1, sticky="news")
-        taskGraphicsFrame   = tk.LabelFrame(taskTab, text="Графика"    ); taskGraphicsFrame  .grid(column=2, row=0, sticky="news", rowspan=4)
+        taskControlFrame    = tk.LabelFrame(taskTab, text="Управление"  ); taskControlFrame .grid(column=1, row=0, sticky="news")
+        taskDelayFrame      = tk.LabelFrame(taskTab, text="Длительности"); taskDelayFrame   .grid(column=1, row=1, sticky="news")
+        taskGraphicsFrame   = tk.LabelFrame(taskTab, text="Графика"     ); taskGraphicsFrame.grid(column=2, row=0, sticky="news", rowspan=4)
         # ----------- Experiment -------------------
         taskExperimentFrame = tk.LabelFrame(taskTab, text="Настройка эксперимента" ); taskExperimentFrame.grid(column=0, row=0, rowspan=2, sticky="news")
 
@@ -305,28 +297,24 @@ class MainMenu:
 
         taskModeFrame  = tk.LabelFrame(taskExperimentFrame, text = "Режим эксперимента"); taskModeFrame.grid(column=0, row=1, sticky="news")
         tk.Radiobutton(taskModeFrame, text="Генерация", variable=taskMode, value=False).grid(column=0, row=0, sticky="w")
-        tk.Radiobutton(taskModeFrame, text="Из файла",  variable=taskMode, value=True ).grid(column=0, row=1, sticky="w")
+        tk.Radiobutton(taskModeFrame, text="Файл"     , variable=taskMode, value=True ).grid(column=0, row=1, sticky="w")
         # ----------- fileChoice --------------------
-        self.taskFileFrame  = tk.LabelFrame(taskExperimentFrame, text="File Choice"); self.taskFileFrame .grid(column=0, row=2, sticky="news")
-        tk.Label (self.taskFileFrame, text="Choose File:"                                  ).grid(column=0, row=0)
-        
-
-        self.taskFileBtn = tk.Button(
-            self.taskFileFrame, 
-            text="None" if taskSelectFile.get() == "None" else f"{taskSelectFile.get().split('/')[-2]}/{taskSelectFile.get().split('/')[-1]}",
-            command=self._selectFile
-        ); self.taskFileBtn.grid(column=1, row=0)
+        self.taskFileFrame  = tk.LabelFrame(taskExperimentFrame, text="Выбор файла"); self.taskFileFrame .grid(column=0, row=2, sticky="news")
+        tk.Label (self.taskFileFrame, text="Текущий файл:").grid(column=0, row=0)
+        self.taskFileBtn = tk.Button(self.taskFileFrame, 
+            text="Не выбран" if taskSelectFile.get() == "None" else f"{taskSelectFile.get().split('/')[-2]}/{taskSelectFile.get().split('/')[-1]}",
+            command=self._selectFile);    self.taskFileBtn.grid(column=1, row=0)
         
         # ----------- generated --------------------
-        self.generatedFrame = tk.LabelFrame(taskExperimentFrame, text="Generated"  ); self.generatedFrame.grid(column=0, row=3, sticky="news")
-        tk.Label  (self.generatedFrame, text="Кол-во слагаемых:"                             ).grid(column=0, row=0)
+        self.generatedFrame = tk.LabelFrame(taskExperimentFrame, text="Настройка генерации"); self.generatedFrame.grid(column=0, row=3, sticky="news")
+        tk.Label  (self.generatedFrame, text="Кол-во слагаемых:"                               ).grid(column=0, row=0)
         tk.Spinbox(self.generatedFrame, textvariable=taskTermCount, width=5,  from_=1, to=20000).grid(column=1, row=0)
 
 
-        taskSizesFrame   = tk.LabelFrame(taskGraphicsFrame, text="Размеры"                                                                     ); taskSizesFrame  .grid(column=0, row=0, sticky="news")
-        (                  tk.Label     (taskGraphicsFrame, text="Тип Шрифта"                                                                  )                  .grid(column=0, row=1, sticky="news"))
+        taskSizesFrame   = tk.LabelFrame(taskGraphicsFrame, text="Размеры"                                                           ); taskSizesFrame  .grid(column=0, row=0, sticky="news")
+        (                  tk.Label     (taskGraphicsFrame, text="Тип Шрифта"                                                        )                  .grid(column=0, row=1, sticky="news"))
         taskFONTTYPE     = tk.Button    (taskGraphicsFrame, text=taskFontFamily.get(), command=lambda: self._changeFont(taskFONTTYPE)); taskFONTTYPE    .grid(column=1, row=1)
-        taskColorsFrames = tk.LabelFrame(taskGraphicsFrame, text="Цвета"                                                                       ); taskColorsFrames.grid(column=1, row=0, sticky="news")
+        taskColorsFrames = tk.LabelFrame(taskGraphicsFrame, text="Цвета"                                                             ); taskColorsFrames.grid(column=1, row=0, sticky="news")
 
         taskSizesSquares = tk.LabelFrame(taskSizesFrame, text="Квадраты"); taskSizesSquares.grid(column=0, columnspan=2, row=1, sticky="news")
 
@@ -341,8 +329,8 @@ class MainMenu:
         # ---------------------------
 
         tk.Label(taskColorsFrames, text="Шрифт"              ).grid(column=0, row=2)
-        tk.Label(taskColorsFrames, text="Квадрат Правильно"  ).grid(column=0, row=3)
-        tk.Label(taskColorsFrames, text="Квадрат Неправильно").grid(column=0, row=4)
+        tk.Label(taskColorsFrames, text="Квадрат\nПравильно"  ).grid(column=0, row=3)
+        tk.Label(taskColorsFrames, text="Квадрат\nНеправильно").grid(column=0, row=4)
 
         taskFONT  = tk.Button(taskColorsFrames, text="***", fg="white", bg=taskColorsValues["font" ].get(), command=lambda element="font"  : self._changeColor(taskColorsValues[element], taskFONT )); taskFONT .grid(column=1, row=2)
         taskRIGHT = tk.Button(taskColorsFrames, text="***", fg="white", bg=taskColorsValues["right"].get(), command=lambda element="right" : self._changeColor(taskColorsValues[element], taskRIGHT)); taskRIGHT.grid(column=1, row=3)
@@ -353,10 +341,10 @@ class MainMenu:
         tk.Checkbutton(taskControlFrame,     variable=taskControlConfig["inverse"    ], onvalue=1, offvalue=0                  ).grid(column=1, row=0)
         tk.Spinbox    (taskControlFrame, textvariable=taskControlConfig["sensitivity"], width=5, increment=0.1, from_=0.1, to=1).grid(column=1, row=1) 
         # ----------- timeDelays --------------------
-        tk.Label  (taskDelayFrame, text="Plus Time"                                                                    ).grid(column=0, row=0)
-        tk.Label  (taskDelayFrame, text="Answer Time"                                                                  ).grid(column=0, row=1)
-        tk.Label  (taskDelayFrame, text="Term Time"                                                                    ).grid(column=0, row=2)
-        tk.Label  (taskDelayFrame, text="Pause Time"                                                                   ).grid(column=0, row=3)
+        tk.Label  (taskDelayFrame, text="Плюс"                                                                         ).grid(column=0, row=0)
+        tk.Label  (taskDelayFrame, text="Ответ"                                                                        ).grid(column=0, row=1)
+        tk.Label  (taskDelayFrame, text="Слагаемое"                                                                    ).grid(column=0, row=2)
+        tk.Label  (taskDelayFrame, text="Пауза"                                                                        ).grid(column=0, row=3)
         tk.Spinbox(taskDelayFrame, textvariable=taskDurationConfig["plus"  ], width=5, increment=0.1, from_=0, to=20000).grid(column=1, row=0)
         tk.Spinbox(taskDelayFrame, textvariable=taskDurationConfig["answer"], width=5, increment=0.1, from_=0, to=20000).grid(column=1, row=1)
         tk.Spinbox(taskDelayFrame, textvariable=taskDurationConfig["term"  ], width=5, increment=0.1, from_=0, to=20000).grid(column=1, row=2)
@@ -378,8 +366,8 @@ class MainMenu:
         tk.Spinbox(pvtRoundFrame, textvariable=pvtExperimentValues["round"], width=5, from_=1, to=20000).grid(column=1, row=0)
  
 
-        pvtDelayFrame      = tk.LabelFrame(pvtTab, text="Time Delays"); pvtDelayFrame     .grid(column=1, row=0, sticky="news")
-        pvtGraphicsFrame   = tk.LabelFrame(pvtTab, text="Графика"    ); pvtGraphicsFrame  .grid(column=2, row=0, sticky="news")
+        pvtDelayFrame      = tk.LabelFrame(pvtTab, text="Длительности"); pvtDelayFrame   .grid(column=1, row=0, sticky="news")
+        pvtGraphicsFrame   = tk.LabelFrame(pvtTab, text="Графика"     ); pvtGraphicsFrame.grid(column=2, row=0, sticky="news")
 
         pvtSizesFrame   = tk.LabelFrame(pvtGraphicsFrame, text="Размеры"); pvtSizesFrame  .grid(column=0, row=0, sticky="news")
         pvtColorsFrames = tk.LabelFrame(pvtGraphicsFrame, text="Цвета"  ); pvtColorsFrames.grid(column=1, row=0, sticky="news")
@@ -391,10 +379,10 @@ class MainMenu:
         tk.Label(pvtColorsFrames, text="Круг").grid(column=0, row=2)
         pvtCIRCLE = tk.Button(pvtColorsFrames, text="***", fg="white", bg=pvtColorsValues["circle"].get(), command=lambda element="circle": self._changeColor(pvtColorsValues[element], pvtCIRCLE)); pvtCIRCLE.grid(column=1, row=2)
         # ----------- timeDelays --------------------
-        tk.Label  (pvtDelayFrame, text="Plus Time"                                                                  ).grid(column=0, row=0)
-        tk.Label  (pvtDelayFrame, text="EmptyMin"                                                                   ).grid(column=0, row=1)
-        tk.Label  (pvtDelayFrame, text="EmptyMax"                                                                   ).grid(column=0, row=2)
-        tk.Label  (pvtDelayFrame, text="Answer"                                                                     ).grid(column=0, row=3)
+        tk.Label  (pvtDelayFrame, text="Плюс"                                                                       ).grid(column=0, row=0)
+        tk.Label  (pvtDelayFrame, text="Минимальное\nвремя до круга"                                                ).grid(column=0, row=1)
+        tk.Label  (pvtDelayFrame, text="Максимальное\nвремя до круга"                                               ).grid(column=0, row=2)
+        tk.Label  (pvtDelayFrame, text="Ответ"                                                                      ).grid(column=0, row=3)
         tk.Label  (pvtDelayFrame, text="MSI"                                                                        ).grid(column=0, row=4)
         tk.Spinbox(pvtDelayFrame, textvariable=pvtDelayValues["plus"    ], width=5, increment=0.1, from_=0, to=20000).grid(column=1, row=0)
         tk.Spinbox(pvtDelayFrame, textvariable=pvtDelayValues["emptyMin"], width=5, increment=0.1, from_=0, to=20000).grid(column=1, row=1)
@@ -408,9 +396,9 @@ class MainMenu:
         controlValues = self.valueFrames["Control"]
         controlDelayValues  = controlValues["delay"]
         # ----------------------------
-        controlDelayFrame    = tk.LabelFrame(controlTab, text="Time Delays"); controlDelayFrame   .grid(column=1, row=0, sticky="news")
+        controlDelayFrame    = tk.LabelFrame(controlTab, text="Длительности"); controlDelayFrame   .grid(column=1, row=0, sticky="news")
 
-        tk.Label  (controlDelayFrame, text="Plus Time"                                                                  ).grid(column=0, row=0)
+        tk.Label  (controlDelayFrame, text="Плюс"                                                                       ).grid(column=0, row=0)
         tk.Spinbox(controlDelayFrame, textvariable=controlDelayValues["plus"], width=5, increment=0.1, from_=0, to=20000).grid(column=1, row=0)
 
 
