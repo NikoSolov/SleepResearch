@@ -12,11 +12,9 @@ CONFIG_STD = {
         },
         "experiment": {
             "program": "Mouses",
-            "round": 20,
-            "name": "Иванов",
+            "name": "Subject",
             "code": "1234",
         },
-
         "alarm": {
             "enable": True,
             "freq": 440,
@@ -27,10 +25,31 @@ CONFIG_STD = {
             "trigger": True,
             "light": True,
             "lightSize": 60
+        },
+        "graphics": {
+            "sizes": {
+                "plus": {
+                    "radius": 30,
+                    "width": 10
+                },
+            },
+            "colors": {
+                "plus": "#c0c0c0",
+                "bg": "#404040"
+            }
+        },
+        "control": {
+            "inverse": True
         }
-
     },
     "Mouses": {
+        "duration": {
+            "plus": 5.0,
+        },
+        "experiment":{
+            "countInGroup": 3,
+            "countOfGroup": 2
+        },
         "graphics": {
             "sizes": {
                 "distMul": 1.5,
@@ -40,7 +59,6 @@ CONFIG_STD = {
                 "maxDispersion": 0.5
             },
             "colors": {
-                "bg": "#404040",
                 "mouse": "#ff0000",
                 "hole": "#c0c0c0",
                 "gtrail": "#0000ff",
@@ -49,34 +67,33 @@ CONFIG_STD = {
         },
         "control": {
             "sensitivity": 20,
-            "inverse": True
         },
 
         "logger": {
             "freq": 0.01
         },
-        "timeStamps": {
-        }
     },
     "Equation": {
+        "experiment" : {
+            "round" : 20,
+            "fileMode": False,
+            "filePath": "None",
+            "generatedTermCount": 4
+        },
         "duration": {
             "plus": 0.5,
-            "fastAnswer": 2,
-            "answer": 5
+            "fastAnswer": 2.0,
+            "answer": 5.0,
+            "term": 1.0,
+            "pause": 0.5
         },
         "graphics": {
             "colors": {
-                "plus": "#c0c0c0",
-                "bg": "#404040",
                 "right": "#00ff00",
                 "wrong": "#ff0000",
                 "font": "#c0c0c0"
             },
             "sizes": {
-                "plus": {
-                    "radius": 30,
-                    "width": 10
-                },
                 "squares": {
                     "length": 150,
                     "width": 3
@@ -85,16 +102,14 @@ CONFIG_STD = {
             },
             "font": "Comic Sans"
         },
-        "file": {
-            "path": "None"
-        },
         "control": {
             "sensitivity": 0.3,
-            "inverse": True
-        },
-        "timeStamps": {}
+        }
     },
     "PVT": {
+        "experiment" : {
+            "round" : 20
+        },
         "delay": {
             "plus": 0.5,
             "emptyMin": 1.5,
@@ -103,38 +118,18 @@ CONFIG_STD = {
             "msi": 0.5
         },
         "graphics": {
-            "color": {
-                "bg": "#404040",
-                "plus": "#c0c0c0",
+            "colors": {
                 "circle": "#ff0000"
             },
-            "size": {
+            "sizes": {
                 "circleRadius": 40,
-                "plus": {
-                    "radius": 30,
-                    "width": 10
-                }
             },
-        },
-        "timeStamps": {}
+        }
     },
     "Control": {
         "delay": {
             "plus": 120,
-        },
-        "graphics": {
-            "color": {
-                "bg": "#404040",
-                "plus": "#c0c0c0",
-            },
-            "size": {
-                "plus": {
-                    "radius": 30,
-                    "width": 10
-                }
-            },
-        },
-        "timeStamps": {}
+        }
     }
 }
 
@@ -157,7 +152,7 @@ def loadConfig():
 
 def updateConfig(config: dict):
     global CONFIG
-    print(f"Change to: {config}")
+    # print(f"Change to: {config}")
     CONFIG.update(config)
     # CONFIG = config
     with open('config.json', 'w') as configFile:

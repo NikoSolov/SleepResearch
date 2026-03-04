@@ -1,7 +1,5 @@
 import time
-
 import pygame as pg
-
 import config as cfg
 
 cfg.loadConfig()
@@ -24,4 +22,3 @@ def draw(root):
         pg.draw.rect(root, (0, 0, 0), (0, 0, LIGHT_SIZE, LIGHT_SIZE))
         if time.time() - lightTime <= LIGHT_DURATION:
             pg.draw.rect(root, (255, 255, 255), (0, 0, LIGHT_SIZE, LIGHT_SIZE))
-            lightOn = False

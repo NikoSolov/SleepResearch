@@ -16,9 +16,6 @@ sound = pg.sndarray.make_sound(numpy.c_[WAVE_DATA, WAVE_DATA])
 playFlag = False
 sirenTime = 0
 
-SIREN_TIME = TONE["duration"]
-
-
 def play():
     global sound, playFlag, sirenTime
     if int(TONE["enable"]) and not playFlag:
@@ -27,11 +24,9 @@ def play():
         playFlag = True
         sirenTime = time.time()
 
-
-
 def isDone():
     global playFlag
-    if not int(TONE["enable"]) or (playFlag and time.time() - sirenTime > SIREN_TIME):
+    if not int(TONE["enable"]) or (playFlag and time.time() - sirenTime > TONE["duration"]):
         sound.stop()
         playFlag = False
         return True
