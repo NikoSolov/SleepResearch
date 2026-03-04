@@ -2,7 +2,6 @@ import numpy as np
 from random import choice as ch
 from random import uniform as rd
 import config as cfg
-# from icecream import ic
 cfg.loadConfig()
 
 config = cfg.getConfig()

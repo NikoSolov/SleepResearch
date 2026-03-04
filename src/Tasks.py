@@ -2,9 +2,7 @@
 import time
 from enum import Enum, auto
 from random import choice, randint, sample
-
 import pygame as pg
-
 import config as cfg
 import lightSensor
 import alarm
@@ -13,6 +11,7 @@ from excelTools import ExcelTable
 from timer import Timer
 from graphics import Graphics
 from icecream import ic
+
 def run():
     # ============ GET ALL CONSTANTS =========
     cfg.loadConfig()

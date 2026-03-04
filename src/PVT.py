@@ -1,9 +1,7 @@
 import time
 from enum import Enum, auto
 from random import uniform as rd
-
 import pygame as pg
-
 import config as cfg
 import lightSensor
 import alarm
@@ -17,7 +15,6 @@ def run():
     cfg.loadConfig()
     config = cfg.getConfig()
     # ------------------------------
-    TIMESTAMPS_CONFIG = config["general"]["timeStamps"]
     ROUND = config["PVT"]["experiment"]["round"]
     SUBJECT_NAME = config["general"]["experiment"]["name"]
     SUBJECT_code = config["general"]["experiment"]["code"]
@@ -51,11 +48,11 @@ def run():
 
     # --------- Vars ----------
     class Event(Enum):
-        Siren = auto()
-        Plus = auto()
-        Empty = auto()
+        Siren  = auto()
+        Plus   = auto()
+        Empty  = auto()
         Circle = auto()
-        MSI = auto()
+        MSI    = auto()
 
     run = True
     status = Event.Siren

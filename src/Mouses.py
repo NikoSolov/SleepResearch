@@ -1,7 +1,6 @@
 import time
 from enum import Enum, auto
 import pygame as pg
-
 import config as cfg
 import lightSensor
 import alarm
@@ -11,8 +10,9 @@ from timer import Timer
 from graphics import Graphics
 from VectorLogger import VectorLogger
 from MouseMechanics import MouseMechanics
-# ====== Setting up Config =========
+
 def run(): 
+    # ====== Setting up Config =========
     cfg.loadConfig()
     config = cfg.getConfig()
     # ========= CONFIG ==========
@@ -65,10 +65,10 @@ def run():
     vecLogger = VectorLogger(f"result/{DIR_NAME}")
 
     class Event(Enum):
-        siren = auto()
-        init = auto()
+        siren  = auto()
+        init   = auto()
         answer = auto()
-        plus = auto()
+        plus   = auto()
 
     run = True
 

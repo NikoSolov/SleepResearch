@@ -43,7 +43,7 @@ class VectorLogger:
     
     # save last Trail and close archive
     def close(self):
-        pass
+        self.ImageArchive.close()
     
     # svg file Template
     def template(self, ballLastPos):
