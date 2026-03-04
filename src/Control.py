@@ -1,5 +1,4 @@
 from enum import Enum, auto
-from unittest import case
 import pygame as pg
 import config as cfg
 import alarm

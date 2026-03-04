@@ -1,6 +1,5 @@
 import time
 from enum import Enum, auto
-import numpy as np
 import pygame as pg
 
 import config as cfg
