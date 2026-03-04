@@ -15,7 +15,6 @@ CONFIG_STD = {
             "name": "Subject",
             "code": "1234",
         },
-
         "alarm": {
             "enable": True,
             "freq": 440,
@@ -38,6 +37,9 @@ CONFIG_STD = {
                 "plus": "#c0c0c0",
                 "bg": "#404040"
             }
+        },
+        "control": {
+            "inverse": True
         }
     },
     "Mouses": {
@@ -65,14 +67,11 @@ CONFIG_STD = {
         },
         "control": {
             "sensitivity": 20,
-            "inverse": True
         },
 
         "logger": {
             "freq": 0.01
         },
-        "timeStamps": {
-        }
     },
     "Equation": {
         "experiment" : {
@@ -105,9 +104,7 @@ CONFIG_STD = {
         },
         "control": {
             "sensitivity": 0.3,
-            "inverse": True
-        },
-        "timeStamps": {}
+        }
     },
     "PVT": {
         "experiment" : {
@@ -127,14 +124,12 @@ CONFIG_STD = {
             "sizes": {
                 "circleRadius": 40,
             },
-        },
-        "timeStamps": {}
+        }
     },
     "Control": {
         "delay": {
             "plus": 120,
-        },
-        "timeStamps": {}
+        }
     }
 }
 

@@ -32,7 +32,7 @@ def run():
     CONTROL = config['Equation']['control']
     SENSE: float = CONTROL['sensitivity']
     # print(SENSE)
-    INV: int = -1 if CONTROL['inverse'] else 1
+    INV: int = -1 if config["general"]["control"]["inverse"] else 1
     # ----------------------------
     DIR_NAME = f"{SUBJECT_NAME}{SUBJECT_code}_{time.strftime('%d.%m.%y')}_Tasks_{time.strftime('%H.%M.%S')}"
     FILEPATH = config['Equation']['experiment']['filePath']

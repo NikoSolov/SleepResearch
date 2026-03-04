@@ -28,7 +28,7 @@ def run():
     # ---------------------------
     CONTROL = config["Mouses"]["control"]
     SENSITIVITY = CONTROL["sensitivity"]
-    INVERSE = -1 if CONTROL["inverse"] else 1
+    INVERSE = -1 if config["general"]["control"]["inverse"] else 1
     # ---------------------------
     PLUS_TIME = config["Mouses"]["duration"]["plus"]
     # ---------------------------

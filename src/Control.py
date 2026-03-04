@@ -15,8 +15,6 @@ def run():
     cfg.loadConfig()
     config = cfg.getConfig()
     # ------------------------------
-    TIMESTAMPS_CONFIG = config["general"]["timeStamps"]
-    # ------------------------------
     DELAYS = config["Control"]["delay"]
     PLUS_TIME = DELAYS["plus"]
     # ------------------------------
