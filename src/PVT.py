@@ -113,8 +113,8 @@ def run():
 
             case Event.Plus:
                 PVTTable.writeDataToPage("MainLog", {
-                    f"A{3 + roundCounter}": f"{roundCounter + 1}",
-                    f"B{3 + roundCounter}": f"{currentEmptyTime}"
+                    f"A{3 + roundCounter}": roundCounter + 1,
+                    f"B{3 + roundCounter}": currentEmptyTime
                 })
                 if stageTimer.wait(PLUS_TIME):
                     currentEmptyTime = emptyTime()
@@ -136,9 +136,9 @@ def run():
                     stageTimer.setTimer()
                     # --------------- Fill SpreadSheet ------------
                     PVTTable.writeDataToPage("MainLog", {
-                        f'C{3 + roundCounter}': f'{reactions["wrongAnswer"]}',
-                        f'D{3 + roundCounter}': f'{reactions["rightAnswer"]}',
-                        f'E{3 + roundCounter}': f'{reactions["MSI"]}'
+                        f'C{3 + roundCounter}': reactions["wrongAnswer"],
+                        f'D{3 + roundCounter}': reactions["rightAnswer"],
+                        f'E{3 + roundCounter}': reactions["MSI"        ]
                     })
                     status = Event.Plus
                     reactions = {

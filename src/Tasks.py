@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import time
 from enum import Enum, auto
-from random import choice, randint, sample
+from random import choice, randint, sample, shuffle
 import pygame as pg
 import config as cfg
 import lightSensor
@@ -85,7 +85,6 @@ def run():
     run = True
     stageTimer = Timer()
     termIndex = 0
-
     roundCounter = 1
     mainStats = {
         "Equation": {
@@ -100,6 +99,13 @@ def run():
             "Skip": 0
         }
     }
+
+    def gen(length, repeats):
+        while True:
+            a = [True]*(length//2) + [False]*(length//2)
+            shuffle(a)
+            if not any(all(a[i]==a[i+j] for j in range(repeats+1)) for i in range(length-repeats)):
+                return a
 
     def equationGenerator(equationScore: bool, termCount: int = 2):
         ic(equationScore)
@@ -144,6 +150,8 @@ def run():
 
         return equationText
 
+    genChoices = gen(ROUND, 3)
+
     while run:
         for event in pg.event.get():
             if event.type == pg.QUIT or (
@@ -187,7 +195,7 @@ def run():
                         equationText = lineFile[0]
                         equationScore = bool(int(lineFile[1]))
                     else:
-                        equationScore = choice([True, False])
+                        equationScore = genChoices[roundCounter - 1]
                         equationText = equationGenerator(equationScore, TERM_COUNT)
 
                     textParts = equationText.split("+")
@@ -273,20 +281,20 @@ def run():
                     # ---------- Fill SpreadSheet -----------------
                     # ----------- MainStats --------------------
                     TasksTable.writeDataToPage("MainLog", {
-                        "A3": f"{mainStats['Equation']['True']}",
-                        "B3": f"{mainStats['Equation']['False']}",
-                        "C3": f"{mainStats['Answer']['TT']}",
-                        "D3": f"{mainStats['Answer']['FF']}",
-                        "E3": f"{mainStats['Answer']['TF']}",
-                        "F3": f"{mainStats['Answer']['FT']}",
-                        "G3": f"{mainStats['Answer']['Skip']}",
+                        "A3": mainStats['Equation']['True' ],
+                        "B3": mainStats['Equation']['False'],
+                        "C3": mainStats['Answer']['TT'  ],
+                        "D3": mainStats['Answer']['FF'  ],
+                        "E3": mainStats['Answer']['TF'  ],
+                        "F3": mainStats['Answer']['FT'  ],
+                        "G3": mainStats['Answer']['Skip'],
                         # ----------- RoundStats --------------------
-                        f"A{4 + roundCounter}": f"{roundCounter}",
-                        f"B{4 + roundCounter}": f"{roundStats['Equation']}",
-                        f"C{4 + roundCounter}": f"{roundStats['Score']}",
-                        f"D{4 + roundCounter}": f"{roundStats['Answer']}",
-                        f"E{4 + roundCounter}": f"{roundStats['Result']}",
-                        f"F{4 + roundCounter}": f"{roundStats['ReactionTime']}"
+                        f"A{4 + roundCounter}": roundCounter,
+                        f"B{4 + roundCounter}": roundStats['Equation'    ],
+                        f"C{4 + roundCounter}": roundStats['Score'       ],
+                        f"D{4 + roundCounter}": roundStats['Answer'      ],
+                        f"E{4 + roundCounter}": roundStats['Result'      ],
+                        f"F{4 + roundCounter}": roundStats['ReactionTime']
                     })
 
                     # ======== Change Event ==================
