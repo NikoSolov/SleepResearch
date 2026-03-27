@@ -5,7 +5,7 @@ from random import choice, randint, sample, shuffle
 import pygame as pg
 import config as cfg
 import lightSensor
-import alarm
+from alarm import Alarm
 import trigger
 from excelTools import ExcelTable
 from timer import Timer
@@ -80,6 +80,8 @@ def run():
         AnswerPlus = auto()
         Term       = auto()
         Pause      = auto()
+    
+    alarm = Alarm()
 
     status = Event.Siren
     run = True

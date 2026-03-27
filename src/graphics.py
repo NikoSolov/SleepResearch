@@ -23,14 +23,15 @@ class Graphics():
     )
     self.clk = pg.time.Clock()
     self.program = program
-    self.generalGraphicDict = config["general"]["graphics"]
-    self.programGraphicDict = config[self.program]["graphics"]
 
+    self.generalGraphicDict = config["general"]["graphics"]
     self.generalColorDict = self.generalGraphicDict["colors"]
     self.generalSizeDict  = self.generalGraphicDict["sizes"]
 
-    self.programColorDict = self.programGraphicDict["colors"]
-    self.programSizeDict  = self.programGraphicDict["sizes"]
+    if self.program != "Control":
+        self.programGraphicDict = config[self.program]["graphics"]
+        self.programColorDict = self.programGraphicDict["colors"]
+        self.programSizeDict  = self.programGraphicDict["sizes"]
 
   def drawInit(self):
     self.root.fill(self.generalColorDict["bg"])

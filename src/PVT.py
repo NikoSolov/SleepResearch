@@ -4,7 +4,7 @@ from random import uniform as rd
 import pygame as pg
 import config as cfg
 import lightSensor
-import alarm
+from alarm import Alarm
 import trigger
 from excelTools import ExcelTable
 from timer import Timer
@@ -65,6 +65,7 @@ def run():
     }
     # --------------
 
+    alarm = Alarm()
     stageTimer = Timer()
 
     while run:

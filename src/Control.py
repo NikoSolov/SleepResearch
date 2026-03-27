@@ -1,7 +1,7 @@
 from enum import Enum, auto
 import pygame as pg
 import config as cfg
-import alarm
+from alarm import Alarm
 import trigger
 import lightSensor
 from timer import Timer
@@ -35,6 +35,8 @@ def run():
     status = Event.Siren
     stageTimer = Timer()
     run = True
+
+    alarm = Alarm()
 
     while run:
         for event in pg.event.get():
