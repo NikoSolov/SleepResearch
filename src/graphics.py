@@ -1,12 +1,10 @@
 import pygame as pg
-import lightSensor
 import config as cfg
 
-cfg.loadConfig()
-config = cfg.getConfig()
-
 class Graphics():
-  def __init__(self, program):
+  def __init__(self, program, lightSensor):
+    cfg.loadConfig()
+    config = cfg.getConfig()
     pg.init()
     if program == "Equation":
       pg.font.init()
@@ -22,6 +20,8 @@ class Graphics():
       else pg.SHOWN
     )
     self.clk = pg.time.Clock()
+    self.lightSensor = lightSensor
+    self.lightSensorSize = config["general"]["timeStamps"]["lightSize"]
     self.program = program
 
     self.generalGraphicDict = config["general"]["graphics"]
@@ -35,7 +35,11 @@ class Graphics():
 
   def drawInit(self):
     self.root.fill(self.generalColorDict["bg"])
-    lightSensor.draw(self.root)     
+    pg.draw.rect(
+       self.root, 
+       (255, 255, 255) if self.lightSensor.lightUp() else (0, 0, 0), 
+       (0, 0, self.lightSensorSize, self.lightSensorSize)
+    )
   def drawPlus(self):
       C_PLUS = pg.Color(self.generalColorDict["plus"])
       S_PLUS_RADIUS = self.generalSizeDict["plus"]["radius"]
@@ -163,12 +167,13 @@ class Graphics():
     RADIUS = self.programSizeDict["radius"]
 
     # -------- draw a hole ----------
-    pg.draw.circle(
-        self.root,
-        pg.Color(C_HOLE),
-        (self.WIN_SIZE[0] - RADIUS, RADIUS),
-        RADIUS
-    )
+    if status is not Event.plus:
+        pg.draw.circle(
+            self.root,
+            pg.Color(C_HOLE),
+            (self.WIN_SIZE[0] - RADIUS, RADIUS),
+            RADIUS
+        )
 
     match status:
         case Event.siren:

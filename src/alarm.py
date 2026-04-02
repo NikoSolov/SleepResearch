@@ -1,14 +1,14 @@
-import time
 import numpy
 import pygame as pg
 import config as cfg
-import trigger
-
+from trigger import Trigger, TimeStamp
+from timer import Timer
 
 class Alarm():
     def __init__(self):
         cfg.loadConfig()
         config = cfg.getConfig()
+        self.trigger = Trigger()
         pg.mixer.init()
         self.TONE = config["general"]["alarm"]
         self.WAVE_DATA = numpy.array([int(self.TONE["volume"]) * numpy.sin(
@@ -16,17 +16,17 @@ class Alarm():
                                 range(0, 44100)]).astype(numpy.int16)
         self.sound = pg.sndarray.make_sound(numpy.c_[self.WAVE_DATA, self.WAVE_DATA])
         self.playFlag = False
-        self.sirenTime = 0
+        self.sirenTimer = Timer()
 
     def play(self):
         if int(self.TONE["enable"]) and not self.playFlag:
-            trigger.send(trigger.TimeStamp.alarm)
+            self.trigger.send(TimeStamp.alarm)
             self.sound.play(-1)
             self.playFlag = True
-            self.sirenTime = time.time()
+            self.sirenTimer.setTimer()
 
     def isDone(self):
-        if not int(self.TONE["enable"]) or (self.playFlag and time.time() - self.sirenTime > self.TONE["duration"]):
+        if not int(self.TONE["enable"]) or (self.playFlag and self.sirenTimer.wait(self.TONE["duration"])):
             self.sound.stop()
             self.playFlag = False
             return True

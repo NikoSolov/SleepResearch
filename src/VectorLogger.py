@@ -2,8 +2,6 @@ import config as cfg
 import zipfile
 import os
 
-cfg.loadConfig()
-
 # ------------------------------
 # Vector Logger for Mouses
 # Logging trail of the mouse as a vector image and archiving them in a zip file
@@ -11,6 +9,7 @@ cfg.loadConfig()
 class VectorLogger:
     # init archive 
     def __init__(self, DIR_NAME):
+        cfg.loadConfig()
         self.DIR_NAME = DIR_NAME
         self.ImageArchive = zipfile.ZipFile(f"{self.DIR_NAME}/log_img.zip", "w")
     

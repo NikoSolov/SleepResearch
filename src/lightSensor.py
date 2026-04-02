@@ -1,24 +1,16 @@
-import time
-import pygame as pg
+from timer import Timer
 import config as cfg
 
-cfg.loadConfig()
-config = cfg.getConfig()
+class LightSensor:
+    def __init__(self):
+        cfg.loadConfig()
+        config = cfg.getConfig()
+        self.LIGHT_DURATION = 0.1
+        self.LIGHT_ENABLE = config["general"]["timeStamps"]["light"]
+        self.lightTimer = Timer()
 
-LIGHT_DURATION = 0.1
-LIGHT_ENABLE = config["general"]["timeStamps"]["light"]
-LIGHT_SIZE = config["general"]["timeStamps"]["lightSize"]
-lightTime = 0
+    def pulse(self):
+        self.lightTimer.setTimer()
 
-
-def pulse():
-    global lightTime
-    lightTime = time.time()
-
-
-def draw(root):
-    global lightTime, LIGHT_DURATION
-    if LIGHT_ENABLE:
-        pg.draw.rect(root, (0, 0, 0), (0, 0, LIGHT_SIZE, LIGHT_SIZE))
-        if time.time() - lightTime <= LIGHT_DURATION:
-            pg.draw.rect(root, (255, 255, 255), (0, 0, LIGHT_SIZE, LIGHT_SIZE))
+    def lightUp(self):
+        return True if (self.LIGHT_ENABLE and not self.lightTimer.wait(self.LIGHT_DURATION)) else False

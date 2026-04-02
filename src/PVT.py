@@ -3,9 +3,9 @@ from enum import Enum, auto
 from random import uniform as rd
 import pygame as pg
 import config as cfg
-import lightSensor
+from lightSensor import LightSensor
 from alarm import Alarm
-import trigger
+from trigger import Trigger, TimeStamp
 from excelTools import ExcelTable
 from timer import Timer
 from graphics import Graphics
@@ -28,7 +28,8 @@ def run():
     DIR_NAME = f'{SUBJECT_NAME}{SUBJECT_code}_{time.strftime("%d.%m.%y")}_PVT_{time.strftime("%H.%M.%S")}'
     # ======== Initialization ====================
     # -------------------
-    PVTGraphics = Graphics("PVT")
+    lightSensor = LightSensor()
+    PVTGraphics = Graphics("PVT", lightSensor)
 
     # --------- Setting up SpreadSheet -------
     PVTTable = ExcelTable("result", f"{DIR_NAME}.xlsx")
@@ -44,6 +45,7 @@ def run():
         "E2":    "at MSI?",
     })
 
+    trigger = Trigger()
     trigger.update(PVTTable, "TimeStamps")
 
     # --------- Vars ----------
@@ -74,10 +76,10 @@ def run():
                     event.type == pg.KEYDOWN and event.key == pg.K_ESCAPE):
                 run = False
             if event.type == pg.KEYDOWN and event.key == pg.K_SPACE:
-                trigger.send(trigger.TimeStamp.manualStamp)
+                trigger.send(TimeStamp.manualStamp)
             if event.type == pg.MOUSEBUTTONDOWN:
                 print("Clicked")
-                trigger.send(trigger.TimeStamp.userInput)
+                trigger.send(TimeStamp.userInput)
                 if (
                     (status == Event.Plus or status == Event.Empty)
                         and reactions["wrongAnswer"] is None
@@ -109,7 +111,7 @@ def run():
                 if alarm.isDone():
                     stageTimer.setTimer()
                     status = Event.Plus
-                    trigger.send(trigger.TimeStamp.startPVT)
+                    trigger.send(TimeStamp.startPVT)
                     lightSensor.pulse()
 
             case Event.Plus:
@@ -125,7 +127,7 @@ def run():
                 if stageTimer.wait(currentEmptyTime):
                     stageTimer.setTimer()
                     status = Event.Circle
-                    trigger.send(trigger.TimeStamp.circleAppear)
+                    trigger.send(TimeStamp.circleAppear)
 
             case Event.Circle:
                 if stageTimer.wait(ANSWER_TIME):
@@ -148,13 +150,13 @@ def run():
                         "MSI": False
                     }
                     roundCounter += 1
-                    trigger.send(trigger.TimeStamp.startPVT)
+                    trigger.send(TimeStamp.startPVT)
                     lightSensor.pulse()
 
         if roundCounter >= ROUND:
             run = False
 
-    trigger.send(trigger.TimeStamp.endProgram)
+    trigger.send(TimeStamp.endProgram)
     PVTGraphics.close()
     PVTTable.close()
     trigger.close()

@@ -4,7 +4,7 @@ from tkinter import ttk, filedialog
 from tkinter.colorchooser import askcolor
 from tkfontchooser import askfont
 import config as cfg
-import trigger
+from trigger import Trigger
 
 class MainMenu:
     def __init__(self):
@@ -22,6 +22,7 @@ class MainMenu:
         self.valueFrames = self._setToType(self.config)
         self._update_dict_values(self.valueFrames, self.config)
         self._create_widgets()
+        self.trigger = Trigger()
         self.triggerRefresh()
         # self._apply_dark_theme()
 
@@ -32,12 +33,12 @@ class MainMenu:
     
     def _on_close(self):
         self.result = False
-        trigger.close()
+        self.trigger.close()
         self.root.destroy()
 
     def start_exp(self):
         self.result = True
-        trigger.close()
+        self.trigger.close()
         self.root.destroy()
 
     def _setToType(self, diction):
@@ -47,7 +48,7 @@ class MainMenu:
                 case dict():
                     new_diction[key] = self._setToType(diction[key])
                 case bool():
-                        new_diction[key] =  tk.BooleanVar()
+                        new_diction[key] = tk.BooleanVar()
                 case int():
                         new_diction[key] = tk.IntVar()
                 case float():
@@ -151,16 +152,16 @@ class MainMenu:
         self.drawControlMenu(controlTab)
     
     def triggerTest(self):
-        trigger.send(trigger.TimeStamp.manualStamp)
+        self.trigger.test()
         self.changeTriggerStatus()
 
     def triggerRefresh(self):
-        trigger.update()
+        self.trigger.update()
         self.changeTriggerStatus()
 
     def changeTriggerStatus(self):
         self.triggerStatus.config(
-            text = f"Статус: подключен к {trigger.portName}" if trigger.portWork
+            text = f"Статус: подключен к {self.trigger.portName}" if self.trigger.portWork
                else "Статус: не подключен"
         )
 

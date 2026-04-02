@@ -1,12 +1,11 @@
-# -*- coding: utf-8 -*-
 import time
 from enum import Enum, auto
 from random import choice, randint, sample, shuffle
 import pygame as pg
 import config as cfg
-import lightSensor
+from lightSensor import LightSensor
 from alarm import Alarm
-import trigger
+from trigger import Trigger, TimeStamp
 from excelTools import ExcelTable
 from timer import Timer
 from graphics import Graphics
@@ -40,7 +39,8 @@ def run():
     TERM_COUNT = config['Equation']['experiment']['generatedTermCount']
     FILE_MODE  = config['Equation']['experiment']['fileMode']
     # =========================================
-    TasksGraphics = Graphics("Equation")
+    lightSensor = LightSensor()
+    TasksGraphics = Graphics("Equation", lightSensor)
 
     # ====================================================
     TasksTable = ExcelTable("result", f"{DIR_NAME}.xlsx")
@@ -64,6 +64,7 @@ def run():
     })
 
     TasksTable.createPage("TimeStamps")
+    trigger = Trigger()
     trigger.update(TasksTable, "TimeStamps")
 
     # ============== Vars ========================
@@ -160,7 +161,7 @@ def run():
                     event.type == pg.KEYDOWN and event.key == pg.K_ESCAPE):
                 run = False
             if event.type == pg.KEYDOWN and event.key == pg.K_SPACE:
-                trigger.send(trigger.TimeStamp.manualStamp)
+                trigger.send(TimeStamp.manualStamp)
             if event.type == pg.MOUSEWHEEL and status == Event.Answer:
                 notch = event.y * INV
                 rightLevel, wrongLevel = (
@@ -187,7 +188,7 @@ def run():
             case Event.Plus:
                 # --------- lightSensorOn -----------------
                 if stageTimer.wait(PLUS_TIME):
-                    trigger.send(trigger.TimeStamp.startTask)
+                    trigger.send(TimeStamp.startTask)
                     # ------------- generate equation --------------
                     if file is not None and FILE_MODE:
                         lineFile = file.readline()
@@ -241,7 +242,7 @@ def run():
                 if rightLevel >= 1 or wrongLevel >= 1:
                     if roundStats['ReactionTime'] == None:
                         roundStats['ReactionTime'] = stageTimer.getDelta()
-                        trigger.send(trigger.TimeStamp.userInput)
+                        trigger.send(TimeStamp.userInput)
 
                     levels = {
                         'right': rightLevel >= 1,
@@ -309,7 +310,7 @@ def run():
         if roundCounter > ROUND:
             run = False
 
-    trigger.send(trigger.TimeStamp.endProgram)
+    trigger.send(TimeStamp.endProgram)
     TasksGraphics.close()
     TasksTable.close()
     trigger.close()

@@ -2,9 +2,9 @@ import time
 from enum import Enum, auto
 import pygame as pg
 import config as cfg
-import lightSensor
+from lightSensor import LightSensor
 from alarm import Alarm
-import trigger
+from trigger import Trigger, TimeStamp
 from excelTools import ExcelTable
 from timer import Timer
 from graphics import Graphics
@@ -36,7 +36,8 @@ def run():
     LOG_FREQ = config["Mouses"]["logger"]["freq"]
     # ====== Initialization ==================
     # ------------------------------
-    MousesGraphics = Graphics("Mouses")
+    lightSensor = LightSensor()
+    MousesGraphics = Graphics("Mouses", lightSensor)
     # -------- Setting Log Files -------------
     MousesTable = ExcelTable(f"result/{DIR_NAME}", f"{DIR_NAME}.xlsx")
     MousesTable.createPage("MainLog")
@@ -61,6 +62,7 @@ def run():
         "I3:I4": "Процент нахождения\nв коридоре"
     })
 
+    trigger = Trigger()
     trigger.update(MousesTable, "TimeStamps")
     vecLogger = VectorLogger(f"result/{DIR_NAME}")
 
@@ -106,12 +108,12 @@ def run():
                 run = False
             # -------- Manual TimeStamp ---------
             if event.type == pg.KEYDOWN and event.key == pg.K_SPACE:
-                trigger.send(trigger.TimeStamp.manualStamp)
+                trigger.send(TimeStamp.manualStamp)
             # -------- Mouse process ------------
             if event.type == pg.MOUSEWHEEL and status == Event.answer:
                 if roundStats["ableToMove"] and roundStats["reactionTime"] == 0:
                     roundStats["reactionTime"] = roundTimer.getDelta()
-                    trigger.send(trigger.TimeStamp.userInput)
+                    trigger.send(TimeStamp.userInput)
                 # wait until mouse passes WaitZone
                 if Ball.isOutWaitZone():
                     roundStats["ableToMove"] = True
@@ -176,7 +178,7 @@ def run():
                 roundTimer.setTimer()
                 loggerTimer.setTimer(roundTimer.getTimer())
                 # ------ Timestamp ------
-                trigger.send(trigger.TimeStamp.startMouse)
+                trigger.send(TimeStamp.startMouse)
 
                 status = Event.answer
         
@@ -248,7 +250,7 @@ def run():
                     status = Event.init
 
     # ------- Filling the Main Log --------------
-    trigger.send(trigger.TimeStamp.endProgram)
+    trigger.send(TimeStamp.endProgram)
     trigger.close()
     MousesGraphics.close()
     vecLogger.close()

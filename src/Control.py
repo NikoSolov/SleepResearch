@@ -2,8 +2,8 @@ from enum import Enum, auto
 import pygame as pg
 import config as cfg
 from alarm import Alarm
-import trigger
-import lightSensor
+from trigger import Trigger, TimeStamp
+from lightSensor import LightSensor
 from timer import Timer
 from excelTools import ExcelTable
 import time
@@ -24,9 +24,11 @@ def run():
 
     ControlTable = ExcelTable("result", f"{DIR_NAME}.xlsx")
     ControlTable.createPage("TimeStamps")
+    trigger = Trigger()
     trigger.update(ControlTable, "TimeStamps")
     # -------------------
-    ControlGraphics = Graphics("Control")
+    lightSensor = LightSensor()
+    ControlGraphics = Graphics("Control", lightSensor)
     # --------- Vars ----------
     class Event(Enum):
         Siren = auto()
@@ -44,9 +46,9 @@ def run():
                     event.type == pg.KEYDOWN and event.key == pg.K_ESCAPE):
                 run = False
             if event.type == pg.MOUSEBUTTONDOWN:
-                trigger.send(trigger.TimeStamp.userInput)
+                trigger.send(TimeStamp.userInput)
             if event.type == pg.KEYDOWN and event.key == pg.K_SPACE:
-                trigger.send(trigger.TimeStamp.manualStamp)
+                trigger.send(TimeStamp.manualStamp)
 
         ControlGraphics.drawControl(status, Event)
 
@@ -58,13 +60,13 @@ def run():
                 if alarm.isDone():
                     stageTimer.setTimer()
                     status = Event.Plus
-                    trigger.send(trigger.TimeStamp.startControl)
+                    trigger.send(TimeStamp.startControl)
                     lightSensor.pulse()
             case Event.Plus:
                 if stageTimer.wait(PLUS_TIME):
                     run = False
 
-    trigger.send(trigger.TimeStamp.endProgram)
+    trigger.send(TimeStamp.endProgram)
     ControlGraphics.close()
     ControlTable.close()
     trigger.close()
