@@ -62,9 +62,11 @@ def run():
         "I3:I4": "Процент нахождения\nв коридоре"
     })
 
+    vecLogger = VectorLogger(f"result/{DIR_NAME}")
+
     trigger = Trigger()
     trigger.update(MousesTable, "TimeStamps")
-    vecLogger = VectorLogger(f"result/{DIR_NAME}")
+    alarm = Alarm(trigger)
 
     class Event(Enum):
         siren  = auto()
@@ -72,7 +74,6 @@ def run():
         answer = auto()
         plus   = auto()
 
-    alarm = Alarm()
     run = True
 
     # roundCounter = 0
@@ -93,7 +94,6 @@ def run():
         "notches":      0,
         "answer":       "Skip",
         "reactionTime": 0,
-        "ableToMove":   False
     }
 
     status = Event.siren
@@ -111,14 +111,11 @@ def run():
                 trigger.send(TimeStamp.manualStamp)
             # -------- Mouse process ------------
             if event.type == pg.MOUSEWHEEL and status == Event.answer:
-                if roundStats["ableToMove"] and roundStats["reactionTime"] == 0:
+                if Ball.isOutWaitZone() and roundStats["reactionTime"] == 0:
                     roundStats["reactionTime"] = roundTimer.getDelta()
                     trigger.send(TimeStamp.userInput)
                 # wait until mouse passes WaitZone
                 if Ball.isOutWaitZone():
-                    roundStats["ableToMove"] = True
-
-                if roundStats["ableToMove"]:
                     vecLogger.drawNotch(
                         Ball.getPartial(), 
                         -INVERSE * SENSITIVITY * event.y
@@ -166,7 +163,6 @@ def run():
                     "notches": 0,
                     "answer": "Skip",
                     "reactionTime": 0,
-                    "ableToMove": False
                 }
                 Ball.startTrail()
                 # -------- Logger --------

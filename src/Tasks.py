@@ -66,6 +66,7 @@ def run():
     TasksTable.createPage("TimeStamps")
     trigger = Trigger()
     trigger.update(TasksTable, "TimeStamps")
+    alarm = Alarm(trigger)
 
     # ============== Vars ========================
 
@@ -82,7 +83,6 @@ def run():
         Term       = auto()
         Pause      = auto()
     
-    alarm = Alarm()
 
     status = Event.Siren
     run = True

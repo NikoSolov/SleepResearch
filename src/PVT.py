@@ -47,6 +47,7 @@ def run():
 
     trigger = Trigger()
     trigger.update(PVTTable, "TimeStamps")
+    alarm = Alarm(trigger)
 
     # --------- Vars ----------
     class Event(Enum):
@@ -67,7 +68,6 @@ def run():
     }
     # --------------
 
-    alarm = Alarm()
     stageTimer = Timer()
 
     while run:

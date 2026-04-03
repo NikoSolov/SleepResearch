@@ -5,10 +5,10 @@ from trigger import Trigger, TimeStamp
 from timer import Timer
 
 class Alarm():
-    def __init__(self):
+    def __init__(self, trigger: Trigger):
         cfg.loadConfig()
         config = cfg.getConfig()
-        self.trigger = Trigger()
+        self.trigger = trigger
         pg.mixer.init()
         self.TONE = config["general"]["alarm"]
         self.WAVE_DATA = numpy.array([int(self.TONE["volume"]) * numpy.sin(

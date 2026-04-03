@@ -26,6 +26,7 @@ def run():
     ControlTable.createPage("TimeStamps")
     trigger = Trigger()
     trigger.update(ControlTable, "TimeStamps")
+    alarm = Alarm(trigger)
     # -------------------
     lightSensor = LightSensor()
     ControlGraphics = Graphics("Control", lightSensor)
@@ -37,8 +38,6 @@ def run():
     status = Event.Siren
     stageTimer = Timer()
     run = True
-
-    alarm = Alarm()
 
     while run:
         for event in pg.event.get():
