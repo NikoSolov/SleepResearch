@@ -35,11 +35,12 @@ class Graphics():
 
   def drawInit(self):
     self.root.fill(self.generalColorDict["bg"])
-    pg.draw.rect(
-       self.root, 
-       (255, 255, 255) if self.lightSensor.lightUp() else (0, 0, 0), 
-       (0, 0, self.lightSensorSize, self.lightSensorSize)
-    )
+    if self.lightSensor.LIGHT_ENABLE:
+        pg.draw.rect(
+            self.root, 
+            (255, 255, 255) if self.lightSensor.lightUp() else (0, 0, 0), 
+            (0, 0, self.lightSensorSize, self.lightSensorSize)
+        )
   def drawPlus(self):
       C_PLUS = pg.Color(self.generalColorDict["plus"])
       S_PLUS_RADIUS = self.generalSizeDict["plus"]["radius"]
