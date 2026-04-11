@@ -33,6 +33,10 @@ class MouseMechanics():
             (1 - disp) * (self.WIN_SIZE[0] - self.RADIUS_HOLE - 2 * np.sqrt(self.RADIUS_HOLE * self.RADIUS_MOUSE)) + disp * (self.WIN_SIZE[0] - np.min(self.WIN_SIZE) + self.RADIUS_MOUSE),
             self.RADIUS_MOUSE
         ])
+        self.TOP_POS2 = lambda disp: np.array([
+            self.WIN_SIZE[0] - self.RADIUS_HOLE - 2 * np.sqrt(self.RADIUS_HOLE * self.RADIUS_MOUSE),
+            (1 - disp) * self.RADIUS_MOUSE + disp * (3*self.RADIUS_MOUSE-np.min(self.WIN_SIZE))
+        ])
 
         self.CRIT_POS = [self.BOTTOM_POS, self.TOP_POS]
 
@@ -63,6 +67,9 @@ class MouseMechanics():
             self.BOTTOM_POS(self.disp),
             self.TOP_POS(self.disp)
         ][choice // 2]
+
+        if choice == 2:
+            self.P2 = self.TOP_POS2(self.disp)
 
         self.P1 = [
             np.array([(self.P2[0] + self.P0[0])/2, self.P0[1]]),
