@@ -10,6 +10,8 @@ from timer import Timer
 from graphics import Graphics
 from VectorLogger import VectorLogger
 from MouseMechanics import MouseMechanics
+from icecream import ic
+import numpy as np
 
 def run(): 
     # ====== Setting up Config =========
@@ -202,7 +204,6 @@ def run():
                     )
                     # -------------
             
-                    if Ball.touchHole(): print("got it")
                     roundStats["answer"] = (
                         "Arrived" if Ball.touchHole()          else 
                         "Missed"  if roundStats["notches"] > 0 else 
@@ -214,8 +215,10 @@ def run():
                         "skip"
                     ] += 1
 
+                    ic(roundStats, Ball.yOffset / SENSITIVITY, 
+                       np.ceil(Ball.answer / SENSITIVITY), 
+                       (Ball.yOffset >= Ball.answer[0] and Ball.yOffset <= Ball.answer[1]))
                     # ======== Fill Round Log =========
-                    print(roundStats)
                     tableRow = (groupCounter * TRIALS + trialCounter) + 5
                     MousesTable.writeDataToPage("MainLog", {
                         f"A{tableRow}": (groupCounter * TRIALS + trialCounter) + 1,

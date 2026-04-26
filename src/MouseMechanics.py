@@ -2,6 +2,7 @@ import numpy as np
 from random import choice as ch
 from random import uniform as rd
 import config as cfg
+from icecream import ic
 
 class MouseMechanics():
 
@@ -16,6 +17,7 @@ class MouseMechanics():
 
         self.WAIT_ZONE = SIZES["waitZone"]
         self.DISTANCE_MULTIPLIER = SIZES["distMul"]
+        self.TOUCH_WALL_RADIUS = 0.99
         self.STEP = SIZES["speed"]
         self.MAX_DISPERSION = SIZES["maxDispersion"]
 
@@ -23,25 +25,22 @@ class MouseMechanics():
                             config["general"]["window"]["height"]])
 
         self.START_POS = np.array([self.RADIUS_MOUSE, self.WIN_SIZE[1]-self.RADIUS_MOUSE])
-        self.HOLE_POS = np.array([self.WIN_SIZE-self.RADIUS_HOLE])
+        self.HOLE_POS = np.array([self.WIN_SIZE[0]-self.RADIUS_MOUSE, self.RADIUS_HOLE])
         self.P0 = self.START_POS
+
+        self.INTERVAL = self.WIN_SIZE[1] - (self.RADIUS_MOUSE + self.RADIUS_HOLE + 2 * np.sqrt(self.RADIUS_HOLE * self.RADIUS_MOUSE))
+
         self.BOTTOM_POS = lambda disp: np.array([
             self.WIN_SIZE[0] - self.RADIUS_MOUSE,
-            (1 - disp) * (self.RADIUS_HOLE + 2 * np.sqrt(self.RADIUS_HOLE * self.RADIUS_MOUSE)) + disp * (np.min(self.WIN_SIZE) - self.RADIUS_MOUSE)
+            self.RADIUS_HOLE + 2 * np.sqrt(self.RADIUS_HOLE * self.RADIUS_MOUSE) + disp * self.INTERVAL
         ])
         self.TOP_POS = lambda disp: np.array([
-            (1 - disp) * (self.WIN_SIZE[0] - self.RADIUS_HOLE - 2 * np.sqrt(self.RADIUS_HOLE * self.RADIUS_MOUSE)) + disp * (self.WIN_SIZE[0] - np.min(self.WIN_SIZE) + self.RADIUS_MOUSE),
-            self.RADIUS_MOUSE
+            self.WIN_SIZE[0] - (self.RADIUS_HOLE + 2 * np.sqrt(self.RADIUS_HOLE * self.RADIUS_MOUSE)),
+            self.RADIUS_MOUSE - disp * self.INTERVAL
         ])
-        self.TOP_POS2 = lambda disp: np.array([
-            self.WIN_SIZE[0] - self.RADIUS_HOLE - 2 * np.sqrt(self.RADIUS_HOLE * self.RADIUS_MOUSE),
-            (1 - disp) * self.RADIUS_MOUSE + disp * (3*self.RADIUS_MOUSE-np.min(self.WIN_SIZE))
-        ])
-
-        self.CRIT_POS = [self.BOTTOM_POS, self.TOP_POS]
 
         # Variables
-        self.disp = rd(0.001, self.MAX_DISPERSION)  # 0.001 - min by imperical way
+        self.disp = rd(0, self.MAX_DISPERSION)
         self.P2 = ch([
             self.BOTTOM_POS(self.disp),
             self.TOP_POS(self.disp)
@@ -54,67 +53,47 @@ class MouseMechanics():
         self.lastT = 0
         self.BallPos = self.START_POS
         self.yOffset = 0
+        self.choice = 0
 
     def startTrail(self):
         self.t = 0
         self.yOffset = 0
         self.lastT = 0
-        self.disp = rd(0.001, self.MAX_DISPERSION)  # 0.001 - min by imperical way
+        self.disp = rd(0, self.MAX_DISPERSION)
+        self.choice = ch([0, 1, 2, 3])
         self.BallPos = self.START_POS
 
-        choice = ch([0, 1, 2, 3])
+        ic("==============================")
+        ic(self.choice, self.disp)
+
         self.P2 = [
             self.BOTTOM_POS(self.disp),
             self.TOP_POS(self.disp)
-        ][choice // 2]
-
-        if choice == 2:
-            self.P2 = self.TOP_POS2(self.disp)
+        ][self.choice // 2]
 
         self.P1 = [
             np.array([(self.P2[0] + self.P0[0])/2, self.P0[1]]),
-            # np.array([(self.P2[0] + self.P0[0])/2, self.P2[1]]), # to keep symmetry
             np.array([self.P0[0], (self.P2[1] + self.P0[1])/2]),
-            # np.array([self.P2[0], (self.P2[1] + self.P0[1])/2]) # will fly back
-        ][choice % 2]
+        ][self.choice % 2]
 
-        # self.answer = [
-        #     [
-        #        self.CRIT_POS[0](0)[1] - self.RADIUS_MOUSE
-        #      - (self.P2[1] - self.RADIUS_MOUSE) 
-        #      * ((
-        #          (self.CRIT_POS[0](0)[0] - self.RADIUS_HOLE)
-        #         /(self.P2[0] - self.RADIUS_HOLE)
-        #     )** 2),
-        #        self.CRIT_POS[1](0)[1] - self.RADIUS_MOUSE
-        #      - (self.P2[1] - self.RADIUS_MOUSE) 
-        #      * ((
-        #          (self.CRIT_POS[0](0)[0] - self.RADIUS_HOLE)
-        #         /(self.P2[0] - self.RADIUS_HOLE)
-        #     )** 2)
-        #     ],
-        #     [
-        #        self.CRIT_POS[0](0)[1] - self.RADIUS_MOUSE
-        #      - (self.P2[1] - self.RADIUS_MOUSE) 
-        #      * np.sqrt(
-        #          (self.CRIT_POS[0](0)[0]         - self.RADIUS_HOLE)
-        #        / (self.P2[0] - self.RADIUS_HOLE)
-        #     ),
-        #        self.CRIT_POS[1](0)[1] - self.RADIUS_MOUSE
-        #      - (self.P2[1] - self.RADIUS_MOUSE) 
-        #      * np.sqrt(
-        #          (self.CRIT_POS[0](0)[0]         - self.RADIUS_HOLE)
-        #        / (self.P2[0] - self.RADIUS_HOLE)
-        #     )
-        #     ]
-        # ]
-        # # ][choice]
-        # ic(self.answer)
+        q = self.disp
+        A = self.INTERVAL
+        B = self.WIN_SIZE[1] - 2*self.RADIUS_MOUSE
+        C = (self.WIN_SIZE[0] - (self.RADIUS_MOUSE + self.RADIUS_HOLE + 2 * np.sqrt(self.RADIUS_HOLE * self.RADIUS_MOUSE)))/(self.WIN_SIZE[0] - 2*self.RADIUS_MOUSE)
+        self.answer = np.array([
+            [- B - (q - 1) * A * C**(2)  , - q * A                      ],
+            [- B - (q - 1) * A * C**(1/2), - q * A                      ],
+            [  q * A                     , - A + (B + q * A) * C**(-2)  ],
+            [  q * A                     , - A + (B + q * A) * C**(-1/2)],
+        ])[self.choice]
 
     def getPos(self):
         return self.function(self.t) + np.array([0, self.yOffset])
 
     def step(self):
+        if np.all((self.P1 - self.P0) == 0) and self.t == 0:
+            self.t = np.sqrt(self.STEP/(2*np.linalg.norm(self.P2 - self.P0)))
+
         self.t += self.STEP / np.linalg.norm(
             2 * (self.P0 - 2 * self.P1 + self.P2) * self.t +
             2 * (self.P1 - self.P0)
@@ -122,24 +101,23 @@ class MouseMechanics():
 
     def touchWall(self) -> bool:
         return (
-            any(self.getPos() <= self.RADIUS_MOUSE) or
-            any(self.getPos() >= self.WIN_SIZE - self.RADIUS_MOUSE)
+            any(self.getPos() <= self.RADIUS_MOUSE * self.TOUCH_WALL_RADIUS) or
+            any(self.getPos() >= self.WIN_SIZE - self.RADIUS_MOUSE * self.TOUCH_WALL_RADIUS)
         )
 
     def touchHole(self) -> bool:
         return np.linalg.norm(
-            self.getPos() - np.array([self.WIN_SIZE[0] - self.RADIUS_HOLE, self.RADIUS_HOLE])
+            self.getPos() - self.HOLE_POS
         ) < (self.DISTANCE_MULTIPLIER/2) * (self.RADIUS_MOUSE + self.RADIUS_HOLE) # ???
         # ) < self.DISTANCE_MULTIPLIER * self.RADIUS_MOUSE # ???
 
     def drag(self, delta):
         self.lastT = self.t
         self.yOffset += delta
-        # ic(self.yOffset)
 
     def isOutWaitZone(self) -> bool:
         return np.linalg.norm(
-            self.getPos() - np.array([self.RADIUS_MOUSE, self.WIN_SIZE[1] - self.RADIUS_MOUSE])
+            self.getPos() - self.START_POS
         ) > self.WAIT_ZONE
 
     def bezier(self, t:float, P0, P1, P2):
