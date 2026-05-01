@@ -56,7 +56,8 @@ CONFIG_STD = {
                 "waitZone": 200,
                 "radius": 40,
                 "speed": 8,
-                "maxDispersion": 0.5
+                "maxDispersion": 0.5,
+                "minDispersion": 0
             },
             "colors": {
                 "mouse": "#ff0000",

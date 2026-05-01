@@ -20,6 +20,7 @@ class MouseMechanics():
         self.TOUCH_WALL_RADIUS = 0.99
         self.STEP = SIZES["speed"]
         self.MAX_DISPERSION = SIZES["maxDispersion"]
+        self.MIN_DISPERSION = SIZES["minDispersion"]
 
         self.WIN_SIZE = np.array([config["general"]["window"]["width"],
                             config["general"]["window"]["height"]])
@@ -40,7 +41,7 @@ class MouseMechanics():
         ])
 
         # Variables
-        self.disp = rd(0, self.MAX_DISPERSION)
+        self.disp = rd(self.MIN_DISPERSION, self.MAX_DISPERSION)
         self.P2 = ch([
             self.BOTTOM_POS(self.disp),
             self.TOP_POS(self.disp)
@@ -59,7 +60,7 @@ class MouseMechanics():
         self.t = 0
         self.yOffset = 0
         self.lastT = 0
-        self.disp = rd(0, self.MAX_DISPERSION)
+        self.disp = rd(self.MIN_DISPERSION, self.MAX_DISPERSION)
         self.choice = ch([0, 1, 2, 3])
         self.BallPos = self.START_POS
 

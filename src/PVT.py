@@ -52,6 +52,7 @@ def run():
     # --------- Vars ----------
     class Event(Enum):
         Siren  = auto()
+        StartTrail = auto()
         Plus   = auto()
         Empty  = auto()
         Circle = auto()
@@ -109,10 +110,13 @@ def run():
                 # ------ playSiren ------------------
                 alarm.play()
                 if alarm.isDone():
-                    stageTimer.setTimer()
-                    status = Event.Plus
-                    trigger.send(TimeStamp.startPVT)
-                    lightSensor.pulse()
+                    status = Event.StartTrail
+
+            case Event.StartTrail:
+                trigger.send(TimeStamp.startPVT)
+                lightSensor.pulse()
+                stageTimer.setTimer()
+                status = Event.Plus
 
             case Event.Plus:
                 PVTTable.writeDataToPage("MainLog", {
@@ -143,18 +147,15 @@ def run():
                         f'D{3 + roundCounter}': reactions["rightAnswer"],
                         f'E{3 + roundCounter}': reactions["MSI"        ]
                     })
-                    status = Event.Plus
+                    status = Event.StartTrail
                     reactions = {
                         "wrongAnswer": None,
                         "rightAnswer": None,
                         "MSI": False
                     }
                     roundCounter += 1
-                    trigger.send(TimeStamp.startPVT)
-                    lightSensor.pulse()
-
-        if roundCounter >= ROUND:
-            run = False
+                    if roundCounter >= ROUND:
+                        run = False
 
     trigger.send(TimeStamp.endProgram)
     PVTGraphics.close()
