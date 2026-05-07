@@ -5,7 +5,7 @@ from tkinter.colorchooser import askcolor
 from tkfontchooser import askfont
 import config as cfg
 from trigger import Trigger
-
+from icecream import ic
 class MainMenu:
     def __init__(self):
         self.result = None
@@ -17,18 +17,19 @@ class MainMenu:
         user32 = ctypes.windll.user32
         self.displaySize = user32.GetSystemMetrics(0), user32.GetSystemMetrics(1)
         cfg.loadConfig()
-        self.config = cfg.getConfig()
 
-        self.valueFrames = self._setToType(self.config)
-        self._update_dict_values(self.valueFrames, self.config)
+        self.valueFrames = self._setToType(cfg.getConfig())
+        self._update_dict_values(self.valueFrames, cfg.getConfig())
+
         self._create_widgets()
         self.trigger = Trigger()
         self.triggerRefresh()
         # self._apply_dark_theme()
 
     def get_timer_value(self):
-        self._update_dict_values(self.config, self.valueFrames)
-        cfg.updateConfig(self.config)
+        config = cfg.getConfig()
+        self._update_dict_values(config, self.valueFrames)
+        cfg.saveConfig(config)
         return self.valueFrames["general"]["window"]["startTimer"].get()
     
     def _on_close(self):
@@ -74,8 +75,9 @@ class MainMenu:
     def _changeColor(self, colorConfig, button):
         colors = askcolor(title="Окно выбора цвета")
         if colors[1] is not None:
-            button.config(bg=colors[1])
             colorConfig.set(colors[1])
+            button.config(bg=colors[1])
+
 
     def _changeFont(self, button):
         font = askfont(text="12+53=65",
@@ -84,6 +86,68 @@ class MainMenu:
         if font != "":
             button.config(text=font["family"])
             self.valueFrames["Equation"]["graphics"]["font"].set(font["family"])
+
+    def _selectImportConfig(self):
+        filetypes = (('.json файлы', '*.json'), ('Все файлы', '*.*'))
+        # filePath = self.valueFrames["Equation"]["experiment"]["filePath"].get()
+        file = filedialog.askopenfilename(
+            title='Выберите файл для импорта',
+            initialdir='.',
+            # if filePath == "None" else filePath[:filePath.rfind("/")],
+            filetypes=filetypes
+        )
+        if file != "":
+            cfg.importConfig(file)
+            self._update_dict_values(self.valueFrames, cfg.getConfig())
+            self._updateButtonTextColor()
+
+    def _selectExportConfig(self):
+        filetypes = (('.json файлы', '*.json'), ('Все файлы', '*.*'))
+        # filePath = self.valueFrames["Equation"]["experiment"]["filePath"].get()
+        file = filedialog.asksaveasfilename(
+            title='Выберите файл для экспорта',
+            initialdir='.',
+            # if filePath == "None" else filePath[:filePath.rfind("/")],
+            filetypes=filetypes
+        )
+        if file != "":
+            config = cfg.getConfig()
+            self._update_dict_values(config, self.valueFrames)
+            cfg.setConfig(config)
+            cfg.exportConfig(f'{file}.json')
+            # self._update_dict_values(self.valueFrames, cfg.getConfig())
+            # self.valueFrames["Equation"]["experiment"]["filePath"].set(file)
+            # self.taskFileBtn.configure(text = f"{file.split('/')[-2]}/{file.split('/')[-1]}")
+
+    def _updateButtonTextColor(self):
+        generalColorsValues = self.valueFrames["general" ]["graphics"]["colors"]
+        mouseGraphicsColors = self.valueFrames["Mouses"  ]["graphics"]["colors"]
+        taskColorsValues    = self.valueFrames["Equation"]["graphics"]["colors"]
+        pvtColorsValues     = self.valueFrames["PVT"     ]["graphics"]["colors"]
+
+        self.generalPLUS.config(bg=generalColorsValues["plus"].get())
+        self.generalBG  .config(bg=generalColorsValues["bg"  ].get())
+
+        self.mouseMOUSE .config(bg=mouseGraphicsColors["mouse" ].get())
+        self.mouseHOLE  .config(bg=mouseGraphicsColors["hole"  ].get())
+        self.mouseGTRAIL.config(bg=mouseGraphicsColors["gtrail"].get())
+        self.mouseSTRAIL.config(bg=mouseGraphicsColors["strail"].get())
+
+        self.taskFONT  .config(bg=taskColorsValues["font" ].get())
+        self.taskRIGHT .config(bg=taskColorsValues["right"].get())
+        self.taskWRONG .config(bg=taskColorsValues["wrong"].get())
+        self.pvtCIRCLE .config(bg=pvtColorsValues["circle"].get())
+
+        taskFontFamily = self.valueFrames["Equation"]["graphics"]["font"]
+        self.taskFONTTYPE.config(text=taskFontFamily.get())
+
+        taskSelectFile = self.valueFrames["Equation"]["experiment"]["filePath"]
+
+        self.taskFileBtn = tk.Button(self.taskFileFrame, 
+            text="Не выбран" if taskSelectFile.get() == "None" else f"{taskSelectFile.get().split('/')[-2]}/{taskSelectFile.get().split('/')[-1]}",
+            command=self._selectFile);    self.taskFileBtn.grid(column=1, row=0)
+
+
 
     def _selectFile(self):
         filetypes = (('.txt файлы', '*.txt'), ('Все файлы', '*.*'))
@@ -183,7 +247,14 @@ class MainMenu:
         timeStampsFrame      = tk.LabelFrame(generalFrame, text="Временные метки" ); timeStampsFrame     .grid(column=1, row=1, sticky="news")
         generalGraphicsFrame = tk.LabelFrame(generalFrame, text="Общая графика"   ); generalGraphicsFrame.grid(column=0, row=2, sticky="news")
         generalControlFrame  = tk.LabelFrame(generalFrame, text="Общее управление"); generalControlFrame .grid(column=1, row=2, sticky="news")
+        configImportFrame    = tk.LabelFrame(generalFrame, text="Управление файлами конфигурации"); configImportFrame.grid(column=0, row=3, columnspan=2, sticky="news")
 
+        importConfigBtn = tk.Button(configImportFrame,
+            text="Import", command=self._selectImportConfig);    importConfigBtn.grid(column=0, row=0, sticky="news")
+
+        exportConfigBtn = tk.Button(configImportFrame,
+            text="Export", command=self._selectExportConfig);    exportConfigBtn.grid(column=1, row=0, sticky="news")
+ 
         tk.Label      (generalControlFrame, text="Инверсия?"                                                   ).grid(column=0, row=0)
         tk.Checkbutton(generalControlFrame,     variable=generalControlConfig["inverse"], onvalue=1, offvalue=0).grid(column=1, row=0)
 
@@ -197,8 +268,8 @@ class MainMenu:
         # ---------------------------
         (             tk.Label (generalColorsFrames, text="Крест"                                                                                                                                                     ).grid(column=0, row=1))
         (             tk.Label (generalColorsFrames, text="Фон"                                                                                                                                                      ).grid(column=0, row=0))
-        generalPLUS = tk.Button(generalColorsFrames, text="***", fg="white", bg=generalColorsValues["plus"].get(), command=lambda element="plus": self._changeColor(generalColorsValues[element], generalPLUS)); generalPLUS.grid(column=1, row=1)
-        generalBG   = tk.Button(generalColorsFrames, text="***", fg="white", bg=generalColorsValues["bg"  ].get(), command=lambda element="bg"  : self._changeColor(generalColorsValues[element], generalBG  )); generalBG  .grid(column=1, row=0)
+        self.generalPLUS = tk.Button(generalColorsFrames, text="***", fg="white", bg=generalColorsValues["plus"].get(), command=lambda element="plus": self._changeColor(generalColorsValues[element], self.generalPLUS)); self.generalPLUS.grid(column=1, row=1)
+        self.generalBG   = tk.Button(generalColorsFrames, text="***", fg="white", bg=generalColorsValues["bg"  ].get(), command=lambda element="bg"  : self._changeColor(generalColorsValues[element], self.generalBG  )); self.generalBG  .grid(column=1, row=0)
 
         # --------- windowFrame -----------
         tk.Label      (windowFrame, text="Полноэкранный?"                                                            ).grid(column=0, row=0)
@@ -287,10 +358,10 @@ class MainMenu:
         tk.Label(mousesColorsFrame, text="Путь\nСгенерированный").grid(column=0, row=2)
         tk.Label(mousesColorsFrame, text="Путь\nИспытуемого"    ).grid(column=0, row=3)
 
-        mouseMOUSE  = tk.Button(mousesColorsFrame, text="***", fg="white", bg=mouseGraphicsColors["mouse" ].get(), command=lambda element="mouse"  : self._changeColor(mouseGraphicsColors[element], mouseMOUSE )); mouseMOUSE .grid(column=1, row=0)
-        mouseHOLE   = tk.Button(mousesColorsFrame, text="***", fg="white", bg=mouseGraphicsColors["hole"  ].get(), command=lambda element="hole"   : self._changeColor(mouseGraphicsColors[element], mouseHOLE  )); mouseHOLE  .grid(column=1, row=1)
-        mouseGTRAIL = tk.Button(mousesColorsFrame, text="***", fg="white", bg=mouseGraphicsColors["gtrail"].get(), command=lambda element="gtrail" : self._changeColor(mouseGraphicsColors[element], mouseGTRAIL)); mouseGTRAIL.grid(column=1, row=2)
-        mouseSTRAIL = tk.Button(mousesColorsFrame, text="***", fg="white", bg=mouseGraphicsColors["strail"].get(), command=lambda element="strail" : self._changeColor(mouseGraphicsColors[element], mouseSTRAIL)); mouseSTRAIL.grid(column=1, row=3)
+        self.mouseMOUSE  = tk.Button(mousesColorsFrame, text="***", fg="white", bg=mouseGraphicsColors["mouse" ].get(), command=lambda element="mouse"  : self._changeColor(mouseGraphicsColors[element], self.mouseMOUSE )); self.mouseMOUSE .grid(column=1, row=0)
+        self.mouseHOLE   = tk.Button(mousesColorsFrame, text="***", fg="white", bg=mouseGraphicsColors["hole"  ].get(), command=lambda element="hole"   : self._changeColor(mouseGraphicsColors[element], self.mouseHOLE  )); self.mouseHOLE  .grid(column=1, row=1)
+        self.mouseGTRAIL = tk.Button(mousesColorsFrame, text="***", fg="white", bg=mouseGraphicsColors["gtrail"].get(), command=lambda element="gtrail" : self._changeColor(mouseGraphicsColors[element], self.mouseGTRAIL)); self.mouseGTRAIL.grid(column=1, row=2)
+        self.mouseSTRAIL = tk.Button(mousesColorsFrame, text="***", fg="white", bg=mouseGraphicsColors["strail"].get(), command=lambda element="strail" : self._changeColor(mouseGraphicsColors[element], self.mouseSTRAIL)); self.mouseSTRAIL.grid(column=1, row=3)
 
     def drawTaskMenu(self, taskTab):
         # ======= Task Tab =====================
@@ -334,7 +405,7 @@ class MainMenu:
 
         taskSizesFrame   = tk.LabelFrame(taskGraphicsFrame, text="Размеры"                                                           ); taskSizesFrame  .grid(column=0, row=0, sticky="news")
         (                  tk.Label     (taskGraphicsFrame, text="Тип Шрифта"                                                        )                  .grid(column=0, row=1, sticky="news"))
-        taskFONTTYPE     = tk.Button    (taskGraphicsFrame, text=taskFontFamily.get(), command=lambda: self._changeFont(taskFONTTYPE)); taskFONTTYPE    .grid(column=1, row=1)
+        self.taskFONTTYPE     = tk.Button    (taskGraphicsFrame, text=taskFontFamily.get(), command=lambda: self._changeFont(self.askFONTTYPE)); self.taskFONTTYPE    .grid(column=1, row=1)
         taskColorsFrames = tk.LabelFrame(taskGraphicsFrame, text="Цвета"                                                             ); taskColorsFrames.grid(column=1, row=0, sticky="news")
 
         taskSizesSquares = tk.LabelFrame(taskSizesFrame, text="Квадраты"); taskSizesSquares.grid(column=0, columnspan=2, row=1, sticky="news")
@@ -353,9 +424,9 @@ class MainMenu:
         tk.Label(taskColorsFrames, text="Квадрат\nПравильно"  ).grid(column=0, row=3)
         tk.Label(taskColorsFrames, text="Квадрат\nНеправильно").grid(column=0, row=4)
 
-        taskFONT  = tk.Button(taskColorsFrames, text="***", fg="white", bg=taskColorsValues["font" ].get(), command=lambda element="font"  : self._changeColor(taskColorsValues[element], taskFONT )); taskFONT .grid(column=1, row=2)
-        taskRIGHT = tk.Button(taskColorsFrames, text="***", fg="white", bg=taskColorsValues["right"].get(), command=lambda element="right" : self._changeColor(taskColorsValues[element], taskRIGHT)); taskRIGHT.grid(column=1, row=3)
-        taskWRONG = tk.Button(taskColorsFrames, text="***", fg="white", bg=taskColorsValues["wrong"].get(), command=lambda element="wrong" : self._changeColor(taskColorsValues[element], taskWRONG)); taskWRONG.grid(column=1, row=4)
+        self.taskFONT  = tk.Button(taskColorsFrames, text="***", fg="white", bg=taskColorsValues["font" ].get(), command=lambda element="font"  : self._changeColor(taskColorsValues[element], self.taskFONT )); self.taskFONT .grid(column=1, row=2)
+        self.taskRIGHT = tk.Button(taskColorsFrames, text="***", fg="white", bg=taskColorsValues["right"].get(), command=lambda element="right" : self._changeColor(taskColorsValues[element], self.taskRIGHT)); self.taskRIGHT.grid(column=1, row=3)
+        self.taskWRONG = tk.Button(taskColorsFrames, text="***", fg="white", bg=taskColorsValues["wrong"].get(), command=lambda element="wrong" : self._changeColor(taskColorsValues[element], self.taskWRONG)); self.taskWRONG.grid(column=1, row=4)
         # ------- controlFrame ---------------------
         tk.Label      (taskControlFrame, text="Чувствительность\n(1 - размер квадрата)").grid(column=0, row=1)
         tk.Spinbox    (taskControlFrame, textvariable=taskControlConfig["sensitivity"], width=5, increment=0.1, from_=0.1, to=1).grid(column=1, row=1) 
@@ -396,7 +467,7 @@ class MainMenu:
 
         # ---------------------------
         tk.Label(pvtColorsFrames, text="Круг").grid(column=0, row=2)
-        pvtCIRCLE = tk.Button(pvtColorsFrames, text="***", fg="white", bg=pvtColorsValues["circle"].get(), command=lambda element="circle": self._changeColor(pvtColorsValues[element], pvtCIRCLE)); pvtCIRCLE.grid(column=1, row=2)
+        self.pvtCIRCLE = tk.Button(pvtColorsFrames, text="***", fg="white", bg=pvtColorsValues["circle"].get(), command=lambda element="circle": self._changeColor(pvtColorsValues[element], self.pvtCIRCLE)); self.pvtCIRCLE.grid(column=1, row=2)
         # ----------- timeDelays --------------------
         tk.Label  (pvtDelayFrame, text="Крест"                                                                       ).grid(column=0, row=0)
         tk.Label  (pvtDelayFrame, text="Минимальное\nвремя до круга"                                                ).grid(column=0, row=1)

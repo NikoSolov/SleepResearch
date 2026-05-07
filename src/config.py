@@ -57,7 +57,7 @@ CONFIG_STD = {
                 "radius": 40,
                 "speed": 8,
                 "maxDispersion": 0.5,
-                "minDispersion": 0
+                "minDispersion": 0.0
             },
             "colors": {
                 "mouse": "#ff0000",
@@ -134,37 +134,45 @@ CONFIG_STD = {
     }
 }
 
-CONFIG = {}
+CURRENT_CONFIG = {}
 
-
-# ------------------------------------------
 
 def loadConfig():
-    global CONFIG_STD, CONFIG
+    global CONFIG_STD, CURRENT_CONFIG
     # if "config" file doesn't exist, need to create them from standard set
     if os.path.exists("config.json"):
         print("config exists")
-        with open('config.json', 'r') as configFile:
-            updateConfig(json.load(configFile))
+        importConfig('config.json')
     else:
-        updateConfig(CONFIG_STD)
+        saveConfig(CONFIG_STD)
     # ---------------------------------------------------------------------------------------
 
+def saveConfig(new_config):
+    setConfig(new_config)
+    exportConfig('config.json')
 
-def updateConfig(config: dict):
-    global CONFIG
-    # print(f"Change to: {config}")
-    CONFIG.update(config)
-    # CONFIG = config
-    with open('config.json', 'w') as configFile:
-        json.dump(CONFIG, configFile, indent=4, ensure_ascii=False)
+def importConfig(filePath):
+    with open(filePath, 'r') as configFile:
+        setConfig(json.load(configFile))
+
+def exportConfig(filePath):
+    print(filePath)
+    with open(filePath, 'w') as configFile:
+        json.dump(getConfig(), configFile, indent=4, ensure_ascii=False)
 
 
 def getConfig():
-    global CONFIG
-    return CONFIG
+    global CURRENT_CONFIG
+    return CURRENT_CONFIG
 
+def setConfig(new_config: dict):
+    global CURRENT_CONFIG
+    CURRENT_CONFIG.update(new_config)
 
-def printOut():
-    global CONFIG
-    print(CONFIG)
+def resetConfig():
+    global CONFIG_STD
+    saveConfig(CONFIG_STD)
+
+def printConfig():
+    global CURRENT_CONFIG
+    print(CURRENT_CONFIG)
