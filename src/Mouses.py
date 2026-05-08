@@ -1,13 +1,12 @@
 import time
 from enum import Enum, auto
-import pygame as pg
 import config as cfg
 from lightSensor import LightSensor
 from alarm import Alarm
 from trigger import Trigger, TimeStamp
 from excelTools import ExcelTable
 from timer import Timer
-from graphics import Graphics
+from graphics import Graphics, GraphicsEvents
 from VectorLogger import VectorLogger
 from MouseMechanics import MouseMechanics
 from icecream import ic
@@ -103,27 +102,24 @@ def run():
     Ball = MouseMechanics()
 
     while run:
-        for event in pg.event.get():
-            # -------- Hard Quitting ------------
-            if event.type == pg.QUIT or (
-                    event.type == pg.KEYDOWN and event.key == pg.K_ESCAPE):
-                run = False
-            # -------- Manual TimeStamp ---------
-            if event.type == pg.KEYDOWN and event.key == pg.K_SPACE:
-                trigger.send(TimeStamp.manualStamp)
-            # -------- Mouse process ------------
-            if event.type == pg.MOUSEWHEEL and status == Event.answer:
-                if Ball.isOutWaitZone() and roundStats["reactionTime"] == 0:
-                    roundStats["reactionTime"] = roundTimer.getDelta()
-                    trigger.send(TimeStamp.userInput)
-                # wait until mouse passes WaitZone
-                if Ball.isOutWaitZone():
-                    vecLogger.drawNotch(
-                        Ball.getPartial(), 
-                        -INVERSE * SENSITIVITY * event.y
-                    )
-                    Ball.drag(-INVERSE * SENSITIVITY * event.y)
-                    roundStats["notches"] += 1
+        events = MousesGraphics.get_events()
+        if GraphicsEvents.windowClose in events:
+            run = False
+        if GraphicsEvents.spacePressed in events:
+            trigger.send(TimeStamp.manualStamp)
+        if (GraphicsEvents.mouseWheel in events) and status == Event.answer:
+            drag = MousesGraphics.get_wheel()
+            if Ball.isOutWaitZone() and roundStats["reactionTime"] == 0:
+                roundStats["reactionTime"] = roundTimer.getDelta()
+                trigger.send(TimeStamp.userInput)
+            # wait until mouse passes WaitZone
+            if Ball.isOutWaitZone():
+                vecLogger.drawNotch(
+                    Ball.getPartial(), 
+                    -INVERSE * SENSITIVITY * drag
+                )
+                Ball.drag(-INVERSE * SENSITIVITY * drag)
+                roundStats["notches"] += 1
         
         if not run:
             # ------- draw last position -------

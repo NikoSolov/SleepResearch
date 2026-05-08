@@ -1,14 +1,13 @@
 import time
 from enum import Enum, auto
 from random import uniform as rd
-import pygame as pg
 import config as cfg
 from lightSensor import LightSensor
 from alarm import Alarm
 from trigger import Trigger, TimeStamp
 from excelTools import ExcelTable
 from timer import Timer
-from graphics import Graphics
+from graphics import Graphics, GraphicsEvents
 
 def run():
     # ======== Load Configs ====================
@@ -72,36 +71,35 @@ def run():
     stageTimer = Timer()
 
     while run:
-        for event in pg.event.get():
-            if event.type == pg.QUIT or (
-                    event.type == pg.KEYDOWN and event.key == pg.K_ESCAPE):
-                run = False
-            if event.type == pg.KEYDOWN and event.key == pg.K_SPACE:
-                trigger.send(TimeStamp.manualStamp)
-            if event.type == pg.MOUSEBUTTONDOWN:
-                print("Clicked")
-                trigger.send(TimeStamp.userInput)
-                if (
-                    (status == Event.Plus or status == Event.Empty)
-                        and reactions["wrongAnswer"] is None
-                ):
-                    reactions["wrongAnswer"] = stageTimer.getDelta()
-                    stageTimer.setTimer()
-                    status = Event.MSI
+        events = PVTGraphics.get_events()
+        if GraphicsEvents.windowClose in events:
+            run = False
+        if GraphicsEvents.spacePressed in events:
+            trigger.send(TimeStamp.manualStamp)
+        if GraphicsEvents.mousePressed in events:
+            print("Clicked")
+            trigger.send(TimeStamp.userInput)
+            if (
+                (status == Event.Plus or status == Event.Empty)
+                    and reactions["wrongAnswer"] is None
+            ):
+                reactions["wrongAnswer"] = stageTimer.getDelta()
+                stageTimer.setTimer()
+                status = Event.MSI
 
-                elif (
-                    (status == Event.Circle or status == Event.MSI)
-                    and reactions["rightAnswer"] is None
-                ):
+            elif (
+                (status == Event.Circle or status == Event.MSI)
+                and reactions["rightAnswer"] is None
+            ):
 
-                    reactions["rightAnswer"] = stageTimer.getDelta()
-                    stageTimer.setTimer()
+                reactions["rightAnswer"] = stageTimer.getDelta()
+                stageTimer.setTimer()
 
-                    if status == Event.MSI:
-                        reactions["MSI"] = True
-                        reactions["rightAnswer"] += ANSWER_TIME
-                    status = Event.MSI
-                print(reactions)
+                if status == Event.MSI:
+                    reactions["MSI"] = True
+                    reactions["rightAnswer"] += ANSWER_TIME
+                status = Event.MSI
+            print(reactions)
 
         PVTGraphics.drawPVT(status, Event)
         # ---------- Siren Plays ----------------

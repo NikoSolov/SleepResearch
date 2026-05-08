@@ -1,14 +1,13 @@
 import time
 from enum import Enum, auto
 from random import choice, randint, sample, shuffle
-import pygame as pg
 import config as cfg
 from lightSensor import LightSensor
 from alarm import Alarm
 from trigger import Trigger, TimeStamp
 from excelTools import ExcelTable
 from timer import Timer
-from graphics import Graphics
+from graphics import Graphics, GraphicsEvents
 from icecream import ic
 
 def run():
@@ -156,20 +155,21 @@ def run():
     genChoices = gen(ROUND, 3)
 
     while run:
-        for event in pg.event.get():
-            if event.type == pg.QUIT or (
-                    event.type == pg.KEYDOWN and event.key == pg.K_ESCAPE):
-                run = False
-            if event.type == pg.KEYDOWN and event.key == pg.K_SPACE:
-                trigger.send(TimeStamp.manualStamp)
-            if event.type == pg.MOUSEWHEEL and status == Event.Answer:
-                notch = event.y * INV
-                rightLevel, wrongLevel = (
-                    (rightLevel + SENSE * notch, 0)  
-                    if (notch > 0) else 
-                    (0, wrongLevel - SENSE * notch)
-                )
-                # print(rightLevel, wrongLevel)
+        events = TasksGraphics.get_events()
+
+        if GraphicsEvents.windowClose in events:
+            run = False
+        if GraphicsEvents.spacePressed in events:
+            trigger.send(TimeStamp.manualStamp)
+        if (GraphicsEvents.mouseWheel in events) and status == Event.Answer:
+            drag = TasksGraphics.get_wheel()
+            notch = drag * INV
+            rightLevel, wrongLevel = (
+                (rightLevel + SENSE * notch, 0)  
+                if (notch > 0) else 
+                (0, wrongLevel - SENSE * notch)
+            )
+            # print(rightLevel, wrongLevel)
 
         TasksGraphics.drawTasks(status, Event, shownEquationText, rightLevel, wrongLevel)
 

@@ -1,5 +1,4 @@
 from enum import Enum, auto
-import pygame as pg
 import config as cfg
 from alarm import Alarm
 from trigger import Trigger, TimeStamp
@@ -7,7 +6,7 @@ from lightSensor import LightSensor
 from timer import Timer
 from excelTools import ExcelTable
 import time
-from graphics import Graphics
+from graphics import Graphics, GraphicsEvents
 
 def run():
     # ======== Load Configs ====================
@@ -40,14 +39,13 @@ def run():
     run = True
 
     while run:
-        for event in pg.event.get():
-            if event.type == pg.QUIT or (
-                    event.type == pg.KEYDOWN and event.key == pg.K_ESCAPE):
-                run = False
-            if event.type == pg.MOUSEBUTTONDOWN:
-                trigger.send(TimeStamp.userInput)
-            if event.type == pg.KEYDOWN and event.key == pg.K_SPACE:
-                trigger.send(TimeStamp.manualStamp)
+        events = ControlGraphics.get_events()
+        if GraphicsEvents.windowClose in events:
+            run = False
+        if GraphicsEvents.mousePressed in events:
+            trigger.send(TimeStamp.userInput)
+        if GraphicsEvents.spacePressed in events:
+            trigger.send(TimeStamp.manualStamp)
 
         ControlGraphics.drawControl(status, Event)
 
