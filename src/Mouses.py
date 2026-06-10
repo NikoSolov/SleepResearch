@@ -65,7 +65,7 @@ def run():
 
     vecLogger = VectorLogger(f"result/{DIR_NAME}")
 
-    trigger = Trigger()
+    trigger = Trigger(lightSensor)
     trigger.update(MousesTable, "TimeStamps")
     alarm = Alarm(trigger)
 
@@ -136,7 +136,7 @@ def run():
                 if alarm.isDone():
                     status = Event.init
             case Event.init:
-                lightSensor.pulse()
+                # lightSensor.pulse()
 
                 MousesTable.createPage(f"Trajectories_{groupCounter + 1}_{trialCounter + 1}")
                 # ------- Default Headers-------------

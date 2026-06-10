@@ -44,7 +44,7 @@ def run():
         "E2":    "at MSI?",
     })
 
-    trigger = Trigger()
+    trigger = Trigger(lightSensor)
     trigger.update(PVTTable, "TimeStamps")
     alarm = Alarm(trigger)
 
@@ -112,7 +112,7 @@ def run():
 
             case Event.StartTrail:
                 trigger.send(TimeStamp.startPVT)
-                lightSensor.pulse()
+                # lightSensor.pulse()
                 stageTimer.setTimer()
                 status = Event.Plus
 

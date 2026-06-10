@@ -16,7 +16,7 @@ class TimeStamp:
     manualStamp = 9
 
 class Trigger():
-    def __init__(self):
+    def __init__(self, lightSensor=None):
         cfg.loadConfig()
         config = cfg.getConfig()
         print(config["general"]["timeStamps"])
@@ -29,6 +29,7 @@ class Trigger():
         self.loggerCount = 0
         self.firstStamp = None
         self.deltaTime = None
+        self.lightSensor = lightSensor
 
     def test(self):
         if self.portWork and self.timeCode.is_open:
@@ -42,6 +43,8 @@ class Trigger():
                 return
 
     def send(self, number: int):
+        if self.lightSensor is not None:
+            self.lightSensor.pulse()
         if self.TRIGGER_ENABLE and self.portWork and self.timeCode.is_open:
             ic("triggerSend")
             try:

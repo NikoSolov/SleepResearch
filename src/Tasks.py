@@ -63,7 +63,7 @@ def run():
     })
 
     TasksTable.createPage("TimeStamps")
-    trigger = Trigger()
+    trigger = Trigger(lightSensor)
     trigger.update(TasksTable, "TimeStamps")
     alarm = Alarm(trigger)
 
@@ -182,7 +182,7 @@ def run():
                     stageTimer.setTimer()
                     status = Event.Plus
                     # -------- stopSiren ---------------
-                    lightSensor.pulse()
+                    # lightSensor.pulse()
 
             # ---------- Plus ----------------
             case Event.Plus:
@@ -303,7 +303,7 @@ def run():
                     # ======== Change Event ==================
                     stageTimer.setTimer()
                     status = Event.Plus
-                    lightSensor.pulse()
+                    # lightSensor.pulse()
                     roundCounter += 1
                     # trigger.send(TimeStamp.startTask)
 

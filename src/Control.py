@@ -23,11 +23,11 @@ def run():
 
     ControlTable = ExcelTable("result", f"{DIR_NAME}.xlsx")
     ControlTable.createPage("TimeStamps")
-    trigger = Trigger()
+    lightSensor = LightSensor()
+    trigger = Trigger(lightSensor)
     trigger.update(ControlTable, "TimeStamps")
     alarm = Alarm(trigger)
     # -------------------
-    lightSensor = LightSensor()
     ControlGraphics = Graphics("Control", lightSensor)
     # --------- Vars ----------
     class Event(Enum):
@@ -58,7 +58,7 @@ def run():
                     stageTimer.setTimer()
                     status = Event.Plus
                     trigger.send(TimeStamp.startControl)
-                    lightSensor.pulse()
+                    # lightSensor.pulse()
             case Event.Plus:
                 if stageTimer.wait(PLUS_TIME):
                     run = False

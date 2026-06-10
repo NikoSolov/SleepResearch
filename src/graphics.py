@@ -11,6 +11,7 @@ class GraphicsEvents(Enum):
 
 class Sound():
     def __init__(self, volume, freq):
+        pg.mixer.init()
         self.WAVE_DATA = numpy.array([
             32767 * numpy.sin(2.0 * numpy.pi * freq * x / 44100) 
             for x in range(0, 44100)
@@ -32,7 +33,6 @@ class Graphics():
         if program == "Equation":
             pg.font.init()
         
-        pg.mixer.init()
         # ------------------------------
         self.WIN_SIZE = pg.Vector2([
             config["general"]["window"]["width"], 
