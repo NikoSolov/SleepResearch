@@ -18,7 +18,7 @@ CONFIG_STD = {
         "alarm": {
             "enable": True,
             "freq": 440,
-            "volume": 4096,
+            "volume": 100,
             "duration": 1.5
         },
         "timeStamps": {

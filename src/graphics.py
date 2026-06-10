@@ -11,12 +11,18 @@ class GraphicsEvents(Enum):
 
 class Sound():
     def __init__(self, volume, freq):
-        self.WAVE_DATA = numpy.array([volume * numpy.sin(2.0 * numpy.pi * freq * x / 44100) for x in range(0, 44100)]).astype(numpy.int16)
+        self.WAVE_DATA = numpy.array([
+            32767 * numpy.sin(2.0 * numpy.pi * freq * x / 44100) 
+            for x in range(0, 44100)
+        ]).astype(numpy.int16)
         self.sound = pg.sndarray.make_sound(numpy.c_[self.WAVE_DATA, self.WAVE_DATA])
+        self.sound.set_volume(volume / 100.0)
     def play(self):
         self.sound.play(-1)
     def stop(self):
         self.sound.stop()
+    def update(self):
+        pass
 
 class Graphics():
     def __init__(self, program, lightSensor):
@@ -215,21 +221,22 @@ class Graphics():
         pg.quit()
 
     def get_events(self):
-        self.graphics_events = []
+        graphics_events = []
         for event in pg.event.get():
             # -------- Hard Quitting ------------
             if event.type == pg.QUIT or (event.type == pg.KEYDOWN and event.key == pg.K_ESCAPE):
-                self.graphics_events.append(GraphicsEvents.windowClose)
+                graphics_events.append(GraphicsEvents.windowClose)
             # -------- Manual TimeStamp ---------
             if event.type == pg.KEYDOWN and event.key == pg.K_SPACE:
-                self.graphics_events.append(GraphicsEvents.spacePressed)
+                graphics_events.append(GraphicsEvents.spacePressed)
             # -------- Mouse process ------------
             if event.type == pg.MOUSEBUTTONDOWN:
-                self.graphics_events.append(GraphicsEvents.mousePressed)
+                graphics_events.append(GraphicsEvents.mousePressed)
             if event.type == pg.MOUSEWHEEL:
-                self.graphics_events.append(GraphicsEvents.mouseWheel)
+                graphics_events.append(GraphicsEvents.mouseWheel)
                 self.mouseWheel = event.y
-        return self.graphics_events
+        print(graphics_events)
+        return graphics_events
 
     def get_wheel(self):
         return self.mouseWheel

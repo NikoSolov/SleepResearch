@@ -5,7 +5,7 @@ from tkinter.colorchooser import askcolor
 from tkfontchooser import askfont
 import config as cfg
 from trigger import Trigger
-from icecream import ic
+
 class MainMenu:
     def __init__(self):
         self.result = None
@@ -85,7 +85,8 @@ class MainMenu:
                     size=self.valueFrames["Equation"]["graphics"]["sizes"]["font"].get())
         if font != "":
             button.config(text=font["family"])
-            self.valueFrames["Equation"]["graphics"]["font"].set(font["family"])
+            self.valueFrames["Equation"]["graphics"]["font"         ].set(font["family"])
+            self.valueFrames["Equation"]["graphics"]["sizes"]["font"].set(font["size"  ])
 
     def _selectImportConfig(self):
         filetypes = (('.json файлы', '*.json'), ('Все файлы', '*.*'))
@@ -405,7 +406,7 @@ class MainMenu:
 
         taskSizesFrame   = tk.LabelFrame(taskGraphicsFrame, text="Размеры"                                                           ); taskSizesFrame  .grid(column=0, row=0, sticky="news")
         (                  tk.Label     (taskGraphicsFrame, text="Тип Шрифта"                                                        )                  .grid(column=0, row=1, sticky="news"))
-        self.taskFONTTYPE     = tk.Button    (taskGraphicsFrame, text=taskFontFamily.get(), command=lambda: self._changeFont(self.askFONTTYPE)); self.taskFONTTYPE    .grid(column=1, row=1)
+        self.taskFONTTYPE     = tk.Button    (taskGraphicsFrame, text=taskFontFamily.get(), command=lambda: self._changeFont(self.taskFONTTYPE)); self.taskFONTTYPE    .grid(column=1, row=1)
         taskColorsFrames = tk.LabelFrame(taskGraphicsFrame, text="Цвета"                                                             ); taskColorsFrames.grid(column=1, row=0, sticky="news")
 
         taskSizesSquares = tk.LabelFrame(taskSizesFrame, text="Квадраты"); taskSizesSquares.grid(column=0, columnspan=2, row=1, sticky="news")

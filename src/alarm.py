@@ -23,6 +23,7 @@ class Alarm():
             self.sound.play()
             self.playFlag = True
             self.sirenTimer.setTimer()
+        self.sound.update()
 
     def isDone(self):
         if not int(self.TONE["enable"]) or (self.playFlag and self.sirenTimer.wait(self.TONE["duration"])):
