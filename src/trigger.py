@@ -43,7 +43,7 @@ class Trigger():
                 return
 
     def send(self, number: int):
-        if self.lightSensor is not None:
+        if self.lightSensor is not None and number in [TimeStamp.startMouse, TimeStamp.startTask, TimeStamp.startPVT, TimeStamp.startControl]:
             self.lightSensor.pulse()
         if self.TRIGGER_ENABLE and self.portWork and self.timeCode.is_open:
             ic("triggerSend")
