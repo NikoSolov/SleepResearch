@@ -102,18 +102,27 @@ def run():
         }
     }
 
-    def gen(length, repeats):
+    def genBool(length, repeats):
         while True:
             a = [True]*(length//2) + [False]*(length//2)
             shuffle(a)
             if not any(all(a[i]==a[i+j] for j in range(repeats+1)) for i in range(length-repeats)):
                 return a
+    def compareInt(int1, int2):
+        return (int1//10 == 0 and int2//10 == 0) or (int1//10 != 0 and int2//10 != 0)
 
-    def equationGenerator(equationScore: bool, termCount: int = 2):
+    def genInt(length, repeats):
+        while True:
+            a = [randint(10, 50) for _ in range(length//2)] + [randint(1, 9) for _ in range(length//2)]
+            shuffle(a)
+            if not any(all(compareInt(a[i], a[i+j]) for j in range(repeats+1)) for i in range(length-repeats)):
+                return a
+
+    def equationGenerator(equationScore: bool, firstTerm: int, termCount: int = 2):
         ic(equationScore)
         while True:
-            firstTerm = [choice([randint(1, 9), randint(10, 50)])]
-            term = firstTerm + sample(range(1, 9), termCount - 1)
+            # firstTerm = [choice([randint(1, 9), randint(10, 50)])]
+            term = [firstTerm] + sample(range(1, 9), termCount - 1)
             ic(term)
             if equationScore:
                 term.append(sum(term))
@@ -152,7 +161,8 @@ def run():
 
         return equationText
 
-    genChoices = gen(ROUND, 3)
+    genChoices = genBool(ROUND, 3)
+    genFirstTerms = genInt(ROUND, 3)
 
     while run:
         events = TasksGraphics.get_events()
@@ -199,7 +209,8 @@ def run():
                         equationScore = bool(int(lineFile[1]))
                     else:
                         equationScore = genChoices[roundCounter - 1]
-                        equationText = equationGenerator(equationScore, TERM_COUNT)
+                        equationFirstTerm = genFirstTerms[roundCounter - 1]
+                        equationText = equationGenerator(equationScore, equationFirstTerm, TERM_COUNT)
 
                     textParts = equationText.split("+")
 
